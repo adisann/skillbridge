@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "./client";
 import { clearDedupedCache } from "@/lib/fetcher";
 
-export interface AuthProfile {
+interface AuthProfile {
   id: string;
   email: string;
   fullName: string;
@@ -19,6 +19,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
   login: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
+  loginDemo: () => Promise<void>;
   loginDemoJuri: () => Promise<void>;
   loginDemoAdmin: () => Promise<void>;
   register: (email: string, pass: string, name: string) => Promise<{ success: boolean; error?: string }>;
@@ -28,22 +29,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const DEMO_JURI_USER: AuthProfile = {
-  id: "00000000-0000-0000-0000-000000000001",
-  email: "juri@skillbridge.demo",
-  fullName: "Budi Pratama",
-  role: "user",
-  targetRole: "Data Analyst",
-};
-
-export const DEMO_ADMIN_USER: AuthProfile = {
-  id: "00000000-0000-0000-0000-000000000002",
-  email: "admin@skillbridge.demo",
-  fullName: "Administrator SkillBridge",
-  role: "admin",
-  targetRole: "Data Analyst",
-};
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthProfile | null>(null);
@@ -278,6 +263,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated,
         isAdmin,
         login,
+        loginDemo: loginDemoJuri,
         loginDemoJuri,
         loginDemoAdmin,
         register,

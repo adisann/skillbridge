@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { calculateJobMatch } from "../src/lib/matching.ts";
+import { calculateJobMatch, getDisplayScore } from "../src/lib/matching.ts";
 
 test("Matching Engine Tests (AC-02, AC-05, AC-06)", async (t) => {
   await t.test("Skenario 1: Budi Pratama menghasilkan status Match (AC-05)", () => {
@@ -90,6 +90,15 @@ test("Matching Engine Tests (AC-02, AC-05, AC-06)", async (t) => {
     );
 
     assert.equal(result.matchStatus, "insufficient_evidence", "CV tanpa data skill harus menghasilkan 'insufficient_evidence'");
+  });
+
+  await t.test("Skenario 4b: Insufficient Evidence tidak menampilkan skor", () => {
+    const job = { title: "Data Analyst", canonicalTitle: "Data Analyst", requiredSkills: ["SQL"], experienceYearsMin: 1 };
+    const empty = calculateJobMatch({ skills: [], experienceYears: 0, education: null, targetRole: "Data Analyst" }, job);
+    assert.equal(getDisplayScore(empty), null, "Status insufficient_evidence harus tanpa skor");
+
+    const filled = calculateJobMatch({ skills: ["SQL"], experienceYears: 2, education: null, targetRole: "Data Analyst" }, job);
+    assert.equal(getDisplayScore(filled), filled.score, "Status lain tetap menampilkan skor");
   });
 
   await t.test("Skenario 5: AC-02 Pembagian Kualifikasi menjadi Cocok, Belum Ditemukan, dan Belum Cukup Bukti", () => {

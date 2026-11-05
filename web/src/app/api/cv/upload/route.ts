@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { uploadToR2 } from "@/lib/r2";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
+import { enforceRateLimits, getClientIp } from "@/lib/rate-limit";
+import { cvUploadRules } from "@/lib/rate-limit-policies";
 
 const ALLOWED_MIME_TYPES = [
   "application/pdf",
@@ -8,28 +10,11 @@ const ALLOWED_MIME_TYPES = [
   "application/msword",
   "text/plain",
 ];
-const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
-
-const PRESET_RESUMES = {
-  match: {
-    candidateName: "Budi Pratama",
-    filename: "CV_Budi_Pratama_DataAnalyst.pdf",
-    education: "S1 Matematika & Statistika, Universitas Indonesia",
-    experienceYears: 2,
-    summary:
-      "Data Analyst dengan 2 tahun pengalaman di fintech. Terbiasa mengelola pipeline SQL harian, visualisasi Tableau & Power BI, serta analisis prediktif berbasis Python.",
-    skills: ["SQL", "Python", "Tableau", "Power BI", "Excel", "Statistics", "A/B Testing", "Data Modeling"],
-  },
-  underqualified: {
-    candidateName: "Rina Kusuma (Underqualified)",
-    filename: "CV_Rina_Kusuma_Junior.pdf",
-    education: "D3 Administrasi Perkantoran",
-    experienceYears: 0,
-    summary:
-      "Fresh graduate administrasi perkantoran dengan keahlian operasional dasar komputer dan entri data administratif. Tertarik beralih karir ke bidang data.",
-    skills: ["Excel", "Canva", "Google Docs", "Data Entry"],
-  },
-};
+// Batas 4 MB: body request fungsi serverless Vercel maksimal 4,5 MB
+const MAX_FILE_SIZE_BYTES = 4 * 1024 * 1024;
+const MAX_PDF_PAGES = 10;
+const PDF_SIGNATURE = "%PDF-";
+const ZIP_SIGNATURE = "PK";
 
 export async function POST(req: NextRequest) {
   try {
@@ -41,33 +26,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const limited = await enforceRateLimits(cvUploadRules(getClientIp(req), user.id));
+    if (limited) return limited;
+
     const formData = await req.formData();
-    const preset = formData.get("preset") as string | null;
-
-    // Skenario 1-Klik CV Contoh untuk Demo Juri (AC-05)
-    if (preset && (preset === "match" || preset === "underqualified")) {
-      const selected = PRESET_RESUMES[preset];
-      const mockKey = `demo/${selected.filename}`;
-      const { presignedUrl } = await uploadToR2(
-        Buffer.from("CV Contoh Simulasi"),
-        mockKey,
-        "application/pdf"
-      );
-
-      return NextResponse.json({
-        success: true,
-        candidateName: selected.candidateName,
-        filename: selected.filename,
-        fileUrl: presignedUrl,
-        r2Key: mockKey,
-        education: selected.education,
-        experienceYears: selected.experienceYears,
-        summary: selected.summary,
-        skills: selected.skills,
-        isPreset: true,
-      });
-    }
-
     const file = formData.get("file") as File | null;
     if (!file) {
       return NextResponse.json(
@@ -79,7 +41,7 @@ export async function POST(req: NextRequest) {
     // 1. Validasi Ukuran Berkas di Sisi Server (NFR-06)
     if (file.size > MAX_FILE_SIZE_BYTES) {
       return NextResponse.json(
-        { error: `Ukuran berkas (${(file.size / 1024 / 1024).toFixed(1)} MB) melebihi batas maksimal 5 MB.` },
+        { error: `Ukuran berkas (${(file.size / 1024 / 1024).toFixed(1)} MB) melebihi batas maksimal 4 MB.` },
         { status: 400 }
       );
     }
@@ -94,26 +56,37 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. Simpan ke Cloudflare R2 Bucket Privat
+    // 3. Validasi isi berkas (signature), bukan hanya nama/MIME yang bisa dipalsukan
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    const safeKey = `resumes/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
-    const { presignedUrl } = await uploadToR2(buffer, safeKey, file.type || "application/pdf");
+    const isPdfFile = fileName.endsWith(".pdf") || file.type === "application/pdf";
+    const isDocxFile =
+      fileName.endsWith(".docx") ||
+      file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    if (isPdfFile && buffer.toString("latin1", 0, 5) !== PDF_SIGNATURE) {
+      return NextResponse.json({ error: "Isi berkas bukan PDF yang valid." }, { status: 400 });
+    }
+    if (isDocxFile && buffer.toString("latin1", 0, 2) !== ZIP_SIGNATURE) {
+      return NextResponse.json({ error: "Isi berkas bukan DOCX yang valid." }, { status: 400 });
+    }
 
     // 4. Ekstraksi Profil & Kualifikasi (Teks CV tidak masuk log sesuai NFR-02 & NFR-06)
     let extractedText = "";
-    if (fileName.endsWith(".pdf") || file.type === "application/pdf") {
+    if (isPdfFile) {
       try {
         const { extractText } = await import("unpdf");
         const pdfData = await extractText(new Uint8Array(buffer));
+        if (pdfData.totalPages > MAX_PDF_PAGES) {
+          return NextResponse.json(
+            { error: `CV terlalu panjang (${pdfData.totalPages} halaman). Maksimal ${MAX_PDF_PAGES} halaman.` },
+            { status: 400 }
+          );
+        }
         extractedText = Array.isArray(pdfData.text) ? pdfData.text.join("\n") : (pdfData.text || "");
       } catch {
         extractedText = buffer.toString("utf-8", 0, Math.min(buffer.length, 65536));
       }
-    } else if (
-      fileName.endsWith(".docx") ||
-      file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    ) {
+    } else if (isDocxFile) {
       try {
         const mammoth = await import("mammoth");
         const mammothResult = await mammoth.extractRawText({ buffer });
@@ -136,6 +109,10 @@ export async function POST(req: NextRequest) {
         { status: 422 }
       );
     }
+
+    // 5. Simpan ke Cloudflare R2 Bucket Privat, hanya setelah berkas lolos semua validasi
+    const safeKey = `resumes/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+    const { presignedUrl } = await uploadToR2(buffer, safeKey, file.type || "application/pdf");
 
     const lowerText = extractedText.toLowerCase();
 
@@ -241,7 +218,6 @@ export async function POST(req: NextRequest) {
       experienceYears,
       summary,
       skills: finalSkills,
-      isPreset: false,
     });
   } catch (error: unknown) {
     const err = error as Error;

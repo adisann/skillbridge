@@ -36,7 +36,8 @@ import {
   MetricCard,
   JobCard,
 } from "@/components/ui/card";
-import { FilterBar, FilterState } from "@/components/ui/filter";
+import { FilterBar } from "@/components/ui/filter";
+import type { FilterState } from "@/lib/job-filters";
 import { DataTable, Column } from "@/components/ui/table";
 import { MarketSkillBarChart, MarketSkillItem } from "@/components/ui/chart";
 import { EmptyState } from "@/components/ui/empty-state";

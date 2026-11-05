@@ -1,5 +1,5 @@
 import pytest
-from worker.pipeline.clean import clean_html_text
+from worker.pipeline.clean import clean_html_text, normalize_bullets
 from worker.pipeline.dedupe import compute_content_hash, Deduplicator
 from worker.pipeline.extract import extract_job_details_rule_based
 from worker.pipeline.normalize import normalize_skill_name, normalize_skills_list
@@ -12,6 +12,19 @@ def test_clean_html_text():
     assert "Hello World" in cleaned
     assert "SQL" in cleaned
     assert "Python" in cleaned
+
+
+def test_clean_html_text_unescapes_greenhouse_content():
+    escaped = "&lt;div&gt;&lt;p&gt;Analyze data &amp;amp; build dashboards&lt;/p&gt;&lt;ul&gt;&lt;li&gt;SQL&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;"
+    cleaned = clean_html_text(escaped)
+    assert "<" not in cleaned and "&lt;" not in cleaned
+    assert "Analyze data & build dashboards" in cleaned
+    assert "• SQL" in cleaned
+
+
+def test_normalize_bullets_joins_lonely_bullet_with_text():
+    raw = "Tugas:\n\n•\nAnalisis data penjualan\n\n•\nBuat dashboard : ringkas , jelas\n\nSyarat"
+    assert normalize_bullets(raw) == "Tugas:\n\n• Analisis data penjualan\n• Buat dashboard: ringkas, jelas\n\nSyarat"
 
 
 def test_normalize_skills():

@@ -11,7 +11,7 @@ export interface Column<T> {
   className?: string;
 }
 
-export interface DataTableProps<T> {
+interface DataTableProps<T> {
   columns: Column<T>[];
   data: T[];
   keyExtractor: (row: T, index: number) => string | number;

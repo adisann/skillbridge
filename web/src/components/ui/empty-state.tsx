@@ -3,7 +3,7 @@ import { FolderSearch } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 
-export interface EmptyStateProps {
+interface EmptyStateProps {
   title: string;
   description: string;
   icon?: React.ReactNode;

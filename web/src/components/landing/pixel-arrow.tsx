@@ -1,62 +1,108 @@
 import React from "react";
+import { cn } from "@/lib/utils";
 
-// Chevron and stem pixel arrow layout (coordinates: [col, row, i_from_bottom])
-export const PIXEL_ARROW_BLOCKS = [
-  // Chevron tip (row 0, i=7)
-  { col: 3, row: 0, i: 7, color: "bg-sb-sky" },
-  // Row 1 (i=6)
-  { col: 2, row: 1, i: 6, color: "bg-sb-sky" },
-  { col: 4, row: 1, i: 6, color: "bg-sb-mist" },
-  // Row 2 (i=5)
-  { col: 1, row: 2, i: 5, color: "bg-sb-mist" },
-  { col: 5, row: 2, i: 5, color: "bg-sb-sky" },
-  // Row 3 (i=4)
-  { col: 0, row: 3, i: 4, color: "bg-sb-sky" },
-  { col: 6, row: 3, i: 4, color: "bg-sb-mist" },
-  // Stem (rows 4 to 8, i=3 down to 0)
-  { col: 3, row: 4, i: 3, color: "bg-sb-sky" },
-  { col: 3, row: 5, i: 2, color: "bg-sb-mist" },
-  { col: 3, row: 6, i: 1, color: "bg-sb-sky" },
-  { col: 3, row: 7, i: 0, color: "bg-sb-mist" },
+interface PixelBlock {
+  col: number; // 0 sampai 6 (kolom tengah = 3)
+  row: number; // 0 sampai 8
+}
+
+/**
+ * Peta grid eksplisit 7 kolom x 9 baris (simetris, tanpa celah):
+ * row0: . . . X . . .
+ * row1: . . X X X . .
+ * row2: . X . X . X .
+ * row3: X . . X . . X
+ * row4: . . . X . . .
+ * row5: . . . X . . .
+ * row6: . . . X . . .
+ * row7: . . . X . . .
+ * row8: . . . X . . .
+ *
+ * Kolom tengah (col=3) utuh dari row0 s.d. row8 sehingga kepala dan batang menyambung.
+ */
+const PIXEL_ARROW_GRID: PixelBlock[] = [
+  // row 0: puncak panah
+  { row: 0, col: 3 },
+  // row 1: sayap dalam + tengah
+  { row: 1, col: 2 },
+  { row: 1, col: 3 },
+  { row: 1, col: 4 },
+  // row 2: sayap tengah + batang
+  { row: 2, col: 1 },
+  { row: 2, col: 3 },
+  { row: 2, col: 5 },
+  // row 3: ujung sayap terluar + batang
+  { row: 3, col: 0 },
+  { row: 3, col: 3 },
+  { row: 3, col: 6 },
+  // row 4 - 8: batang tengah lurus ke bawah
+  { row: 4, col: 3 },
+  { row: 5, col: 3 },
+  { row: 6, col: 3 },
+  { row: 7, col: 3 },
+  { row: 8, col: 3 },
 ];
+
+interface PixelArrowProps {
+  delay?: string;
+  className?: string;
+  px?: number; // ukuran kotak dalam px (default 12 di hero, 18 di penutup)
+  gap?: number; // celah antar kotak dalam px (default 4 di hero, 5 di penutup)
+  style?: React.CSSProperties;
+}
 
 export function PixelArrow({
   delay = "0s",
   className = "",
-  scale = 1,
-}: {
-  delay?: string;
-  className?: string;
-  scale?: number;
-}) {
+  px = 12,
+  gap = 4,
+  style,
+}: PixelArrowProps) {
   return (
     <div
-      className={`sb-arrow absolute pointer-events-none ${className}`}
-      style={{ animationDelay: delay }}
+      className={cn("sb-arrow pointer-events-none select-none", className)}
+      style={{
+        animationDelay: delay,
+        ["--px" as string]: `${px}px`,
+        ["--gap" as string]: `${gap}px`,
+        ...style,
+      }}
       aria-hidden="true"
     >
       <div
-        className="relative w-[84px] h-[104px]"
-        style={
-          scale !== 1
-            ? {
-                transform: `scale(${scale})`,
-                transformOrigin: "bottom center",
-              }
-            : undefined
-        }
+        className="grid"
+        style={{
+          gridTemplateColumns: "repeat(7, var(--px))",
+          gridTemplateRows: "repeat(9, var(--px))",
+          gap: "var(--gap)",
+          width: "fit-content",
+          height: "fit-content",
+        }}
       >
-        {PIXEL_ARROW_BLOCKS.map((b, idx) => (
-          <span
-            key={idx}
-            className={`sb-box-pulse absolute w-2.5 h-2.5 rounded-2xs ${b.color} opacity-90`}
-            style={{
-              left: `${b.col * 12}px`,
-              top: `${b.row * 13}px`,
-              animationDelay: `${b.i * 120}ms`,
-            }}
-          />
-        ))}
+        {PIXEL_ARROW_GRID.map((b) => {
+          const isCenter = b.col === 3;
+          // Delay bertahap dari baris bawah (row 8, i=0) ke atas (row 0, i=8)
+          const i = 8 - b.row;
+
+          return (
+            <span
+              key={`${b.row}-${b.col}`}
+              className={cn(
+                "sb-box-pulse rounded-[3px] block",
+                // Kolom tengah memakai --sb-sky, sayap memakai --sb-mist
+                isCenter ? "bg-sb-sky" : "bg-sb-mist"
+              )}
+              style={{
+                gridColumn: b.col + 1,
+                gridRow: b.row + 1,
+                width: "var(--px)",
+                height: "var(--px)",
+                ["--i" as string]: i,
+                animationDelay: `calc(var(--i) * 90ms)`,
+              }}
+            />
+          );
+        })}
       </div>
     </div>
   );

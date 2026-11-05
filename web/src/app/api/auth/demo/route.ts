@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerSupabaseClient, getServiceSupabase } from "@/lib/supabase/server";
+import { DEMO_USER_NAME, syncDemoUserName } from "@/lib/demo-account";
+import { enforceRateLimits, getClientIp } from "@/lib/rate-limit";
+import { authAttemptRules } from "@/lib/rate-limit-policies";
 
 const DEMO_SKILLS = [
   { name: "SQL", evidence: "Query database transaksi PostgreSQL di CV" },
@@ -123,6 +126,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const limited = await enforceRateLimits(authAttemptRules(getClientIp(req)));
+    if (limited) return limited;
+
     let role = "juri";
     let action = "login";
     try {
@@ -167,6 +173,7 @@ export async function POST(req: NextRequest) {
     // Normal login: pastikan resume & skills selalu tersedia idempoten untuk akun demo
     if (role === "juri") {
       await ensureDemoResume(serviceDb, data.user.id, false);
+      await syncDemoUserName(serviceDb, data.user.id);
     }
 
     const { data: profileRow } = await serviceDb
@@ -178,7 +185,7 @@ export async function POST(req: NextRequest) {
     const userProfile = {
       id: data.user.id,
       email: data.user.email || (role === "admin" ? "admin@skillbridge.demo" : "juri@skillbridge.demo"),
-      fullName: profileRow?.full_name || (role === "admin" ? "Administrator SkillBridge" : "Budi Pratama (Juri Lomba)"),
+      fullName: profileRow?.full_name || (role === "admin" ? "Administrator SkillBridge" : DEMO_USER_NAME),
       role: (profileRow?.role as "user" | "admin") || (role === "admin" ? "admin" : "user"),
       targetRole: (profileRow?.target_role as "Data Analyst" | "BI Analyst") || "Data Analyst",
     };

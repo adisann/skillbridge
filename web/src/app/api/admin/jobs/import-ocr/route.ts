@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedAdmin } from "@/lib/supabase/server";
 import { extractJobFromImage } from "@/lib/ai/extractor";
+import { enforceRateLimits } from "@/lib/rate-limit";
+import { adminAiImportRules } from "@/lib/rate-limit-policies";
 
 export const maxDuration = 30; // 30 seconds max duration
 
@@ -10,6 +12,9 @@ export async function POST(req: NextRequest) {
     if (!admin || adminErr) {
       return NextResponse.json({ error: adminErr }, { status: adminStatus || 401 });
     }
+
+    const limited = await enforceRateLimits(adminAiImportRules(admin.id));
+    if (limited) return limited;
 
     const formData = await req.formData();
     const file = formData.get("file") as File | null;

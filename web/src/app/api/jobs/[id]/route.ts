@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthenticatedUser, getServiceSupabase } from "@/lib/supabase/server";
-import { calculateJobMatch } from "@/lib/matching";
+import { getAuthenticatedUser } from "@/lib/supabase/server";
+import { calculateJobMatch, getDisplayScore } from "@/lib/matching";
+import { getCategoryFromTitle } from "@/lib/job-categories";
+import { loadCandidateProfile } from "@/lib/candidate-profile";
+import { splitJobSkills, type JobSkillRow } from "@/lib/job-skills";
 
 export async function GET(
   req: NextRequest,
@@ -22,48 +25,16 @@ export async function GET(
     }
 
     // 2. Ambil resume aktif pengguna jika terautentikasi
-    let activeResume: Record<string, unknown> | null = null;
-    const candidateSkills: string[] = [];
-    let candidateYears = 0;
-    let candidateEdu = "Sarjana (S1)";
+    const {
+      activeResume,
+      skills: candidateSkills,
+      years: candidateYears,
+      education: candidateEdu,
+    } = await loadCandidateProfile(supabase, user?.id ?? null);
 
-    if (user) {
-      let { data: resumeRows } = await supabase
-        .from("resumes")
-        .select("id, experience_years, education, resume_skills(skills(name))")
-        .eq("user_id", user.id)
-        .eq("is_active", true)
-        .limit(1);
-
-      if ((!resumeRows || resumeRows.length === 0) && user.id) {
-        const serviceDb = getServiceSupabase();
-        const { data: fallbackRows } = await serviceDb
-          .from("resumes")
-          .select("id, experience_years, education, resume_skills(skills(name))")
-          .eq("user_id", user.id)
-          .eq("is_active", true)
-          .limit(1);
-        if (fallbackRows) resumeRows = fallbackRows;
-      }
-
-      activeResume = resumeRows && resumeRows.length > 0 ? (resumeRows[0] as unknown as Record<string, unknown>) : null;
-      if (activeResume && activeResume.resume_skills) {
-        for (const rs of activeResume.resume_skills as unknown as Array<{ skills: { name: string } }>) {
-          if (rs.skills?.name) candidateSkills.push(rs.skills.name);
-        }
-      }
-      candidateYears = activeResume ? Number(activeResume.experience_years) || 0 : 0;
-      candidateEdu = activeResume ? (activeResume.education as string) || "Sarjana (S1)" : "Sarjana (S1)";
-    }
-
-    const reqSkills: string[] = [];
-    const prefSkills: string[] = [];
-    for (const js of (job.job_skills as unknown as Array<{ is_mandatory: boolean; skills: { name: string } }>) || []) {
-      if (js.skills?.name) {
-        if (js.is_mandatory) reqSkills.push(js.skills.name);
-        else prefSkills.push(js.skills.name);
-      }
-    }
+    const { required: reqSkills, preferred: prefSkills } = splitJobSkills(
+      job.job_skills as unknown as JobSkillRow[] | null
+    );
 
     // Hitung live hybrid matching
     const liveMatch = calculateJobMatch(
@@ -81,12 +52,20 @@ export async function GET(
       }
     );
 
+    const jobCat = getCategoryFromTitle(job.title, job.canonical_title);
+    const correctedCanonicalTitle =
+      job.canonical_title === "BI Analyst" && /\bbusiness analyst\b/i.test(job.title)
+        ? "Business Analyst"
+        : job.canonical_title;
+
     return NextResponse.json({
       job: {
         id: job.id,
         externalId: job.external_id,
         title: job.title,
-        canonicalTitle: job.canonical_title,
+        canonicalTitle: correctedCanonicalTitle,
+        category: jobCat.slug,
+        categoryLabel: jobCat.label,
         company: job.company,
         location: job.location,
         employmentType: job.employment_type,
@@ -103,7 +82,7 @@ export async function GET(
         deadline: job.expires_at || null,
         requiredSkills: reqSkills,
         preferredSkills: prefSkills,
-        matchScore: activeResume ? liveMatch.score : null,
+        matchScore: activeResume ? getDisplayScore(liveMatch) : null,
         matchStatus: activeResume ? liveMatch.matchStatus : "insufficient_evidence",
         matchedSkills: activeResume ? liveMatch.matchedSkills : [],
         missingSkills: activeResume ? liveMatch.missingSkills : reqSkills,

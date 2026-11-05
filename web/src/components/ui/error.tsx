@@ -3,7 +3,7 @@ import { AlertCircle, AlertTriangle, CheckCircle2, Info, RefreshCw } from "lucid
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 
-export interface AlertBannerProps {
+interface AlertBannerProps {
   type?: "error" | "warning" | "info" | "success";
   title?: string;
   message: string;
@@ -71,7 +71,7 @@ export function AlertBanner({
   );
 }
 
-export interface ErrorStateProps {
+interface ErrorStateProps {
   title?: string;
   message: string;
   onRetry?: () => void;

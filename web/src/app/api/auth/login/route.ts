@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerSupabaseClient, getServiceSupabase } from "@/lib/supabase/server";
+import { syncDemoUserName } from "@/lib/demo-account";
+import { enforceRateLimits, getClientIp } from "@/lib/rate-limit";
+import { authAttemptRules } from "@/lib/rate-limit-policies";
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = await enforceRateLimits(authAttemptRules(getClientIp(req)));
+    if (limited) return limited;
+
     const body = await req.json();
     const { email, password } = body;
 
@@ -37,6 +43,9 @@ export async function POST(req: NextRequest) {
 
     // Ambil profile dari database
     const serviceDb = getServiceSupabase();
+    if (normalizedEmail === "juri@skillbridge.id") {
+      await syncDemoUserName(serviceDb, data.user.id);
+    }
     const { data: profileRow } = await serviceDb
       .from("profiles")
       .select("id, email, full_name, role, target_role")

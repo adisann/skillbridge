@@ -99,7 +99,13 @@ export async function GET(req: NextRequest) {
         seniority: j.seniority || "Mid",
         sourceName: j.source_name,
         sourceUrl: j.source_url,
-        matchScore: m ? Number(m.score) : userSkillSet.size > 0 ? 50 : 0,
+        matchScore: m
+          ? m.match_status === "insufficient_evidence"
+            ? null
+            : Number(m.score)
+          : userSkillSet.size > 0
+          ? 50
+          : 0,
         matchStatus: m ? m.match_status : userSkillSet.size > 0 ? "underqualified" : "insufficient_evidence",
         matchedSkills,
         missingSkills,

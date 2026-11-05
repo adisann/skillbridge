@@ -47,7 +47,7 @@ export const DEFAULT_MATCHING_THRESHOLDS: MatchingThresholds = {
 /**
  * Pemetaan alias kanonikal skill untuk memastikan normalisasi (misal: "Microsoft Excel" == "Excel", "PowerBI" == "Power BI")
  */
-export const SKILL_CANONICAL_MAP: Record<string, string> = {
+const SKILL_CANONICAL_MAP: Record<string, string> = {
   "microsoft excel": "excel",
   "ms excel": "excel",
   "excel": "excel",

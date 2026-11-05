@@ -4,22 +4,21 @@ import { Button } from "@/components/ui/button";
 import { UI_COPY } from "@/lib/copy";
 import { PixelArrow } from "./pixel-arrow";
 
-interface LandingClosingProps {
-  onDemoClick: () => Promise<void>;
-  isDemoLoading: boolean;
-}
-
-export function LandingClosing({ onDemoClick, isDemoLoading }: LandingClosingProps) {
+export function LandingClosing() {
   return (
     <section className="pt-6 pb-20 sm:pt-8 sm:pb-28">
       <div className="mx-auto max-w-[1380px] px-6 sm:px-12 lg:px-20 xl:px-24">
         <div className="relative rounded-3xl bg-sb-mist-soft border border-sb-border p-8 sm:p-14 lg:p-16 overflow-hidden shadow-2xs">
-          {/* Large 2x Pixel Arrow filling right side of CTA card */}
+          {/* Pixel Arrow di sisi kanan: terpusat vertikal, jarak kanan minimal 64px, sembunyikan di layar < 768px */}
           <div
-            className="absolute right-8 sm:right-16 lg:right-24 -bottom-6 pointer-events-none overflow-hidden hidden sm:block w-[200px] h-[260px]"
+            className="absolute right-16 lg:right-20 xl:right-24 top-1/2 -translate-y-1/2 pointer-events-none hidden md:flex items-center justify-center py-12"
+            style={{
+              maskImage: "linear-gradient(to top, transparent, black 15%, black 85%, transparent)",
+              WebkitMaskImage: "linear-gradient(to top, transparent, black 15%, black 85%, transparent)",
+            }}
             aria-hidden="true"
           >
-            <PixelArrow scale={2} delay="0s" className="right-4 bottom-0 opacity-85" />
+            <PixelArrow px={18} gap={5} delay="0s" className="opacity-85" />
           </div>
 
           <div className="max-w-xl space-y-5 relative z-10">
@@ -36,16 +35,6 @@ export function LandingClosing({ onDemoClick, isDemoLoading }: LandingClosingPro
                   {UI_COPY.landing.closingCtaPrimary}
                 </Button>
               </Link>
-              <Button
-                type="button"
-                variant="secondary"
-                size="lg"
-                className="px-7 bg-white/80 hover:bg-white border-sb-border text-sb-navy"
-                onClick={onDemoClick}
-                isLoading={isDemoLoading}
-              >
-                {UI_COPY.landing.closingCtaDemo}
-              </Button>
             </div>
           </div>
         </div>

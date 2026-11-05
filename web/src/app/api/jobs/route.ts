@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser, getAuthenticatedAdmin, getServiceSupabase } from "@/lib/supabase/server";
-import { calculateJobMatch } from "@/lib/matching";
+import { calculateJobMatch, getDisplayScore } from "@/lib/matching";
 import { getCachedPublicJobs, revalidateJobsCache } from "@/lib/public-jobs";
 import { getCategoryFromTitle, getCategoryBySlug } from "@/lib/job-categories";
+import { loadCandidateProfile } from "@/lib/candidate-profile";
+import { splitJobSkills } from "@/lib/job-skills";
 
 export async function GET(req: NextRequest) {
   try {
@@ -42,51 +44,16 @@ export async function GET(req: NextRequest) {
     }
 
     // 2. Ambil resume aktif pengguna jika pengguna terautentikasi
-    let activeResume: Record<string, unknown> | null = null;
-    const candidateSkills: string[] = [];
-    let candidateYears = 0;
-    let candidateEdu = "Sarjana (S1)";
-
-    if (user) {
-      let { data: resumeRows } = await supabase
-        .from("resumes")
-        .select("id, experience_years, education, resume_skills(skills(name))")
-        .eq("user_id", user.id)
-        .eq("is_active", true)
-        .limit(1);
-
-      if ((!resumeRows || resumeRows.length === 0) && user.id) {
-        const serviceDb = getServiceSupabase();
-        const { data: fallbackRows } = await serviceDb
-          .from("resumes")
-          .select("id, experience_years, education, resume_skills(skills(name))")
-          .eq("user_id", user.id)
-          .eq("is_active", true)
-          .limit(1);
-        if (fallbackRows) resumeRows = fallbackRows;
-      }
-
-      activeResume = resumeRows && resumeRows.length > 0 ? (resumeRows[0] as unknown as Record<string, unknown>) : null;
-      if (activeResume && activeResume.resume_skills) {
-        for (const rs of activeResume.resume_skills as unknown as Array<{ skills: { name: string } }>) {
-          if (rs.skills?.name) candidateSkills.push(rs.skills.name);
-        }
-      }
-      candidateYears = activeResume ? Number(activeResume.experience_years) || 0 : 0;
-      candidateEdu = activeResume ? (activeResume.education as string) || "Sarjana (S1)" : "Sarjana (S1)";
-    }
+    const {
+      activeResume,
+      skills: candidateSkills,
+      years: candidateYears,
+      education: candidateEdu,
+    } = await loadCandidateProfile(supabase, user?.id ?? null);
 
     // Format lowongan dengan perhitungan hybrid matching
     const formattedJobs = filteredJobs.map((j) => {
-      const reqSkills: string[] = [];
-      const prefSkills: string[] = [];
-
-      for (const js of j.job_skills || []) {
-        if (js.skills?.name) {
-          if (js.is_mandatory) reqSkills.push(js.skills.name);
-          else prefSkills.push(js.skills.name);
-        }
-      }
+      const { required: reqSkills, preferred: prefSkills } = splitJobSkills(j.job_skills);
 
       // Hitung atau ambil data matching
       let matchScore: number | null = null;
@@ -107,7 +74,10 @@ export async function GET(req: NextRequest) {
           candidateEdu,
           {
             title: j.title,
-            canonicalTitle: j.canonical_title,
+            canonicalTitle:
+          j.canonical_title === "BI Analyst" && /\bbusiness analyst\b/i.test(j.title)
+            ? "Business Analyst"
+            : j.canonical_title,
             requiredSkills: reqSkills,
             preferredSkills: prefSkills,
             experienceYearsMin: j.experience_years_min || null,
@@ -116,7 +86,7 @@ export async function GET(req: NextRequest) {
           }
         );
 
-        matchScore = liveMatch.score;
+        matchScore = getDisplayScore(liveMatch);
         matchStatus = liveMatch.matchStatus;
         matchedSkills = liveMatch.matchedSkills;
         missingSkills = liveMatch.missingSkills;
@@ -140,14 +110,17 @@ export async function GET(req: NextRequest) {
         id: j.id,
         externalId: j.external_id,
         title: j.title,
-        canonicalTitle: j.canonical_title,
+        canonicalTitle:
+          j.canonical_title === "BI Analyst" && /\bbusiness analyst\b/i.test(j.title)
+            ? "Business Analyst"
+            : j.canonical_title,
         category: jobCategory.slug,
         categoryLabel: jobCategory.label,
         company: j.company,
         location: j.location,
         employmentType: j.employment_type,
         seniority: j.seniority || "Mid",
-        experienceYearsMin: j.experience_years_min || 1,
+        experienceYearsMin: j.experience_years_min ?? null,
         education: j.education || "Bachelor",
         description: j.description,
         sourceName: j.source_name,
@@ -193,9 +166,14 @@ export async function GET(req: NextRequest) {
 
 function resolveCanonicalTitle(title: string, explicitCanonical?: string): string {
   if (explicitCanonical && explicitCanonical.trim()) {
+    // Jika explicitCanonical BI Analyst tetapi judul jelas Business Analyst, koreksi ke Business Analyst
+    if (explicitCanonical.trim() === "BI Analyst" && /\bbusiness analyst\b/i.test(title)) {
+      return "Business Analyst";
+    }
     return explicitCanonical.trim();
   }
   const lower = title.toLowerCase();
+  if (/\b(business analyst|analis bisnis)\b/i.test(lower)) return "Business Analyst";
   if (/\b(bi|business intelligence)\b/i.test(lower)) return "BI Analyst";
   if (/\b(data analyst|analis data|analytics specialist)\b/i.test(lower)) return "Data Analyst";
   if (/\b(data scientist|sains data)\b/i.test(lower)) return "Data Scientist";

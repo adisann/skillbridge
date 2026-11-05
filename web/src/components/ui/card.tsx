@@ -1,6 +1,6 @@
 import React from "react";
 import { Building2, MapPin, Briefcase, ExternalLink, Bookmark, Check } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatJobTitle } from "@/lib/utils";
 import { MatchBadge, MatchStatus } from "./badge";
 import { ScoreRing } from "./score-ring";
 import { Button } from "./button";
@@ -8,7 +8,7 @@ import { Button } from "./button";
 // -----------------------------------------------------------------------------
 // Base Card Components (Glassmorphism as Default)
 // -----------------------------------------------------------------------------
-export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: "glass" | "solid";
   hoverEffect?: boolean;
 }
@@ -92,7 +92,7 @@ export function CardFooter({
 // -----------------------------------------------------------------------------
 // Metric Card (Untuk Angka Statistik & Indikator Pasar)
 // -----------------------------------------------------------------------------
-export interface MetricCardProps {
+interface MetricCardProps {
   title: string;
   value: string | number;
   subtitle?: string;
@@ -144,7 +144,7 @@ export function MetricCard({
 // -----------------------------------------------------------------------------
 // JobCard (Glassmorphic Job Card with ScoreRing Option)
 // -----------------------------------------------------------------------------
-export interface JobCardProps {
+interface JobCardProps {
   id: string;
   title: string;
   company: string;
@@ -186,6 +186,7 @@ export function JobCard({
   className,
 }: JobCardProps) {
   const isGuest = mode === "guest";
+  const formattedTitle = formatJobTitle(title);
 
   return (
     <Card
@@ -242,12 +243,12 @@ export function JobCard({
                   type="button"
                   onClick={onViewDetails}
                   className="text-left font-extrabold text-sb-navy hover:text-sb-blue transition-colors cursor-pointer w-full focus:outline-none focus:underline"
-                  title={title}
+                  title={formattedTitle}
                 >
-                  {title}
+                  {formattedTitle}
                 </button>
               ) : (
-                <span title={title}>{title}</span>
+                <span title={formattedTitle}>{formattedTitle}</span>
               )}
             </h4>
             <div className="flex flex-wrap items-center gap-3 text-xs text-sb-text-2 pt-1.5">
@@ -264,7 +265,11 @@ export function JobCard({
 
           {!isGuest && (
             <div className="shrink-0 self-start">
-              <ScoreRing score={matchScore} size="sm" showLabel={false} />
+              <ScoreRing
+                score={matchStatus === "insufficient_evidence" ? null : matchScore}
+                size="sm"
+                showLabel={false}
+              />
             </div>
           )}
         </div>
@@ -347,8 +352,8 @@ export function JobCard({
       </CardContent>
 
       <CardFooter className="px-5 py-3.5 justify-between items-center bg-white/60 border-t border-sb-border rounded-b-[20px] gap-2 mt-auto">
-        <div className="min-w-0">
-          {sourceUrl && sourceUrl.trim() !== "" ? (
+        {sourceUrl && sourceUrl.trim() !== "" ? (
+          <div className="min-w-0">
             <a
               href={sourceUrl}
               target="_blank"
@@ -358,15 +363,16 @@ export function JobCard({
               <span>Sumber Asli</span>
               <ExternalLink className="w-3.5 h-3.5 shrink-0" />
             </a>
-          ) : (
-            <span className="text-xs text-sb-text-2">
-              Rincian kontak di deskripsi
-            </span>
-          )}
-        </div>
+          </div>
+        ) : null}
 
         {onViewDetails && (
-          <Button variant="outline" size="sm" onClick={onViewDetails} className="shrink-0 text-xs whitespace-nowrap px-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onViewDetails}
+            className="shrink-0 text-xs whitespace-nowrap px-3 ml-auto"
+          >
             Detail
           </Button>
         )}

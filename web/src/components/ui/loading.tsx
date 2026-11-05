@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 // -----------------------------------------------------------------------------
 // Spinner
 // -----------------------------------------------------------------------------
-export interface SpinnerProps {
+interface SpinnerProps {
   size?: "sm" | "md" | "lg";
   className?: string;
   label?: string;

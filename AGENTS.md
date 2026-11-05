@@ -222,7 +222,7 @@ Setiap lowongan menampilkan nama sumber, tanggal pengambilan, dan tautan asli. T
 
 - **Responsif dan Aksesibel:** alur inti berjalan di mobile dan desktop, navigasi keyboard, label input, kontras ramah mata, dan status non-warna.
 - **Privasi CV:** persetujuan eksplisit, opsi hapus CV & hasil ekstraksi secara permanen.
-- **Keamanan:** validasi ekstensi & mime di server, RLS pada Supabase, signed URL Cloudflare R2, `SUPABASE_SERVICE_ROLE_KEY` hanya di worker.
+- **Keamanan:** validasi ekstensi & mime di server, RLS pada Supabase, signed URL Cloudflare R2. `SUPABASE_SERVICE_ROLE_KEY` hanya digunakan di worker, route API server, dan modul `lib` sisi server; tidak pernah di kode klien (`"use client"`) atau variabel berawalan `NEXT_PUBLIC_`. Di Vercel, simpan sebagai secret server untuk Production dan Preview saja.
 - **Keandalan:** tangani error upload, CV tak terbaca, dan koneksi gagal dengan empty/error state komunikatif.
 - **Kecepatan:** tampilkan skeleton loading state pada proses asinkron.
 - Teks CV dan lowongan adalah data tidak tepercaya. Sanitasi HTML sebelum dirender (cegah XSS).

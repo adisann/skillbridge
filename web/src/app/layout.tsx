@@ -21,7 +21,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SkillBridge — Pencocokan CV & Analisis Kebutuhan Skill Pasar Kerja",
+  title: "SkillBridge | Pencocokan CV & Analisis Kebutuhan Skill Pasar Kerja",
   description:
     "SkillBridge membantu pencari kerja mengetahui lowongan yang relevan dengan CV mereka, gap skill yang belum ditemukan, dan skill pasar yang paling sering diminta.",
 };

@@ -6,7 +6,7 @@ import {
   isCvRelatedQuery,
   getInstantTemplateAnswer,
 } from "../src/lib/ai/prompts.ts";
-import { checkRateLimit } from "../src/lib/ai/provider.ts";
+import { chatBurstRules, chatQuotaRules, cvUploadRules } from "../src/lib/rate-limit-policies.ts";
 import type { ActiveJobContext, CandidateCVContext } from "../src/lib/ai/types.ts";
 
 describe("SkillBridge AI Job Assistant Unit Tests", () => {
@@ -92,14 +92,17 @@ describe("SkillBridge AI Job Assistant Unit Tests", () => {
     assert.ok(formatted.includes("Pertanyaan Terkini"), "Harus memuat pesan terkini");
   });
 
-  test("5. checkRateLimit membatasi request agresif", () => {
-    const clientId = "client-test-rate-limit";
-    // 5 request diizinkan
-    for (let i = 0; i < 5; i++) {
-      assert.equal(checkRateLimit(clientId, 5, 10000), true);
+  test("5. kebijakan rate limit membatasi tamu lebih ketat dan selalu ada batas global harian", () => {
+    const guestDaily = chatQuotaRules("1.2.3.4", null).find((r) => r.scope === "chat:guest-day");
+    const userDaily = chatQuotaRules("1.2.3.4", "user-1").find((r) => r.scope === "chat:user-day");
+    assert.ok(guestDaily && userDaily);
+    assert.ok(guestDaily.limit < userDaily.limit, "Tamu harus punya kuota lebih kecil dari pengguna login");
+
+    for (const rules of [chatQuotaRules("1.2.3.4", "user-1"), cvUploadRules("1.2.3.4", "user-1")]) {
+      assert.ok(rules.some((r) => r.key === "global" && r.windowSeconds === 86400), "Harus ada batas global harian");
+      assert.ok(rules.some((r) => r.key === "1.2.3.4"), "Harus ada batas per IP");
     }
-    // Request ke-6 harus ditolak
-    assert.equal(checkRateLimit(clientId, 5, 10000), false);
+    assert.equal(chatBurstRules("1.2.3.4")[0].windowSeconds, 60);
   });
 
   test("6. getInstantTemplateAnswer melayani FAQ instan berpola Ultralytics dan menolak pertanyaan di luar konteks", () => {

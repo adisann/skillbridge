@@ -1,6 +1,6 @@
 import { parseDocumentWithLlamaParse } from "./llamaparse";
 
-export interface ExtractedJobData {
+interface ExtractedJobData {
   title: string;
   company: string;
   location: string;

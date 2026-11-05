@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { JobDetail } from "@/components/jobs/job-detail";
 
 export const metadata: Metadata = {
-  title: "Detail Lowongan Kerja — SkillBridge",
+  title: "Detail Lowongan Kerja | SkillBridge",
   description:
     "Rincian kualifikasi dan persyaratan lowongan kerja terverifikasi.",
 };

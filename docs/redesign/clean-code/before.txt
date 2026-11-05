@@ -1,0 +1,319 @@
+# Baseline (sebelum) — branch chore/clean-code dari main @ 0dd1ccf
+
+$ npm run lint
+
+> web@0.1.0 lint
+> eslint
+
+exit 0
+
+$ npx jscpd src --min-lines 5 --min-tokens 50 --reporters console
+Clone found (typescript):
+ - src/app/api/admin/jobs/import-link/route.ts [50:1 - 57:15] (7 lines, 105 tokens)
+   src/app/api/admin/jobs/import-ocr/route.ts [7:1 - 14:19]
+
+Clone found (typescript):
+ - src/app/api/jobs/[id]/route.ts [15:5 - 22:67] (7 lines, 81 tokens)
+   src/app/api/jobs/[id]/chat/route.ts [99:5 - 107:71]
+
+Clone found (typescript):
+ - src/app/api/auth/demo/route.ts [172:5 - 180:34] (8 lines, 85 tokens)
+   src/app/api/auth/login/route.ts [40:5 - 48:48]
+
+Clone found (typescript):
+ - src/app/api/auth/demo/route.ts [182:92 - 203:8] (21 lines, 174 tokens)
+   src/app/api/auth/login/route.ts [53:61 - 73:44]
+
+Clone found (typescript):
+ - src/app/api/auth/demo/route.ts [203:7 - 217:60] (14 lines, 106 tokens)
+   src/app/api/auth/login/route.ts [74:7 - 88:63]
+
+Clone found (typescript):
+ - src/app/api/admin/worker-runs/route.ts [5:26 - 12:19] (7 lines, 98 tokens)
+   src/app/api/admin/jobs/import-ocr/route.ts [7:27 - 14:19]
+
+Clone found (typescript):
+ - src/app/api/admin/worker-runs/route.ts [24:100 - 36:21] (12 lines, 129 tokens)
+   src/app/api/admin/jobs/import-link/route.ts [46:64 - 58:12]
+
+Clone found (typescript):
+ - src/app/api/admin/skills/route.ts [2:82 - 12:25] (10 lines, 125 tokens)
+   src/app/api/admin/worker-runs/route.ts [3:56 - 13:23]
+
+Clone found (typescript):
+ - src/app/api/admin/skills/route.ts [32:85 - 44:22] (12 lines, 143 tokens)
+   src/app/api/admin/worker-runs/route.ts [24:81 - 58:16]
+
+Clone found (typescript):
+ - src/app/api/learning-items/route.ts [1:1 - 9:113] (8 lines, 107 tokens)
+   src/app/api/saved-jobs/route.ts [1:1 - 9:119]
+
+Clone found (typescript):
+ - src/app/api/learning-items/route.ts [42:55 - 53:114] (11 lines, 112 tokens)
+   src/app/api/saved-jobs/route.ts [130:52 - 141:109]
+
+Clone found (typescript):
+ - src/app/api/jobs/route.ts [45:5 - 79:58] (34 lines, 441 tokens)
+   src/app/api/jobs/[id]/route.ts [26:5 - 60:10]
+
+Clone found (typescript):
+ - src/app/api/jobs/route.ts [228:1 - 236:18] (8 lines, 123 tokens)
+   src/app/api/admin/jobs/import-ocr/route.ts [7:1 - 58:16]
+
+Clone found (typescript):
+ - src/app/api/jobs/route.ts [367:26 - 375:15] (8 lines, 116 tokens)
+   src/app/api/admin/jobs/import-ocr/route.ts [7:27 - 58:16]
+
+Clone found (typescript):
+ - src/app/api/jobs/route.ts [406:7 - 423:16] (17 lines, 305 tokens)
+   src/app/api/jobs/route.ts [283:5 - 300:103]
+
+Clone found (typescript):
+ - src/app/api/jobs/route.ts [433:7 - 443:29] (10 lines, 168 tokens)
+   src/app/api/jobs/route.ts [322:5 - 332:27]
+
+Clone found (typescript):
+ - src/app/api/jobs/route.ts [443:117 - 455:23] (12 lines, 106 tokens)
+   src/app/api/jobs/route.ts [331:18 - 343:24]
+
+Clone found (typescript):
+ - src/app/api/jobs/route.ts [479:29 - 486:12] (7 lines, 98 tokens)
+   src/app/api/admin/jobs/import-ocr/route.ts [7:27 - 14:19]
+
+Clone found (typescript):
+ - src/app/api/insights/route.ts [50:62 - 63:13] (13 lines, 89 tokens)
+   src/app/api/jobs/route.ts [177:5 - 189:13]
+
+Clone found (typescript):
+ - src/app/api/insights/route.ts [113:5 - 123:29] (10 lines, 118 tokens)
+   src/app/api/cv/save/route.ts [98:7 - 108:35]
+
+Clone found (typescript):
+ - src/lib/ai/provider.ts [198:3 - 209:20] (11 lines, 91 tokens)
+   src/lib/ai/provider.ts [152:3 - 163:20]
+
+Clone found (typescript):
+ - src/lib/ai/provider.ts [271:80 - 283:44] (12 lines, 126 tokens)
+   src/lib/ai/provider.ts [144:76 - 155:54]
+
+Clone found (typescript):
+ - src/lib/ai/provider.ts [285:7 - 294:41] (9 lines, 83 tokens)
+   src/lib/ai/provider.ts [201:53 - 210:36]
+
+Clone found (typescript):
+ - src/lib/ai/provider.ts [327:3 - 342:34] (15 lines, 135 tokens)
+   src/lib/ai/provider.ts [279:3 - 210:36]
+
+Clone found (typescript):
+ - src/lib/ai/extractor.ts [166:15 - 181:45] (15 lines, 164 tokens)
+   src/lib/ai/extractor.ts [55:71 - 70:43]
+
+Clone found (typescript):
+ - src/lib/ai/extractor.ts [222:13 - 233:39] (11 lines, 121 tokens)
+   src/lib/ai/extractor.ts [94:123 - 105:39]
+
+Clone found (typescript):
+ - src/lib/ai/cache.ts [139:7 - 147:20] (8 lines, 92 tokens)
+   src/lib/ai/cache.ts [52:7 - 60:50]
+
+Clone found (typescript):
+ - src/lib/ai/cache.ts [163:44 - 181:34] (18 lines, 153 tokens)
+   src/lib/ai/cache.ts [74:23 - 92:36]
+
+Clone found (tsx):
+ - src/components/ui/input.tsx [224:9 - 233:9] (9 lines, 75 tokens)
+   src/components/ui/input.tsx [72:9 - 81:10]
+
+Clone found (javascript):
+ - src/components/ui/filter.tsx [352:31 - 450:58] (98 lines, 789 tokens)
+   src/components/ui/filter.tsx [209:60 - 301:62]
+
+Clone found (tsx):
+ - src/components/tracker/tracker-modals.tsx [225:86 - 237:12] (12 lines, 73 tokens)
+   src/components/tracker/tracker-modals.tsx [58:16 - 70:12]
+
+Clone found (tsx):
+ - src/components/tracker/tracker-modals.tsx [295:15 - 300:17] (5 lines, 67 tokens)
+   src/components/tracker/tracker-table.tsx [121:21 - 126:24]
+
+Clone found (tsx):
+ - src/components/tracker/tracker-modals.tsx [319:57 - 327:30] (8 lines, 79 tokens)
+   src/components/tracker/tracker-modals.tsx [142:95 - 150:31]
+
+Clone found (tsx):
+ - src/components/tracker/tracker-board.tsx [92:149 - 100:53] (8 lines, 107 tokens)
+   src/components/tracker/tracker-table.tsx [120:138 - 128:55]
+
+Clone found (tsx):
+ - src/components/tracker/job-comparison-modal.tsx [225:23 - 235:24] (10 lines, 118 tokens)
+   src/components/tracker/tracker-table.tsx [121:21 - 130:21]
+
+Clone found (javascript):
+ - src/components/layout/navbar.tsx [178:43 - 246:74] (68 lines, 471 tokens)
+   src/components/layout/navbar.tsx [162:47 - 215:53]
+
+Clone found (tsx):
+ - src/components/layout/navbar.tsx [50:18 - 59:9] (9 lines, 127 tokens)
+   src/components/layout/sidebar.tsx [61:4 - 70:8]
+
+Clone found (tsx):
+ - src/components/jobs/job-detail.tsx [43:5 - 55:15] (12 lines, 86 tokens)
+   src/components/jobs/job-explorer.tsx [33:13 - 45:15]
+
+Clone found (tsx):
+ - src/components/jobs/job-detail.tsx [229:31 - 237:24] (8 lines, 86 tokens)
+   src/components/jobs/job-detail.tsx [203:30 - 211:24]
+
+Clone found (tsx):
+ - src/app/tracker/page.tsx [63:3 - 70:30] (7 lines, 109 tokens)
+   src/components/jobs/job-explorer.tsx [124:3 - 131:12]
+
+Clone found (tsx):
+ - src/app/tracker/page.tsx [168:57 - 186:25] (18 lines, 186 tokens)
+   src/components/jobs/job-explorer.tsx [280:56 - 298:24]
+
+Clone found (tsx):
+ - src/app/profile/page.tsx [120:3 - 129:22] (9 lines, 130 tokens)
+   src/components/layout/sidebar.tsx [61:3 - 70:22]
+
+Clone found (tsx):
+ - src/app/profile/page.tsx [375:19 - 382:32] (7 lines, 66 tokens)
+   src/app/profile/page.tsx [361:65 - 367:32]
+
+Clone found (javascript):
+ - src/app/login/page.tsx [143:49 - 168:39] (25 lines, 168 tokens)
+   src/app/register/page.tsx [77:55 - 105:33]
+
+Clone found (tsx):
+ - src/app/login/page.tsx [49:3 - 57:18] (8 lines, 66 tokens)
+   src/app/register/page.tsx [39:3 - 47:19]
+
+Clone found (typescript):
+ - src/lib/public-jobs.ts [136:5 - 142:12] (6 lines, 82 tokens)
+   src/app/api/jobs/route.ts [22:7 - 28:15]
+
+Clone found (typescript):
+ - src/lib/matching.ts [193:35 - 205:55] (12 lines, 131 tokens)
+   src/lib/matching.ts [137:34 - 149:55]
+
+Clone found (typescript):
+ - src/lib/matching.ts [209:9 - 215:58] (6 lines, 97 tokens)
+   src/lib/matching.ts [154:9 - 160:57]
+
+┌────────────┬────────────────┬─────────────┬──────────────┬──────────────┬──────────────────┬───────────────────┐
+│ Format     │ Files analyzed │ Total lines │ Total tokens │ Clones found │ Duplicated lines │ Duplicated tokens │
+├────────────┼────────────────┼─────────────┼──────────────┼──────────────┼──────────────────┼───────────────────┤
+│ typescript │ 39             │ 7498        │ 65647        │ 31           │ 359 (4.79%)      │ 4104 (6.25%)      │
+├────────────┼────────────────┼─────────────┼──────────────┼──────────────┼──────────────────┼───────────────────┤
+│ javascript │ 56             │ 7523        │ 58420        │ 3            │ 191 (2.54%)      │ 1428 (2.44%)      │
+├────────────┼────────────────┼─────────────┼──────────────┼──────────────┼──────────────────┼───────────────────┤
+│ tsx        │ 59             │ 13007       │ 108464       │ 14           │ 130 (1%)         │ 1375 (1.27%)      │
+├────────────┼────────────────┼─────────────┼──────────────┼──────────────┼──────────────────┼───────────────────┤
+│ markup     │ 1              │ 14          │ 306          │ 0            │ 0 (0%)           │ 0 (0%)            │
+├────────────┼────────────────┼─────────────┼──────────────┼──────────────┼──────────────────┼───────────────────┤
+│ css        │ 1              │ 359         │ 2645         │ 0            │ 0 (0%)           │ 0 (0%)            │
+├────────────┼────────────────┼─────────────┼──────────────┼──────────────┼──────────────────┼───────────────────┤
+│ Total:     │ 156            │ 28401       │ 235482       │ 48           │ 680 (2.39%)      │ 6907 (2.93%)      │
+└────────────┴────────────────┴─────────────┴──────────────┴──────────────┴──────────────────┴───────────────────┘
+Found 48 clones.
+time: 1.661s
+
+
+$ npx knip --no-progress
+Unused files (5)
+scripts/check_all_urls.mjs          
+src/components/layout/app-subnav.tsx
+src/components/ui/mock-badge.tsx    
+src/lib/hooks/use-scroll-reveal.ts  
+src/mock/index.ts                   
+Unused dependencies (2)
+@types/pdf-parse  package.json:18:6
+pdf-parse         package.json:23:6
+Unused devDependencies (1)
+@tailwindcss/turbopack  package.json:31:6
+Unused exports (18)
+PIXEL_ARROW_GRID                     src/components/landing/pixel-arrow.tsx:23:14
+PIXEL_ARROW_BLOCKS                   src/components/landing/pixel-arrow.tsx:47:14
+Badge                      function  src/components/ui/badge.tsx:19:17           
+WORK_TYPE_OPTIONS                    src/components/ui/filter.tsx:23:14          
+SENIORITY_OPTIONS                    src/components/ui/filter.tsx:30:14          
+LOCATION_OPTIONS                     src/components/ui/filter.tsx:38:14          
+DATE_OPTIONS                         src/components/ui/filter.tsx:49:14          
+callAIWithFallback         function  src/lib/ai/provider.ts:428:23               
+formatDashboardActiveJobs  function  src/lib/copy.ts:141:17                      
+formatInsightsDataSummary  function  src/lib/copy.ts:152:17                      
+formatJobsFound            function  src/lib/copy.ts:160:17                      
+formatSkillDemand          function  src/lib/copy.ts:184:17                      
+SKILL_CANONICAL_MAP                  src/lib/matching-config.ts:50:14            
+DEMO_JURI_USER                       src/lib/supabase/auth-context.tsx:33:14     
+DEMO_ADMIN_USER                      src/lib/supabase/auth-context.tsx:41:14     
+getRequiredEnv             function  src/lib/supabase/server.ts:6:17             
+getLocalTrackerMap         function  src/lib/tracker-storage.ts:32:17            
+saveLocalTrackerMap        function  src/lib/tracker-storage.ts:47:17            
+Unused exported types (63)
+TopSkillInsight           interface  src/components/insights/skill-trends.tsx:19:18  
+LearningRec               interface  src/components/insights/skill-trends.tsx:29:18  
+SkillTrendsProps          interface  src/components/insights/skill-trends.tsx:37:18  
+ChatMessageItem           interface  src/components/jobs/job-chat-assistant.tsx:22:18
+RequirementEvaluation     interface  src/components/jobs/job-detail.tsx:33:18        
+JobDetailData             interface  src/components/jobs/job-detail.tsx:42:18        
+JobDetailProps            interface  src/components/jobs/job-detail.tsx:78:18        
+LiveJob                   interface  src/components/jobs/job-explorer.tsx:31:18      
+JobExplorerProps          interface  src/components/jobs/job-explorer.tsx:56:18      
+PixelBlock                interface  src/components/landing/pixel-arrow.tsx:4:18     
+PixelArrowProps           interface  src/components/landing/pixel-arrow.tsx:49:18    
+TrackerBoardProps         interface  src/components/tracker/tracker-board.tsx:8:18   
+TrackerHeaderProps        interface  src/components/tracker/tracker-header.tsx:13:18 
+EditJobModalProps         interface  src/components/tracker/tracker-modals.tsx:13:18 
+AddJobModalProps          interface  src/components/tracker/tracker-modals.tsx:163:18
+TrackerTableProps         interface  src/components/tracker/tracker-table.tsx:10:18  
+BadgeProps                interface  src/components/ui/badge.tsx:14:18               
+MatchBadgeProps           interface  src/components/ui/badge.tsx:64:18               
+CVSkillBadgeProps         interface  src/components/ui/badge.tsx:138:18              
+ButtonProps               interface  src/components/ui/button.tsx:5:18               
+CardProps                 interface  src/components/ui/card.tsx:11:18                
+MetricCardProps           interface  src/components/ui/card.tsx:95:18                
+JobCardProps              interface  src/components/ui/card.tsx:147:18               
+MarketSkillBarChartProps  interface  src/components/ui/chart.tsx:16:18               
+EmptyStateProps           interface  src/components/ui/empty-state.tsx:6:18          
+AlertBannerProps          interface  src/components/ui/error.tsx:6:18                
+ErrorStateProps           interface  src/components/ui/error.tsx:74:18               
+FilterBarProps            interface  src/components/ui/filter.tsx:14:18              
+InputProps                interface  src/components/ui/input.tsx:8:18                
+SearchInputProps          interface  src/components/ui/input.tsx:86:18               
+SelectProps               interface  src/components/ui/input.tsx:144:18              
+TextareaProps             interface  src/components/ui/input.tsx:192:18              
+CheckboxProps             interface  src/components/ui/input.tsx:238:18              
+SpinnerProps              interface  src/components/ui/loading.tsx:8:18              
+PaginationProps           interface  src/components/ui/pagination.tsx:8:18           
+ScoreRingProps            interface  src/components/ui/score-ring.tsx:5:18           
+DataTableProps            interface  src/components/ui/table.tsx:14:18               
+AsyncTaskStatus           type       src/context/async-task-context.tsx:13:13        
+AsyncTaskAction           interface  src/context/async-task-context.tsx:15:18        
+AsyncTask                 interface  src/context/async-task-context.tsx:21:18        
+RunTaskOptions            interface  src/context/async-task-context.tsx:34:18        
+ExtractedJobData          interface  src/lib/ai/extractor.ts:3:18                    
+LlamaParseOptions         interface  src/lib/ai/llamaparse.ts:7:18                   
+AIProviderResult          interface  src/lib/ai/provider.ts:3:18                     
+StreamChunk               interface  src/lib/ai/provider.ts:9:18                     
+AIProvider                type       src/lib/ai/types.ts:1:13                        
+AIChatRequest             interface  src/lib/ai/types.ts:8:18                        
+AIChatResponse            interface  src/lib/ai/types.ts:14:18                       
+JobCategory               interface  src/lib/job-categories.ts:7:18                  
+MatchCategory             type       src/lib/matching.ts:10:13                       
+RequirementStatus         type       src/lib/matching.ts:16:13                       
+RequirementEvaluation     interface  src/lib/matching.ts:18:18                       
+ScoreBreakdownItem        interface  src/lib/matching.ts:27:18                       
+MatchResult               interface  src/lib/matching.ts:35:18                       
+CandidateProfileInput     interface  src/lib/matching.ts:55:18                       
+JobProfileInput           interface  src/lib/matching.ts:62:18                       
+RawPublicJobSkill         interface  src/lib/public-jobs.ts:7:18                     
+RawPublicJob              interface  src/lib/public-jobs.ts:17:18                    
+MarketFilterInput         interface  src/lib/public-jobs.ts:82:18                    
+AggregatedSkillInsight    interface  src/lib/public-jobs.ts:90:18                    
+LearningRecommendation    interface  src/lib/public-jobs.ts:101:18                   
+MarketAggregationResult   interface  src/lib/public-jobs.ts:109:18                   
+AuthProfile               interface  src/lib/supabase/auth-context.tsx:8:18          
+Duplicate exports (1)
+PIXEL_ARROW_GRID|PIXEL_ARROW_BLOCKS  src/components/landing/pixel-arrow.tsx
+exit 1

@@ -4,7 +4,7 @@
  * Free Tier provides 10,000 credits/pages per month.
  */
 
-export interface LlamaParseOptions {
+interface LlamaParseOptions {
   tier?: "fast" | "cost_effective" | "agentic";
   version?: string;
   maxTimeoutMs?: number;

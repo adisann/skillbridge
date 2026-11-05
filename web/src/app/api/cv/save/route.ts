@@ -25,6 +25,16 @@ export async function POST(req: NextRequest) {
       manualSkills = [],
     } = body;
 
+    const cleanSkills: string[] = Array.isArray(skills)
+      ? skills.filter((s): s is string => typeof s === "string" && s.trim().length > 0)
+      : [];
+    if (cleanSkills.length === 0) {
+      return NextResponse.json(
+        { error: "CV belum memuat skill. Tambahkan minimal satu skill sebelum menyimpan." },
+        { status: 400 }
+      );
+    }
+
     const effectiveUserId = user.id;
 
     // 0. Update target_role di tabel `profiles` (FR-01)

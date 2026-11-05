@@ -40,7 +40,7 @@ interface SavedJobItem {
   location: string;
   sourceName: string;
   sourceUrl?: string;
-  matchScore: number;
+  matchScore: number | null;
   matchStatus: "match" | "underqualified" | "potentially_overqualified" | "insufficient_evidence";
   matchedSkills: string[];
   missingSkills: string[];

@@ -1,37 +1,11 @@
 import type { ChatMessage } from "./types";
 
-export interface AIProviderResult {
-  text: string;
-  provider: string;
-  isFallback: boolean;
-}
-
-export interface StreamChunk {
+interface StreamChunk {
   delta?: string;
   provider?: string;
   isFallback?: boolean;
   done?: boolean;
   error?: string;
-}
-
-// In-memory rate limiter: max 30 requests per minute per identifier
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-
-export function checkRateLimit(clientId: string, maxRequests = 30, windowMs = 60000): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(clientId);
-
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(clientId, { count: 1, resetAt: now + windowMs });
-    return true;
-  }
-
-  if (entry.count >= maxRequests) {
-    return false;
-  }
-
-  entry.count += 1;
-  return true;
 }
 
 // Helper to parse SSE stream lines across any chunk boundaries
@@ -89,7 +63,7 @@ async function* readSSEStream(
 }
 
 // ==============================================================================
-// 1. Google Gemini Streaming & Non-Streaming
+// 1. Google Gemini Streaming
 // ==============================================================================
 
 function buildGeminiPayload(
@@ -177,53 +151,8 @@ async function* streamGemini(
   }
 }
 
-async function callGemini(
-  systemInstruction: string,
-  userPrompt: string,
-  history: ChatMessage[] = [],
-  timeoutMs = 9000
-): Promise<string> {
-  const apiKey = process.env.AI_API_KEY;
-  if (!apiKey) {
-    throw new Error("AI_API_KEY tidak dikonfigurasi pada server.");
-  }
-
-  const model = process.env.AI_MODEL || "gemini-2.5-flash";
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-  const payload = buildGeminiPayload(systemInstruction, userPrompt, history);
-
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      signal: controller.signal,
-    });
-
-    clearTimeout(timer);
-
-    if (!res.ok) {
-      const errBody = await res.text().catch(() => "");
-      throw new Error(`Gemini HTTP ${res.status}: ${res.statusText} - ${errBody}`);
-    }
-
-    const data = await res.json();
-    const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!candidateText) {
-      throw new Error("Respon Gemini tidak memuat teks kandidat.");
-    }
-
-    return candidateText;
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
 // ==============================================================================
-// 2. Groq Fallback Streaming & Non-Streaming
+// 2. Groq Fallback Streaming
 // ==============================================================================
 
 function buildGroqPayload(
@@ -307,53 +236,6 @@ async function* streamGroq(
   }
 }
 
-async function callGroq(
-  systemInstruction: string,
-  userPrompt: string,
-  history: ChatMessage[] = [],
-  timeoutMs = 9000
-): Promise<string> {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) {
-    throw new Error("GROQ_API_KEY tidak dikonfigurasi.");
-  }
-
-  const url = "https://api.groq.com/openai/v1/chat/completions";
-  const payload = buildGroqPayload(systemInstruction, userPrompt, history, false);
-
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(payload),
-      signal: controller.signal,
-    });
-
-    clearTimeout(timer);
-
-    if (!res.ok) {
-      const errBody = await res.text().catch(() => "");
-      throw new Error(`Groq HTTP ${res.status}: ${res.statusText} - ${errBody}`);
-    }
-
-    const data = await res.json();
-    const messageContent = data?.choices?.[0]?.message?.content;
-    if (!messageContent) {
-      throw new Error("Respon Groq tidak memuat konten.");
-    }
-
-    return messageContent;
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
 // ==============================================================================
 // 3. Unified Stream with Resilient Fallback (Gemini -> Groq -> Offline Notice)
 // ==============================================================================
@@ -419,50 +301,4 @@ export async function* streamAIWithFallback(
       "Maaf, asisten AI sedang tidak tersedia atau mengalami gangguan sementara. Silakan coba kembali beberapa saat lagi.",
   };
   yield { done: true };
-}
-
-// ==============================================================================
-// 4. Non-Streaming Fallback (Retained for Backwards Compatibility)
-// ==============================================================================
-
-export async function callAIWithFallback(
-  systemInstruction: string,
-  userPrompt: string,
-  history: ChatMessage[] = []
-): Promise<AIProviderResult> {
-  // Step 1: Try Primary Provider (Google Gemini)
-  try {
-    const text = await callGemini(systemInstruction, userPrompt, history);
-    return {
-      text,
-      provider: "Google Gemini",
-      isFallback: false,
-    };
-  } catch (primaryErr: unknown) {
-    const errMsg = primaryErr instanceof Error ? primaryErr.message : String(primaryErr);
-    console.warn("[AI Provider] Primary provider (Gemini) encountered an error:", errMsg);
-
-    // Step 2: Attempt Fallback to Groq if key is present
-    if (process.env.GROQ_API_KEY) {
-      try {
-        console.info("[AI Provider] Executing fallback to Groq...");
-        const text = await callGroq(systemInstruction, userPrompt, history);
-        return {
-          text,
-          provider: "Groq",
-          isFallback: true,
-        };
-      } catch (fallbackErr: unknown) {
-        const fallbackMsg = fallbackErr instanceof Error ? fallbackErr.message : String(fallbackErr);
-        console.error("[AI Provider] Fallback provider (Groq) also failed:", fallbackMsg);
-      }
-    }
-
-    // Step 3: Graceful failure message as required by guidelines
-    return {
-      text: "Maaf, asisten AI sedang tidak tersedia atau mengalami gangguan sementara. Silakan coba kembali beberapa saat lagi.",
-      provider: "Offline",
-      isFallback: true,
-    };
-  }
 }

@@ -1,17 +1,16 @@
 import React, { useState } from "react";
-import { Filter, RotateCcw, X, SlidersHorizontal } from "lucide-react";
+import { Filter, RotateCcw, X, SlidersHorizontal, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { JOB_CATEGORIES } from "@/lib/job-categories";
+import {
+  buildActiveFilters,
+  buildBidangOptions,
+  buildFilterFields,
+  type ActiveFilter,
+  type FilterField,
+  type FilterState,
+} from "@/lib/job-filters";
 
-export interface FilterState {
-  role: string; // Bidang slug or 'all'
-  workType: string;
-  seniority: string;
-  location?: string;
-  postedDate?: string;
-}
-
-export interface FilterBarProps {
+interface FilterBarProps {
   filters: FilterState;
   onChange: (newFilters: FilterState) => void;
   onReset?: () => void;
@@ -20,440 +19,252 @@ export interface FilterBarProps {
   className?: string;
 }
 
-export const WORK_TYPE_OPTIONS = [
-  { label: "Semua Tipe", value: "all" },
-  { label: "Remote", value: "Remote" },
-  { label: "Hybrid", value: "Hybrid" },
-  { label: "Onsite", value: "Onsite" },
-];
+type SelectHandler = (field: keyof FilterState, value: string) => void;
 
-export const SENIORITY_OPTIONS = [
-  { label: "Semua Level", value: "all" },
-  { label: "Junior / Entry", value: "Junior" },
-  { label: "Mid-level", value: "Mid" },
-  { label: "Senior", value: "Senior" },
-  { label: "Lead", value: "Lead" },
-];
+const SELECT_BASE_CLASS =
+  "w-full h-10 rounded-xl border border-sb-border px-3 text-xs font-semibold text-sb-navy focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue";
+const SELECT_SURFACE = { sheet: "bg-white/80", bar: "bg-white/70" } as const;
+const LABEL_CLASS = "text-[11px] font-bold uppercase tracking-wider text-sb-text-2";
 
-export const LOCATION_OPTIONS = [
-  { label: "Semua Lokasi", value: "all" },
-  { label: "Jakarta / Jabodetabek", value: "jakarta" },
-  { label: "Bandung", value: "bandung" },
-  { label: "Surabaya", value: "surabaya" },
-  { label: "Yogyakarta", value: "yogyakarta" },
-  { label: "Bali", value: "bali" },
-  { label: "Remote / Fleksibel", value: "remote" },
-];
+interface FilterSelectProps {
+  field: FilterField;
+  surface: keyof typeof SELECT_SURFACE;
+  onSelect: SelectHandler;
+  /** Hanya panel desktop yang menautkan label ke select lewat id (sheet mobile tampil bersamaan di DOM). */
+  linkLabel?: boolean;
+}
 
-export const DATE_OPTIONS = [
-  { label: "Semua Waktu", value: "all" },
-  { label: "7 Hari Terakhir", value: "7d" },
-  { label: "14 Hari Terakhir", value: "14d" },
-  { label: "30 Hari Terakhir", value: "30d" },
-];
-
-export function FilterBar({
-  filters,
-  onChange,
-  onReset,
-  categoryCounts,
-  className,
-}: FilterBarProps) {
-  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
-
-  // Buat daftar opsi bidang berdasarkan JOB_CATEGORIES dan categoryCounts
-  const bidangOptions = [
-    { label: "Semua Bidang", value: "all" },
-    ...JOB_CATEGORIES.filter((c) => {
-      // Jika categoryCounts ada, sembunyikan bidang yang jumlahnya 0 (kecuali jika sedang dipilih)
-      if (categoryCounts && filters.role !== c.slug) {
-        return (categoryCounts[c.slug] || 0) > 0;
-      }
-      return true;
-    }).map((c) => {
-      const count = categoryCounts ? categoryCounts[c.slug] : undefined;
-      const countLabel = count !== undefined ? ` (${count})` : "";
-      return {
-        label: `${c.label}${countLabel}`,
-        value: c.slug,
-      };
-    }),
-  ];
-
-  const activeFilterList: Array<{ key: keyof FilterState; label: string; valueLabel: string }> = [];
-  if (filters.role && filters.role !== "all") {
-    const foundCat = JOB_CATEGORIES.find((c) => c.slug === filters.role);
-    activeFilterList.push({
-      key: "role",
-      label: "Bidang",
-      valueLabel: foundCat ? foundCat.label : filters.role,
-    });
-  }
-  if (filters.location && filters.location !== "all") {
-    activeFilterList.push({
-      key: "location",
-      label: "Lokasi",
-      valueLabel: LOCATION_OPTIONS.find((o) => o.value === filters.location)?.label || filters.location,
-    });
-  }
-  if (filters.workType && filters.workType !== "all") {
-    activeFilterList.push({
-      key: "workType",
-      label: "Tipe",
-      valueLabel: WORK_TYPE_OPTIONS.find((o) => o.value === filters.workType)?.label || filters.workType,
-    });
-  }
-  if (filters.seniority && filters.seniority !== "all") {
-    activeFilterList.push({
-      key: "seniority",
-      label: "Level",
-      valueLabel: SENIORITY_OPTIONS.find((o) => o.value === filters.seniority)?.label || filters.seniority,
-    });
-  }
-  if (filters.postedDate && filters.postedDate !== "all") {
-    activeFilterList.push({
-      key: "postedDate",
-      label: "Waktu",
-      valueLabel: DATE_OPTIONS.find((o) => o.value === filters.postedDate)?.label || filters.postedDate,
-    });
-  }
-
-  const isFiltered = activeFilterList.length > 0;
-
-  const updateField = (field: keyof FilterState, value: string) => {
-    onChange({ ...filters, [field]: value });
-  };
-
-  const removeFilter = (field: keyof FilterState) => {
-    onChange({ ...filters, [field]: "all" });
-  };
-
+function FilterSelect({ field, surface, onSelect, linkLabel = false }: FilterSelectProps) {
+  const controlId = linkLabel ? field.id : undefined;
   return (
-    <>
-      {/* ----------------------------------------------------------------- */}
-      {/* Mobile Compact Bar & Active Filter Chips                          */}
-      {/* ----------------------------------------------------------------- */}
-      <div className="md:hidden space-y-2">
-        <div className="flex items-center justify-between gap-2">
+    <div className="space-y-1">
+      <label htmlFor={controlId} className={LABEL_CLASS}>
+        {field.label}
+      </label>
+      <select
+        id={controlId}
+        value={field.value}
+        onChange={(e) => onSelect(field.key, e.target.value)}
+        className={cn(SELECT_BASE_CLASS, SELECT_SURFACE[surface])}
+      >
+        {field.options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+interface FilterToolbarProps {
+  activeFilters: ActiveFilter[];
+  isOpen: boolean;
+  onToggle: () => void;
+  onReset?: () => void;
+  onRemove: (field: keyof FilterState) => void;
+}
+
+/** Tombol Filter (ringkas) + chip filter aktif; panel lengkap hanya muncul saat dibuka. */
+function FilterToolbar({ activeFilters, isOpen, onToggle, onReset, onRemove }: FilterToolbarProps) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={isOpen}
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full border border-sb-border bg-white/80 backdrop-blur-md shadow-xs text-xs font-bold text-sb-navy hover:bg-white transition-colors cursor-pointer"
+        >
+          <SlidersHorizontal className="w-3.5 h-3.5 text-sb-blue" />
+          <span>Filter</span>
+          {activeFilters.length > 0 && (
+            <span className="w-5 h-5 rounded-full bg-sb-sky text-sb-navy text-xs font-bold flex items-center justify-center">
+              {activeFilters.length}
+            </span>
+          )}
+          <ChevronDown className={cn("hidden md:block w-3.5 h-3.5 text-sb-text-2 transition-transform", isOpen && "rotate-180")} />
+        </button>
+
+        {activeFilters.length > 0 && onReset && (
           <button
             type="button"
-            onClick={() => setIsMobileDrawerOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full border border-sb-border bg-white/80 backdrop-blur-md shadow-xs text-xs font-bold text-sb-navy hover:bg-white transition-colors cursor-pointer"
+            onClick={onReset}
+            className="text-xs font-semibold text-sb-text-2 hover:text-sb-blue flex items-center gap-1 cursor-pointer"
           >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-sb-blue" />
-            <span>Filter</span>
-            {activeFilterList.length > 0 && (
-              <span className="w-5 h-5 rounded-full bg-sb-sky text-sb-navy text-xs font-bold flex items-center justify-center">
-                {activeFilterList.length}
-              </span>
-            )}
+            <RotateCcw className="w-3 h-3" />
+            Reset
           </button>
+        )}
+      </div>
 
+      {activeFilters.length > 0 && (
+        <div className="flex items-center gap-1.5 overflow-x-auto md:flex-wrap md:overflow-visible pb-1 pt-0.5 no-scrollbar">
+          {activeFilters.map((chip) => (
+            <span
+              key={chip.key}
+              className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-sb-mist-soft text-sb-navy border border-sb-border text-[11px] font-semibold shrink-0"
+            >
+              <span>{chip.valueLabel}</span>
+              <button
+                type="button"
+                onClick={() => onRemove(chip.key)}
+                className="hover:bg-sb-mist rounded-full p-0.5 text-sb-text-2 cursor-pointer"
+                aria-label={`Hapus filter ${chip.label}`}
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface MobileFilterSheetProps {
+  fields: FilterField[];
+  isFiltered: boolean;
+  onSelect: SelectHandler;
+  onReset?: () => void;
+  onClose: () => void;
+}
+
+function MobileFilterSheet({ fields, isFiltered, onSelect, onReset, onClose }: MobileFilterSheetProps) {
+  return (
+    <div className="fixed inset-0 z-50 md:hidden flex flex-col justify-end">
+      <div
+        className="fixed inset-0 bg-black/30 backdrop-blur-xs transition-opacity"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
+      <div className="relative glass-panel rounded-t-[28px] border-t border-sb-border p-6 shadow-2xl max-h-[85vh] overflow-y-auto space-y-4 animate-in slide-in-from-bottom-5 duration-200">
+        <div className="flex items-center justify-between pb-3 border-b border-sb-border">
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal className="w-4 h-4 text-sb-blue" />
+            <h3 className="text-sm font-bold text-sb-navy">Filter Lowongan</h3>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-full text-sb-text-2 hover:text-sb-navy bg-white/70 border border-sb-border cursor-pointer"
+            aria-label="Tutup filter"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="space-y-3.5">
+          {fields.map((field) => (
+            <FilterSelect key={field.key} field={field} surface="sheet" onSelect={onSelect} />
+          ))}
+        </div>
+
+        <div className="pt-3 flex items-center gap-2">
           {isFiltered && onReset && (
             <button
               type="button"
-              onClick={onReset}
-              className="text-xs font-semibold text-sb-text-2 hover:text-sb-blue flex items-center gap-1 cursor-pointer"
+              onClick={() => {
+                onReset();
+                onClose();
+              }}
+              className="flex-1 py-3 rounded-full border border-sb-border text-xs font-bold text-sb-navy hover:bg-white/80 transition-colors cursor-pointer"
             >
-              <RotateCcw className="w-3 h-3" />
               Reset
             </button>
           )}
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 py-3 rounded-full bg-sb-sky hover:bg-sb-sky-hover text-sb-navy text-xs font-bold transition-all cursor-pointer shadow-xs"
+          >
+            Terapkan Filter
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface DesktopFilterPanelProps {
+  fields: FilterField[];
+  isFiltered: boolean;
+  onSelect: SelectHandler;
+  onReset?: () => void;
+  className?: string;
+}
+
+function DesktopFilterPanel({ fields, isFiltered, onSelect, onReset, className }: DesktopFilterPanelProps) {
+  return (
+    <div className={cn("hidden md:block p-5 rounded-[20px] glass space-y-4 animate-in fade-in slide-in-from-top-1 duration-150", className)}>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-xs font-bold text-sb-navy uppercase tracking-wider">
+          <Filter className="w-4 h-4 text-sb-blue" />
+          Filter Lowongan
         </div>
 
-        {/* Active Filter Chips Scrollable */}
-        {activeFilterList.length > 0 && (
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-0.5 no-scrollbar">
-            {activeFilterList.map((chip) => (
-              <span
-                key={chip.key}
-                className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-sb-mist-soft text-sb-navy border border-sb-border text-[11px] font-semibold shrink-0"
-              >
-                <span>{chip.valueLabel}</span>
-                <button
-                  type="button"
-                  onClick={() => removeFilter(chip.key)}
-                  className="hover:bg-sb-mist rounded-full p-0.5 text-sb-text-2 cursor-pointer"
-                  aria-label={`Hapus filter ${chip.label}`}
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            ))}
-          </div>
+        {isFiltered && onReset && (
+          <button
+            type="button"
+            onClick={onReset}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-sb-text-2 hover:text-sb-blue transition-colors cursor-pointer"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            Reset Filter
+          </button>
         )}
       </div>
 
-      {/* ----------------------------------------------------------------- */}
-      {/* Mobile Filter Bottom Sheet / Modal Drawer                         */}
-      {/* ----------------------------------------------------------------- */}
-      {isMobileDrawerOpen && (
-        <div className="fixed inset-0 z-50 md:hidden flex flex-col justify-end">
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black/30 backdrop-blur-xs transition-opacity"
-            onClick={() => setIsMobileDrawerOpen(false)}
-            aria-hidden="true"
-          />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        {fields.map((field) => (
+          <FilterSelect key={field.key} field={field} surface="bar" onSelect={onSelect} linkLabel />
+        ))}
+      </div>
+    </div>
+  );
+}
 
-          {/* Sheet container */}
-          <div className="relative glass-panel rounded-t-[28px] border-t border-sb-border p-6 shadow-2xl max-h-[85vh] overflow-y-auto space-y-4 animate-in slide-in-from-bottom-5 duration-200">
-            <div className="flex items-center justify-between pb-3 border-b border-sb-border">
-              <div className="flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4 text-sb-blue" />
-                <h3 className="text-sm font-bold text-sb-navy">Filter Lowongan</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsMobileDrawerOpen(false)}
-                className="p-1.5 rounded-full text-sb-text-2 hover:text-sb-navy bg-white/70 border border-sb-border cursor-pointer"
-                aria-label="Tutup filter"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+export function FilterBar({ filters, onChange, onReset, categoryCounts, className }: FilterBarProps) {
+  const [isOpen, setIsOpen] = useState(false);
 
-            <div className="space-y-3.5">
-              {/* Bidang (sebelumnya Peran Target) */}
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-sb-text-2">
-                  Bidang
-                </label>
-                <select
-                  value={filters.role}
-                  onChange={(e) => updateField("role", e.target.value)}
-                  className="w-full h-10 rounded-xl border border-sb-border bg-white/80 px-3 text-xs font-semibold text-sb-navy focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue"
-                >
-                  {bidangOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+  const fields = buildFilterFields(filters, buildBidangOptions(filters.role, categoryCounts));
+  const activeFilters = buildActiveFilters(filters);
+  const isFiltered = activeFilters.length > 0;
 
-              {/* Location */}
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-sb-text-2">
-                  Lokasi Kerja
-                </label>
-                <select
-                  value={filters.location || "all"}
-                  onChange={(e) => updateField("location", e.target.value)}
-                  className="w-full h-10 rounded-xl border border-sb-border bg-white/80 px-3 text-xs font-semibold text-sb-navy focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue"
-                >
-                  {LOCATION_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+  const updateField: SelectHandler = (field, value) => onChange({ ...filters, [field]: value });
+  const removeFilter = (field: keyof FilterState) => updateField(field, "all");
+  const closeDrawer = () => setIsOpen(false);
 
-              {/* Work Type */}
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-sb-text-2">
-                  Tipe Kerja
-                </label>
-                <select
-                  value={filters.workType}
-                  onChange={(e) => updateField("workType", e.target.value)}
-                  className="w-full h-10 rounded-xl border border-sb-border bg-white/80 px-3 text-xs font-semibold text-sb-navy focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue"
-                >
-                  {WORK_TYPE_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+  return (
+    <>
+      <FilterToolbar
+        activeFilters={activeFilters}
+        isOpen={isOpen}
+        onToggle={() => setIsOpen((open) => !open)}
+        onReset={onReset}
+        onRemove={removeFilter}
+      />
 
-              {/* Seniority */}
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-sb-text-2">
-                  Senioritas
-                </label>
-                <select
-                  value={filters.seniority}
-                  onChange={(e) => updateField("seniority", e.target.value)}
-                  className="w-full h-10 rounded-xl border border-sb-border bg-white/80 px-3 text-xs font-semibold text-sb-navy focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue"
-                >
-                  {SENIORITY_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Posted Date */}
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-sb-text-2">
-                  Waktu Tayang
-                </label>
-                <select
-                  value={filters.postedDate || "all"}
-                  onChange={(e) => updateField("postedDate", e.target.value)}
-                  className="w-full h-10 rounded-xl border border-sb-border bg-white/80 px-3 text-xs font-semibold text-sb-navy focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue"
-                >
-                  {DATE_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="pt-3 flex items-center gap-2">
-              {isFiltered && onReset && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onReset();
-                    setIsMobileDrawerOpen(false);
-                  }}
-                  className="flex-1 py-3 rounded-full border border-sb-border text-xs font-bold text-sb-navy hover:bg-white/80 transition-colors cursor-pointer"
-                >
-                  Reset
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => setIsMobileDrawerOpen(false)}
-                className="flex-1 py-3 rounded-full bg-sb-sky hover:bg-sb-sky-hover text-sb-navy text-xs font-bold transition-all cursor-pointer shadow-xs"
-              >
-                Terapkan Filter
-              </button>
-            </div>
-          </div>
-        </div>
+      {isOpen && (
+        <MobileFilterSheet
+          fields={fields}
+          isFiltered={isFiltered}
+          onSelect={updateField}
+          onReset={onReset}
+          onClose={closeDrawer}
+        />
       )}
 
-      {/* ----------------------------------------------------------------- */}
-      {/* Desktop Filter Bar (Glass Panel with 20px radius)                 */}
-      {/* ----------------------------------------------------------------- */}
-      <div
-        className={cn(
-          "hidden md:block p-5 rounded-[20px] glass space-y-4",
-          className
-        )}
-      >
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-sb-navy uppercase tracking-wider">
-            <Filter className="w-4 h-4 text-sb-blue" />
-            Filter Lowongan
-          </div>
-
-          {isFiltered && onReset && (
-            <button
-              type="button"
-              onClick={onReset}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-sb-text-2 hover:text-sb-blue transition-colors cursor-pointer"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              Reset Filter
-            </button>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          {/* Bidang (sebelumnya Peran Target) */}
-          <div className="space-y-1">
-            <label htmlFor="filter-role" className="text-[11px] font-bold uppercase tracking-wider text-sb-text-2">
-              Bidang
-            </label>
-            <select
-              id="filter-role"
-              value={filters.role}
-              onChange={(e) => updateField("role", e.target.value)}
-              className="w-full h-10 rounded-xl border border-sb-border bg-white/70 px-3 text-xs font-semibold text-sb-navy focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue"
-            >
-              {bidangOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Location Filter */}
-          <div className="space-y-1">
-            <label htmlFor="filter-location" className="text-[11px] font-bold uppercase tracking-wider text-sb-text-2">
-              Lokasi Kerja
-            </label>
-            <select
-              id="filter-location"
-              value={filters.location || "all"}
-              onChange={(e) => updateField("location", e.target.value)}
-              className="w-full h-10 rounded-xl border border-sb-border bg-white/70 px-3 text-xs font-semibold text-sb-navy focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue"
-            >
-              {LOCATION_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Work Type Filter */}
-          <div className="space-y-1">
-            <label htmlFor="filter-work-type" className="text-[11px] font-bold uppercase tracking-wider text-sb-text-2">
-              Tipe Kerja
-            </label>
-            <select
-              id="filter-work-type"
-              value={filters.workType}
-              onChange={(e) => updateField("workType", e.target.value)}
-              className="w-full h-10 rounded-xl border border-sb-border bg-white/70 px-3 text-xs font-semibold text-sb-navy focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue"
-            >
-              {WORK_TYPE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Seniority Filter */}
-          <div className="space-y-1">
-            <label htmlFor="filter-seniority" className="text-[11px] font-bold uppercase tracking-wider text-sb-text-2">
-              Senioritas
-            </label>
-            <select
-              id="filter-seniority"
-              value={filters.seniority}
-              onChange={(e) => updateField("seniority", e.target.value)}
-              className="w-full h-10 rounded-xl border border-sb-border bg-white/70 px-3 text-xs font-semibold text-sb-navy focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue"
-            >
-              {SENIORITY_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Posted Date Filter */}
-          <div className="space-y-1">
-            <label htmlFor="filter-posted-date" className="text-[11px] font-bold uppercase tracking-wider text-sb-text-2">
-              Waktu Tayang
-            </label>
-            <select
-              id="filter-posted-date"
-              value={filters.postedDate || "all"}
-              onChange={(e) => updateField("postedDate", e.target.value)}
-              className="w-full h-10 rounded-xl border border-sb-border bg-white/70 px-3 text-xs font-semibold text-sb-navy focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue"
-            >
-              {DATE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
+      {isOpen && (
+        <DesktopFilterPanel
+          fields={fields}
+          isFiltered={isFiltered}
+          onSelect={updateField}
+          onReset={onReset}
+          className={className}
+        />
+      )}
     </>
   );
 }

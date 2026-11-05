@@ -29,7 +29,7 @@ export interface ServerSavedJob {
 /**
  * Membaca data pelacakan lokal dari localStorage (terisolasi per userId)
  */
-export function getLocalTrackerMap(userId?: string): Record<string, Partial<TrackedJob>> {
+function getLocalTrackerMap(userId?: string): Record<string, Partial<TrackedJob>> {
   if (typeof window === "undefined") return {};
   try {
     const key = getStorageKey(userId);
@@ -44,7 +44,7 @@ export function getLocalTrackerMap(userId?: string): Record<string, Partial<Trac
 /**
  * Menyimpan seluruh map pelacakan ke localStorage (terisolasi per userId)
  */
-export function saveLocalTrackerMap(map: Record<string, Partial<TrackedJob>>, userId?: string): void {
+function saveLocalTrackerMap(map: Record<string, Partial<TrackedJob>>, userId?: string): void {
   if (typeof window === "undefined") return;
   try {
     const key = getStorageKey(userId);

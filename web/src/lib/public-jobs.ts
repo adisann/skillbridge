@@ -2,8 +2,9 @@ import { unstable_cache, revalidateTag } from "next/cache";
 import { getServiceSupabase } from "@/lib/supabase/server";
 import { getCanonicalSkill } from "@/lib/matching-config";
 import { getCategoryFromTitle, getCategoryBySlug } from "@/lib/job-categories";
+import { isOverseasLocation } from "@/lib/utils";
 
-export interface RawPublicJobSkill {
+interface RawPublicJobSkill {
   is_mandatory: boolean;
   requirement_snippet?: string;
   skills: {
@@ -13,7 +14,7 @@ export interface RawPublicJobSkill {
   };
 }
 
-export interface RawPublicJob {
+interface RawPublicJob {
   id: string;
   external_id?: string;
   title: string;
@@ -78,7 +79,7 @@ export function revalidateJobsCache() {
   }
 }
 
-export interface MarketFilterInput {
+interface MarketFilterInput {
   role?: string | null;
   workType?: string | null;
   seniority?: string | null;
@@ -86,7 +87,7 @@ export interface MarketFilterInput {
   postedDate?: string | null;
 }
 
-export interface AggregatedSkillInsight {
+interface AggregatedSkillInsight {
   skillName: string;
   category: string;
   frequencyCount: number;
@@ -97,7 +98,7 @@ export interface AggregatedSkillInsight {
   exampleRequirement: string;
 }
 
-export interface LearningRecommendation {
+interface LearningRecommendation {
   skillName: string;
   demandPercentage: number;
   reason: string;
@@ -105,7 +106,7 @@ export interface LearningRecommendation {
   action: string;
 }
 
-export interface MarketAggregationResult {
+interface MarketAggregationResult {
   sampleSizeN: number;
   lastUpdatedDate: string;
   topSkills: AggregatedSkillInsight[];
@@ -144,12 +145,17 @@ export function aggregateMarketData(
     });
   }
 
-  if (location !== "all") {
+  if (location === "overseas") {
+    filteredJobs = filteredJobs.filter((j) => isOverseasLocation(j.location));
+  } else if (location !== "all") {
     filteredJobs = filteredJobs.filter((j) => {
       const jLoc = (j.location || "").toLowerCase();
       if (location === "remote") return jLoc.includes("remote");
       return jLoc.includes(location);
     });
+  } else {
+    // Default daftar: lowongan di luar Indonesia tidak masuk default daftar
+    filteredJobs = filteredJobs.filter((j) => !isOverseasLocation(j.location));
   }
 
   if (workType !== "all") {

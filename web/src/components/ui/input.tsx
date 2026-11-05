@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 // -----------------------------------------------------------------------------
 // TextInput
 // -----------------------------------------------------------------------------
-export interface InputProps
+interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   helperText?: string;
@@ -83,7 +83,7 @@ TextInput.displayName = "TextInput";
 // -----------------------------------------------------------------------------
 // SearchInput
 // -----------------------------------------------------------------------------
-export interface SearchInputProps
+interface SearchInputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange"> {
   value: string;
   onChange: (value: string) => void;
@@ -141,7 +141,7 @@ export function SearchInput({
 // -----------------------------------------------------------------------------
 // Select
 // -----------------------------------------------------------------------------
-export interface SelectProps
+interface SelectProps
   extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string;
@@ -189,7 +189,7 @@ Select.displayName = "Select";
 // -----------------------------------------------------------------------------
 // Textarea
 // -----------------------------------------------------------------------------
-export interface TextareaProps
+interface TextareaProps
   extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
   error?: string;
@@ -235,7 +235,7 @@ Textarea.displayName = "Textarea";
 // -----------------------------------------------------------------------------
 // Checkbox
 // -----------------------------------------------------------------------------
-export interface CheckboxProps
+interface CheckboxProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> {
   label: string;
   description?: string;

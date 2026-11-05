@@ -221,7 +221,7 @@ export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: Sideba
                     <p className="text-xs font-bold text-sb-navy truncate group-hover:text-sb-blue transition-colors">
                       {user.fullName}
                     </p>
-                    <p className="text-[11px] text-sb-text-2 truncate font-mono-metric">
+                    <p className="text-[11px] text-sb-text-2 truncate">
                       {user.email}
                     </p>
                   </div>

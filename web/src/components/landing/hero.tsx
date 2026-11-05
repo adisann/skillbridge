@@ -92,9 +92,16 @@ export function LandingHero() {
           {/* Right Visual: Parallax Wrapper with Rising Pixel Arrows and Floating Cards */}
           <div className="relative min-h-[420px] sm:min-h-[460px] flex items-center justify-center overflow-hidden lg:overflow-visible">
             {/* Rising Upward Pixel Arrows in Background (Crisp 0.75-0.85 opacity, behind cards) */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10" aria-hidden="true">
-              <PixelArrow delay="0s" className="right-8 bottom-6 sm:right-16 opacity-85" />
-              <PixelArrow delay="-3.5s" className="hidden sm:block right-48 bottom-12 opacity-80" />
+            <div
+              className="absolute inset-0 pointer-events-none -z-10"
+              style={{
+                maskImage: "linear-gradient(to top, transparent, black 15%, black 85%, transparent)",
+                WebkitMaskImage: "linear-gradient(to top, transparent, black 15%, black 85%, transparent)",
+              }}
+              aria-hidden="true"
+            >
+              <PixelArrow delay="0s" px={11} gap={3.5} className="absolute right-6 bottom-10 sm:right-14 opacity-85" />
+              <PixelArrow delay="-3.25s" px={10} gap={3} className="absolute hidden sm:block right-44 bottom-16 opacity-80" />
             </div>
 
             {/* Floating Cards Cluster */}

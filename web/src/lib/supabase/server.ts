@@ -3,7 +3,7 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { NextRequest } from "next/server";
 
-export function getRequiredEnv(key: string): string {
+function getRequiredEnv(key: string): string {
   const value = process.env[key];
   if (!value || !value.trim()) {
     throw new Error(`Variabel lingkungan wajib [${key}] belum dikonfigurasi.`);

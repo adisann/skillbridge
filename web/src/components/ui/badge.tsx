@@ -7,51 +7,6 @@ import {
   XCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatPercent } from "@/lib/copy";
-
-// -----------------------------------------------------------------------------
-// Base Badge (Pill Shaped)
-// -----------------------------------------------------------------------------
-export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: "primary" | "secondary" | "success" | "warning" | "danger" | "outline";
-  size?: "sm" | "md";
-}
-
-export function Badge({
-  className,
-  variant = "secondary",
-  size = "md",
-  children,
-  ...props
-}: BadgeProps) {
-  const variantStyles = {
-    primary: "bg-sb-mist-soft text-sb-navy border-sb-border",
-    secondary: "bg-sb-mist-soft text-sb-navy border-sb-border",
-    success: "bg-emerald-50 text-sb-good border-emerald-200",
-    warning: "bg-amber-50 text-sb-warning border-amber-200",
-    danger: "bg-rose-50 text-sb-critical border-rose-200",
-    outline: "bg-transparent text-sb-text-2 border-sb-border",
-  };
-
-  const sizeStyles = {
-    sm: "text-[11px] px-2.5 py-0.5",
-    md: "text-xs px-3 py-1",
-  };
-
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1.5 font-semibold rounded-full border select-none transition-colors",
-        variantStyles[variant],
-        sizeStyles[size],
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </span>
-  );
-}
 
 // -----------------------------------------------------------------------------
 // Match Status Badge
@@ -62,12 +17,13 @@ export type MatchStatus =
   | "potentially_overqualified"
   | "insufficient_evidence";
 
-export interface MatchBadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
+interface MatchBadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   status: MatchStatus;
   score?: number | null;
   size?: "sm" | "md" | "lg";
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function MatchBadge({ status, score, size = "md", className, ...props }: MatchBadgeProps) {
   const sizeClasses =
     size === "sm"
@@ -111,8 +67,6 @@ export function MatchBadge({ status, score, size = "md", className, ...props }: 
   };
 
   const current = config[status];
-  const safeScore = score != null ? formatPercent(score) : null;
-  const shouldShowScore = safeScore != null && status !== "insufficient_evidence";
 
   return (
     <span
@@ -128,11 +82,6 @@ export function MatchBadge({ status, score, size = "md", className, ...props }: 
     >
       {current.icon}
       <span>{current.label}</span>
-      {shouldShowScore && (
-        <span className="ml-1 pl-1.5 border-l border-current/30 font-bold font-mono-metric">
-          {safeScore}%
-        </span>
-      )}
     </span>
   );
 }
@@ -142,7 +91,7 @@ export function MatchBadge({ status, score, size = "md", className, ...props }: 
 // -----------------------------------------------------------------------------
 export type CVSkillStatus = "found" | "missing" | "needs_verification" | "matched" | "insufficient";
 
-export interface CVSkillBadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
+interface CVSkillBadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   skillName?: string;
   status: CVSkillStatus;
   isMandatory?: boolean;

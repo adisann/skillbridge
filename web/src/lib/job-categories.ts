@@ -4,7 +4,7 @@
  * dan preferensi target karier pengguna.
  */
 
-export interface JobCategory {
+interface JobCategory {
   slug: string;
   label: string;
   examples: string;
@@ -192,17 +192,39 @@ export function getCategoryFromTitle(
   title?: string | null,
   canonicalTitle?: string | null
 ): JobCategory {
-  const text = `${canonicalTitle || ""} ${title || ""}`.toLowerCase();
+  const t = (title || "").toLowerCase();
+  const ct = (canonicalTitle || "").toLowerCase();
+  const text = `${ct} ${t}`.trim();
 
-  if (!text.trim()) {
+  if (!text) {
     return JOB_CATEGORIES[JOB_CATEGORIES.length - 1]; // "lainnya"
+  }
+
+  // Prioritas Khusus: "Business Analyst" / "Analis Bisnis" selalu masuk Bisnis & Strategi
+  // (bukan Data & Analitik, meskipun ada singkatan BI atau data di konteks lain)
+  if (/\b(business analyst|analis bisnis)\b/i.test(t) || /\b(business analyst|analis bisnis)\b/i.test(ct)) {
+    const businessCat = JOB_CATEGORIES.find((c) => c.slug === "bisnis-strategi");
+    if (businessCat) return businessCat;
   }
 
   // Cek kategori 0 sampai N-2 (sebelum "lainnya")
   for (let i = 0; i < JOB_CATEGORIES.length - 1; i++) {
     const category = JOB_CATEGORIES[i];
     for (const kw of category.keywords) {
-      if (text.includes(kw.toLowerCase())) {
+      const cleanKw = kw.toLowerCase().trim();
+      let matched = false;
+
+      // "BI" hanya cocok sebagai kata utuh (\bBI\b) atau "Business Intelligence"
+      if (cleanKw === "bi") {
+        matched = /\bbi\b/i.test(text);
+      } else if (cleanKw.length <= 3) {
+        const escaped = cleanKw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        matched = new RegExp(`\\b${escaped}\\b`, "i").test(text);
+      } else {
+        matched = text.includes(cleanKw);
+      }
+
+      if (matched) {
         return category;
       }
     }

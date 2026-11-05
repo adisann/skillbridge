@@ -10,7 +10,7 @@ import { TrackedJob, JobStage } from "@/types/tracker";
 // 1. Edit Job Modal
 // =============================================================================
 
-export interface EditJobModalProps {
+interface EditJobModalProps {
   job: TrackedJob | null;
   isOpen: boolean;
   onClose: () => void;
@@ -160,7 +160,7 @@ function EditJobModalForm({
 // 2. Add Job Modal
 // =============================================================================
 
-export interface AddJobModalProps {
+interface AddJobModalProps {
   isOpen: boolean;
   catalogJobs: Array<{ id: string; title: string; company: string; location: string }>;
   onClose: () => void;

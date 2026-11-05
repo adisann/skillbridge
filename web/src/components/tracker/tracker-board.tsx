@@ -5,7 +5,7 @@ import { MatchBadge } from "@/components/ui/badge";
 import { PriorityStars } from "@/components/tracker/priority-stars";
 import { TrackedJob, JobStage, STAGE_CONFIG } from "@/types/tracker";
 
-export interface TrackerBoardProps {
+interface TrackerBoardProps {
   jobs: TrackedJob[];
   onStageChange: (id: string, stage: JobStage) => void;
   onPriorityChange: (id: string, priority: number) => void;

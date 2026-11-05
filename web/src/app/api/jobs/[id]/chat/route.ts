@@ -5,7 +5,9 @@ import {
   isCvRelatedQuery,
   getInstantTemplateAnswer,
 } from "@/lib/ai/prompts";
-import { streamAIWithFallback, checkRateLimit } from "@/lib/ai/provider";
+import { streamAIWithFallback } from "@/lib/ai/provider";
+import { enforceRateLimits, getClientIp } from "@/lib/rate-limit";
+import { chatBurstRules, chatQuotaRules } from "@/lib/rate-limit-policies";
 import {
   getJobKnowledgeCache,
   setJobKnowledgeCache,
@@ -13,7 +15,11 @@ import {
   setCvAnalysisCache,
 } from "@/lib/ai/cache";
 import { ActiveJobContext, CandidateCVContext, ChatMessage } from "@/lib/ai/types";
-import { calculateJobMatch } from "@/lib/matching";
+import { calculateJobMatch, getDisplayScore } from "@/lib/matching";
+import { splitJobSkills, type JobSkillRow } from "@/lib/job-skills";
+
+const MAX_MESSAGE_CHARS = 500;
+const MAX_HISTORY_MESSAGES = 6;
 
 // Helper to return instant SSE response (for cache hits, auth notices, rule engine)
 function createInstantStreamResponse(
@@ -67,20 +73,14 @@ export async function POST(
 ) {
   try {
     const { id: jobId } = await context.params;
-    const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "anonymous";
+    const ip = getClientIp(req);
 
-    // 1. Rate Limiting Check
-    if (!checkRateLimit(ip, 30, 60000)) {
-      return NextResponse.json(
-        {
-          error: "Terlalu banyak permintaan dalam waktu singkat. Mohon tunggu beberapa saat sebelum bertanya kembali.",
-        },
-        { status: 429 }
-      );
-    }
+    // 1. Rate limiting awal per IP (sebelum membaca body dan menyentuh database)
+    const burstLimited = await enforceRateLimits(chatBurstRules(ip));
+    if (burstLimited) return burstLimited;
 
     const body = await req.json();
-    const { message, history = [] } = body as {
+    const { message, history: rawHistory = [] } = body as {
       message: string;
       history?: ChatMessage[];
     };
@@ -93,7 +93,16 @@ export async function POST(
     }
 
     const { user, supabase } = await getAuthenticatedUser(req);
-    const trimmedMessage = message.trim().slice(0, 500); // Guardrail: Max 500 characters
+
+    // Kuota per pengguna (atau per IP untuk tamu) dan batas global harian
+    const quotaLimited = await enforceRateLimits(chatQuotaRules(ip, user?.id ?? null));
+    if (quotaLimited) return quotaLimited;
+
+    const trimmedMessage = message.trim().slice(0, MAX_MESSAGE_CHARS);
+    const history = rawHistory
+      .filter((m) => (m?.role === "user" || m?.role === "assistant") && typeof m.content === "string")
+      .slice(-MAX_HISTORY_MESSAGES)
+      .map((m) => ({ role: m.role, content: m.content.slice(0, MAX_MESSAGE_CHARS) }));
 
     // 2. Fetch Active Job Details from Supabase
     const { data: job, error: jobErr } = await supabase
@@ -109,19 +118,9 @@ export async function POST(
       );
     }
 
-    const reqSkills: string[] = [];
-    const prefSkills: string[] = [];
-    if (job.job_skills) {
-      for (const js of job.job_skills as unknown as Array<{
-        is_mandatory: boolean;
-        skills: { name: string };
-      }>) {
-        if (js.skills?.name) {
-          if (js.is_mandatory) reqSkills.push(js.skills.name);
-          else prefSkills.push(js.skills.name);
-        }
-      }
-    }
+    const { required: reqSkills, preferred: prefSkills } = splitJobSkills(
+      job.job_skills as unknown as JobSkillRow[] | null
+    );
 
     const jobContext: ActiveJobContext = {
       id: job.id,
@@ -236,7 +235,7 @@ export async function POST(
         experienceYears: Number(activeResume.experience_years) || 0,
         education: activeResume.education || "Sarjana (S1)",
         skills: candidateSkills,
-        matchScore: liveMatch.score,
+        matchScore: getDisplayScore(liveMatch) ?? undefined,
         matchStatus: liveMatch.matchStatus,
         matchedSkills: liveMatch.matchedSkills,
         missingSkills: liveMatch.missingSkills,

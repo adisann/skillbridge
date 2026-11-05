@@ -7,7 +7,7 @@ import { PriorityStars } from "@/components/tracker/priority-stars";
 import { TrackedJob, JobStage, STAGE_CONFIG } from "@/types/tracker";
 import { cn } from "@/lib/utils";
 
-export interface TrackerTableProps {
+interface TrackerTableProps {
   jobs: TrackedJob[];
   totalItems: number;
   selectedJobIds: Set<string>;

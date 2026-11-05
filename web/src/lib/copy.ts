@@ -130,36 +130,8 @@ export const UI_COPY = {
     closingTitle: "Jadi kandidat yang tahu apa yang kamu tawarkan.",
     closingSubtitle: "Mulai dari CV yang kamu punya sekarang.",
     closingCtaPrimary: "Mulai gratis",
-    closingCtaDemo: "Coba akun demo",
   },
 } as const;
-
-/**
- * Format jumlah lowongan aktif untuk dashboard
- * Contoh: "45 lowongan aktif untuk Data Analyst"
- */
-export function formatDashboardActiveJobs(count: number, role?: string | null): string {
-  if (role && role !== "all" && role !== "semua bidang") {
-    return `${count} lowongan aktif untuk ${role}`;
-  }
-  return `${count} lowongan aktif`;
-}
-
-/**
- * Format ringkasan data pasar di halaman insights
- * Contoh: "Berdasarkan 23 lowongan aktif · diperbarui 4 Nov 2026"
- */
-export function formatInsightsDataSummary(count: number, dateStr: string): string {
-  return `Berdasarkan ${count} lowongan aktif · diperbarui ${dateStr}`;
-}
-
-/**
- * Format jumlah hasil pencarian lowongan
- * Contoh: "45 lowongan ditemukan"
- */
-export function formatJobsFound(count: number): string {
-  return `${count} lowongan ditemukan`;
-}
 
 /**
  * Normalisasi dan formatting nilai persentase agar selalu aman dalam rentang 0 - 100%.
@@ -175,18 +147,4 @@ export function formatPercent(val?: number | null): number {
   // Nilai terkalikan dua kali (misal 4100 -> 41, 10000 -> 100, 2400 -> 24)
   if (val <= 10000) return Math.min(100, Math.round(val / 100));
   return 100;
-}
-
-/**
- * Format frekuensi kebutuhan skill
- * Contoh: "Diminta di 8 dari 23 lowongan"
- */
-export function formatSkillDemand(
-  count: number,
-  totalN: number,
-  percentage?: number
-): { text: string; percentageText?: string } {
-  const text = `Diminta di ${count} dari ${totalN} lowongan`;
-  const percentageText = percentage !== undefined ? `${formatPercent(percentage)}%` : undefined;
-  return { text, percentageText };
 }

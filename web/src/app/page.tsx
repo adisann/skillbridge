@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useAuth } from "@/lib/supabase/auth-context";
 import { fetchDeduped } from "@/lib/fetcher";
 import { LandingHero } from "@/components/landing/hero";
 import { LandingProblem } from "@/components/landing/problem";
@@ -12,9 +11,7 @@ import { LandingTrust } from "@/components/landing/trust";
 import { LandingClosing } from "@/components/landing/closing";
 
 export default function HomePage() {
-  const { loginDemoJuri } = useAuth();
   const [jobCounts, setJobCounts] = useState<Record<string, number>>({});
-  const [isDemoLoading, setIsDemoLoading] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -43,12 +40,6 @@ export default function HomePage() {
     };
   }, []);
 
-  const handleDemoClick = async () => {
-    setIsDemoLoading(true);
-    await loginDemoJuri();
-    setIsDemoLoading(false);
-  };
-
   return (
     <div className="overflow-hidden text-sb-navy relative">
       {/* Scroll sentinel 8px for landing navbar transition */}
@@ -64,7 +55,7 @@ export default function HomePage() {
       <LandingHowItWorks />
       <LandingFields jobCounts={jobCounts} />
       <LandingTrust />
-      <LandingClosing onDemoClick={handleDemoClick} isDemoLoading={isDemoLoading} />
+      <LandingClosing />
     </div>
   );
 }

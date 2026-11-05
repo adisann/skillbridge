@@ -238,33 +238,71 @@ a.sb-link:hover {
   will-change: transform;
 }
 
+/* Kartu lowongan kecil: mengambang, masuk ke kartu ringkasan, lalu muncul lagi */
+@keyframes sb-merge-loop {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(var(--rot));
+    opacity: 0.9;
+  }
+  10% {
+    transform: translate3d(0, -8px, 0) rotate(calc(var(--rot) + 0.6deg));
+  }
+  22% {
+    transform: translate3d(0, 4px, 0) rotate(calc(var(--rot) - 0.6deg));
+  }
+  34% {
+    transform: translate3d(0, -8px, 0) rotate(calc(var(--rot) + 0.6deg));
+  }
+  46% {
+    transform: translate3d(0, 0, 0) rotate(var(--rot));
+    opacity: 0.9;
+  }
+  62%, 74% {
+    transform: translate3d(var(--mx), var(--my), 0) rotate(0deg) scale(0.92);
+    opacity: 0;
+  }
+  92%, 100% {
+    transform: translate3d(0, 0, 0) rotate(var(--rot));
+    opacity: 0.9;
+  }
+}
+
+.sb-merge-card {
+  animation: sb-merge-loop 11s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.sb-merge-paused .sb-merge-card {
+  animation-play-state: paused;
+}
+
 /* Rising pixel arrow animation */
 @keyframes sb-rise {
   0% {
-    transform: translate3d(0, 60px, 0);
+    transform: translate3d(0, 40px, 0);
     opacity: 0;
   }
   15% {
-    opacity: 1;
+    opacity: 0.85;
   }
   80% {
-    opacity: 1;
+    opacity: 0.85;
   }
   100% {
-    transform: translate3d(0, -140px, 0);
+    transform: translate3d(0, -60px, 0);
     opacity: 0;
   }
 }
 
 .sb-arrow {
-  animation: sb-rise 7s linear infinite;
+  animation: sb-rise 6.5s linear infinite;
   will-change: transform, opacity;
 }
 
-/* Pixel box pulse */
+/* Pixel box pulse: opacity 0.6 -> 1 -> 0.6 (never below 0.6) */
 @keyframes sb-box-pulse {
   0%, 100% {
-    opacity: 0.5;
+    opacity: 0.6;
   }
   50% {
     opacity: 1;
@@ -272,7 +310,9 @@ a.sb-link:hover {
 }
 
 .sb-box-pulse {
-  animation: sb-box-pulse 2.4s ease-in-out infinite;
+  animation: sb-box-pulse 2s ease-in-out infinite;
+  opacity: 0.85;
+  will-change: opacity;
 }
 
 /* Paused state when hero off-screen */
@@ -335,10 +375,15 @@ html.js-ready .reveal-item.is-revealed {
   }
 
   .sb-float,
+  .sb-merge-card,
   .sb-arrow,
   .sb-box-pulse {
     animation: none !important;
     transform: none !important;
+  }
+
+  .sb-box-pulse {
+    opacity: 0.85 !important;
   }
 
   .lift-card:hover,

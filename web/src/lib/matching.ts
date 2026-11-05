@@ -24,7 +24,7 @@ export interface RequirementEvaluation {
   evidence: string;
 }
 
-export interface ScoreBreakdownItem {
+interface ScoreBreakdownItem {
   label: string;
   score: number; // 0 - 100
   weight: number; // Persentase bobot efektif terdistribusi (0 - 100)
@@ -32,7 +32,7 @@ export interface ScoreBreakdownItem {
   notes?: string;
 }
 
-export interface MatchResult {
+interface MatchResult {
   score: number; // Skor estimasi akhir 0 - 100
   matchStatus: MatchCategory;
   matchedSkills: string[];
@@ -44,14 +44,22 @@ export interface MatchResult {
   requirementsEvaluation: RequirementEvaluation[];
 }
 
-export interface CandidateProfileInput {
+/**
+ * Skor hanya bermakna bila bukti CV cukup. Status `insufficient_evidence`
+ * memakai skor patokan internal, jadi tidak boleh sampai ke pengguna.
+ */
+export function getDisplayScore(result: Pick<MatchResult, "score" | "matchStatus">): number | null {
+  return result.matchStatus === "insufficient_evidence" ? null : result.score;
+}
+
+interface CandidateProfileInput {
   skills: string[];
   experienceYears: number;
   education?: string | null;
   targetRole?: string | null;
 }
 
-export interface JobProfileInput {
+interface JobProfileInput {
   title: string;
   canonicalTitle?: string | null;
   requiredSkills: string[];

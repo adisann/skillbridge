@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export interface TrackerHeaderProps {
+interface TrackerHeaderProps {
   stageCounts: Record<string, number>;
   activeStageFilter: string;
   onStageFilterChange: (stageId: string) => void;

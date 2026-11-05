@@ -1,3 +1,4 @@
+import html
 import re
 import logging
 from bs4 import BeautifulSoup
@@ -15,6 +16,10 @@ def clean_html_text(raw_html_or_text: str) -> str:
     """
     if not raw_html_or_text or not raw_html_or_text.strip():
         return ""
+
+    # Greenhouse mengirim HTML dalam bentuk escaped (&lt;p&gt;); buka dulu agar tag ikut terurai
+    if re.search(r"&lt;/?[a-z]", raw_html_or_text, re.IGNORECASE):
+        raw_html_or_text = html.unescape(raw_html_or_text)
 
     soup = BeautifulSoup(raw_html_or_text, "html.parser")
 
@@ -37,7 +42,16 @@ def clean_html_text(raw_html_or_text: str) -> str:
     text = re.sub(r"[ \t]+", " ", text)
     text = re.sub(r" ?\n ?", "\n", text)
     text = re.sub(r"\n\s*\n\s*\n+", "\n\n", text)
-    return text.strip()
+    return normalize_bullets(text).strip()
+
+
+def normalize_bullets(text: str) -> str:
+    """Rapikan bullet hasil scrape: tanda bullet yang berdiri sendiri di satu baris
+    digabung dengan teksnya, dan daftar bullet dirapatkan tanpa baris kosong."""
+    text = re.sub(r"(?m)^[ \t]*([•▪●◦‣\-\*])[ \t]*\n+[ \t]*(?=\S)", r"\1 ", text)
+    text = re.sub(r"[ \t]+([,.;:])", r"\1", text)
+    text = re.sub(r"(?m)^([•▪●◦‣] [^\n]*)\n\n(?=[•▪●◦‣] )", r"\1\n", text)
+    return text
 
 
 async def render_dynamic_page_if_allowed(url: str, allowed_domains: list[str]) -> Optional[str]:

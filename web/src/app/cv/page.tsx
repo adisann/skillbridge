@@ -6,7 +6,6 @@ import {
   Plus,
   Trash2,
   ArrowRight,
-  FileCheck,
   Check,
   AlertCircle,
   GraduationCap,
@@ -33,33 +32,17 @@ interface ExtractedResumeState {
   experienceYears: number;
   summary: string;
   skills: string[];
-  isPreset: boolean;
 }
 
-const DEFAULT_MATCH_CV: ExtractedResumeState = {
-  candidateName: "Budi Pratama (Kandidat Match)",
-  filename: "CV_Budi_Pratama_DataAnalyst.pdf",
-  fileUrl: "https://r2.skillbridge.id/resumes/demo/budi_pratama.pdf",
-  r2Key: "demo/CV_Budi_Pratama_DataAnalyst.pdf",
-  education: "S1 Matematika & Statistika",
-  experienceYears: 2,
-  summary:
-    "Data Analyst dengan 2 tahun pengalaman industri fintech. Mahir SQL, Python Pandas, visualisasi data Tableau & Power BI, serta pemodelan statistik.",
-  skills: ["SQL", "Python", "Tableau", "Power BI", "Excel", "Statistics", "A/B Testing", "Data Modeling"],
-  isPreset: true,
-};
-
-const DEFAULT_UNDERQUALIFIED_CV: ExtractedResumeState = {
-  candidateName: "Rina Kusuma (Kandidat Underqualified)",
-  filename: "CV_Rina_Kusuma_Junior.pdf",
-  fileUrl: "https://r2.skillbridge.id/resumes/demo/rina_kusuma.pdf",
-  r2Key: "demo/CV_Rina_Kusuma_Junior.pdf",
-  education: "D3 Administrasi Perkantoran",
+const EMPTY_RESUME: ExtractedResumeState = {
+  candidateName: "",
+  filename: "Belum ada CV",
+  fileUrl: null,
+  r2Key: null,
+  education: "",
   experienceYears: 0,
-  summary:
-    "Lulusan administrasi perkantoran dengan keahlian pengoperasian spreadsheet dasar dan entri data. Tertarik beralih karir ke bidang data.",
-  skills: ["Excel", "Canva", "Google Docs", "Data Entry"],
-  isPreset: true,
+  summary: "",
+  skills: [],
 };
 
 export default function CVPage() {
@@ -68,8 +51,8 @@ export default function CVPage() {
 
   // Persetujuan aktif (opt-in explicit, default false)
   const [consentGiven, setConsentGiven] = useState(false);
-  const [currentResume, setCurrentResume] = useState<ExtractedResumeState>(DEFAULT_MATCH_CV);
-  const [skills, setSkills] = useState<string[]>(DEFAULT_MATCH_CV.skills);
+  const [currentResume, setCurrentResume] = useState<ExtractedResumeState>(EMPTY_RESUME);
+  const [skills, setSkills] = useState<string[]>([]);
   const [manualSkills, setManualSkills] = useState<string[]>([]);
   const [newSkillInput, setNewSkillInput] = useState("");
   const [targetRole, setTargetRole] = useState("Data Analyst");
@@ -106,7 +89,6 @@ export default function CVPage() {
             experienceYears: data.resume.experienceYears || 0,
             summary: data.resume.summary || "",
             skills: data.resume.skills || [],
-            isPreset: false,
           });
           setSkills(data.resume.skills || []);
         }
@@ -119,45 +101,6 @@ export default function CVPage() {
       isMounted = false;
     };
   }, []);
-
-  const handlePresetSelect = async (preset: "match" | "underqualified") => {
-    setIsLoading(true);
-    setNotification(null);
-    try {
-      const fd = new FormData();
-      fd.append("preset", preset);
-      const res = await fetch("/api/cv/upload", { method: "POST", body: fd });
-      const data = await res.json();
-
-      if (data.success) {
-        const nextState: ExtractedResumeState = {
-          candidateName: data.candidateName,
-          filename: data.filename,
-          fileUrl: data.fileUrl,
-          r2Key: data.r2Key,
-          education: data.education,
-          experienceYears: data.experienceYears,
-          summary: data.summary,
-          skills: data.skills,
-          isPreset: true,
-        };
-        setCurrentResume(nextState);
-        setSkills(data.skills);
-        setHasUnsavedDraft(true);
-        setNotification({
-          type: "info",
-          message: `CV Contoh '${data.candidateName}' (${preset === "match" ? "Kandidat Cocok" : "Kandidat Kurang Cocok"}) berhasil dimuat. Klik 'Simpan CV & Hitung Kecocokan' untuk memperbarui skor.`,
-        });
-      }
-    } catch {
-      const fallback = preset === "match" ? DEFAULT_MATCH_CV : DEFAULT_UNDERQUALIFIED_CV;
-      setCurrentResume(fallback);
-      setSkills(fallback.skills);
-      setHasUnsavedDraft(true);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -199,7 +142,6 @@ export default function CVPage() {
             experienceYears: data.experienceYears,
             summary: data.summary,
             skills: data.skills,
-            isPreset: false,
           };
 
           setCurrentResume(uploadedState);
@@ -310,7 +252,6 @@ export default function CVPage() {
           experienceYears: 0,
           summary: "Seluruh data CV telah dibersihkan secara permanen dari server dan basis data.",
           skills: [],
-          isPreset: false,
         });
         setNotification({
           type: "info",
@@ -338,7 +279,7 @@ export default function CVPage() {
                 CV & Profil Keahlian
               </h1>
               <p className="text-sb-text-2 text-sm leading-relaxed">
-                Unggah berkas CV atau gunakan profil contoh untuk mengekstrak dan memverifikasi keterampilan kerjamu sebelum dianalisis kecocokannya.
+                Unggah berkas CV untuk mengekstrak dan memverifikasi keterampilan kerjamu sebelum dianalisis kecocokannya.
               </p>
             </div>
 
@@ -364,38 +305,12 @@ export default function CVPage() {
           />
         )}
 
-        {/* Skenario Contoh CV */}
-        <div className="glass-panel p-5 rounded-2xl border border-sb-border space-y-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-sb-blue">
-            <FileCheck className="w-4 h-4 text-sb-blue" />
-            <span>Pilihan Profil Contoh untuk Perbandingan Demo Juri:</span>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Button
-              size="sm"
-              variant={currentResume.candidateName.includes("Budi") ? "primary" : "outline"}
-              onClick={() => handlePresetSelect("match")}
-              disabled={isLoading || isSaving}
-            >
-              Kasus 1: Kandidat Match (Budi Pratama — SQL, Python, Tableau)
-            </Button>
-            <Button
-              size="sm"
-              variant={currentResume.candidateName.includes("Rina") ? "primary" : "outline"}
-              onClick={() => handlePresetSelect("underqualified")}
-              disabled={isLoading || isSaving}
-            >
-              Kasus 2: Kandidat Underqualified (Rina — Fresh Grad Excel Dasar)
-            </Button>
-          </div>
-        </div>
-
         {/* Section 1: Unggah CV & Persetujuan Privasi */}
         <Card>
           <CardHeader>
             <CardTitle>1. Unggah Dokumen CV Baru (PDF / DOCX)</CardTitle>
             <CardDescription>
-              Dokumen disimpan secara aman dan privat di cloud storage. Ukuran maksimal 5 MB.
+              Dokumen disimpan secara aman dan privat di cloud storage. Ukuran maksimal 4 MB.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -435,7 +350,7 @@ export default function CVPage() {
                   {isLoading ? "Sedang Mengunggah & Memproses Dokumen..." : "Klik untuk Memilih Dokumen CV"}
                 </span>
                 <span className="text-xs text-sb-text-2 mt-1">
-                  Format yang didukung: .PDF, .DOCX (Maksimal 5 MB)
+                  Format yang didukung: .PDF, .DOCX (Maksimal 4 MB)
                 </span>
               </label>
             </div>

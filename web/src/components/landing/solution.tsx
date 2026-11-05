@@ -4,21 +4,57 @@ import React, { useEffect, useRef, useState } from "react";
 import { Check, X, Layers, Briefcase } from "lucide-react";
 import { UI_COPY } from "@/lib/copy";
 
+interface FloatingCard {
+  position: string;
+  title: string;
+  chips: readonly string[];
+  rotate: string;
+  /** Arah masuk ke kartu tengah (px). */
+  mergeX: string;
+  mergeY: string;
+  delay: string;
+}
+
+const FLOATING_CARDS: FloatingCard[] = [
+  {
+    position: "top-2 left-1 sm:top-4 sm:left-4",
+    title: UI_COPY.landing.solutionCardJob1,
+    chips: UI_COPY.landing.solutionCardJob1Chips,
+    rotate: "-3deg",
+    mergeX: "110px",
+    mergeY: "120px",
+    delay: "0s",
+  },
+  {
+    position: "top-4 right-1 sm:top-6 sm:right-4",
+    title: UI_COPY.landing.solutionCardJob2,
+    chips: UI_COPY.landing.solutionCardJob2Chips,
+    rotate: "3deg",
+    mergeX: "-110px",
+    mergeY: "120px",
+    delay: "-1.4s",
+  },
+  {
+    position: "bottom-2 left-6 sm:bottom-4 sm:left-12",
+    title: UI_COPY.landing.solutionCardJob3,
+    chips: UI_COPY.landing.solutionCardJob3Chips,
+    rotate: "1deg",
+    mergeX: "0px",
+    mergeY: "-120px",
+    delay: "-2.8s",
+  },
+];
+
 export function LandingSolution() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isMerged, setIsMerged] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
 
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsMerged(true);
-          observer.disconnect();
-        }
-      },
+      ([entry]) => setIsVisible(entry.isIntersecting),
       { threshold: 0, rootMargin: "0px 0px 20% 0px" }
     );
 
@@ -80,82 +116,41 @@ export function LandingSolution() {
           {/* Right Column: Visual Merging Animation */}
           <div
             ref={containerRef}
-            className="relative min-h-[380px] sm:min-h-[440px] flex items-center justify-center p-4 sm:p-6"
+            className={`relative min-h-[380px] sm:min-h-[440px] flex items-center justify-center p-4 sm:p-6 ${
+              isVisible ? "" : "sb-merge-paused"
+            }`}
           >
-            {/* Small Job Card 1 (Data Analyst) - Stacked slightly top-left behind central card */}
-            <div
-              className={`absolute top-2 left-1 sm:top-4 sm:left-4 w-48 sm:w-56 p-3 rounded-xl bg-white/95 border border-sb-border shadow-xs transition-all duration-500 ease-out z-[1] motion-reduce:hidden ${
-                isMerged
-                  ? "translate-x-4 translate-y-4 rotate-0 opacity-0 scale-95 pointer-events-none"
-                  : "-translate-x-1 -translate-y-1 -rotate-3 opacity-90 scale-100"
-              }`}
-              aria-hidden="true"
-            >
-              <div className="flex items-center gap-2">
-                <Briefcase className="w-3.5 h-3.5 text-sb-blue shrink-0" />
-                <p className="text-xs font-bold text-sb-navy truncate">{UI_COPY.landing.solutionCardJob1}</p>
+            {/* Kartu kecil mengambang, masuk ke kartu tengah, lalu muncul kembali (loop) */}
+            {FLOATING_CARDS.map((card) => (
+              <div
+                key={card.title}
+                className={`sb-merge-card absolute ${card.position} w-48 sm:w-56 p-3 rounded-xl bg-white/95 border border-sb-border shadow-xs z-[1] motion-reduce:hidden`}
+                style={
+                  {
+                    "--rot": card.rotate,
+                    "--mx": card.mergeX,
+                    "--my": card.mergeY,
+                    animationDelay: card.delay,
+                  } as React.CSSProperties
+                }
+                aria-hidden="true"
+              >
+                <div className="flex items-center gap-2">
+                  <Briefcase className="w-3.5 h-3.5 text-sb-blue shrink-0" />
+                  <p className="text-xs font-bold text-sb-navy truncate">{card.title}</p>
+                </div>
+                <div className="flex flex-wrap gap-1 pt-2">
+                  {card.chips.map((chip) => (
+                    <span
+                      key={chip}
+                      className="px-2 py-0.5 rounded-full text-xs font-medium bg-sb-mist-soft text-sb-navy border border-sb-border"
+                    >
+                      {chip}
+                    </span>
+                  ))}
+                </div>
               </div>
-              <div className="flex flex-wrap gap-1 pt-2">
-                {UI_COPY.landing.solutionCardJob1Chips.map((chip) => (
-                  <span
-                    key={chip}
-                    className="px-2 py-0.5 rounded-full text-xs font-medium bg-sb-mist-soft text-sb-navy border border-sb-border"
-                  >
-                    {chip}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Small Job Card 2 (Business Intelligence) - Stacked slightly top-right behind central card */}
-            <div
-              className={`absolute top-4 right-1 sm:top-6 sm:right-4 w-48 sm:w-56 p-3 rounded-xl bg-white/95 border border-sb-border shadow-xs transition-all duration-500 ease-out z-[1] motion-reduce:hidden ${
-                isMerged
-                  ? "-translate-x-4 translate-y-4 rotate-0 opacity-0 scale-95 pointer-events-none"
-                  : "translate-x-1 -translate-y-1 rotate-3 opacity-90 scale-100"
-              }`}
-              aria-hidden="true"
-            >
-              <div className="flex items-center gap-2">
-                <Briefcase className="w-3.5 h-3.5 text-sb-blue shrink-0" />
-                <p className="text-xs font-bold text-sb-navy truncate">{UI_COPY.landing.solutionCardJob2}</p>
-              </div>
-              <div className="flex flex-wrap gap-1 pt-2">
-                {UI_COPY.landing.solutionCardJob2Chips.map((chip) => (
-                  <span
-                    key={chip}
-                    className="px-2 py-0.5 rounded-full text-xs font-medium bg-sb-mist-soft text-sb-navy border border-sb-border"
-                  >
-                    {chip}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Small Job Card 3 (Analytics Engineer) - Stacked slightly bottom behind central card */}
-            <div
-              className={`absolute bottom-2 left-6 sm:bottom-4 sm:left-12 w-48 sm:w-56 p-3 rounded-xl bg-white/95 border border-sb-border shadow-xs transition-all duration-500 ease-out z-[1] motion-reduce:hidden ${
-                isMerged
-                  ? "-translate-y-4 rotate-0 opacity-0 scale-95 pointer-events-none"
-                  : "translate-y-1 rotate-1 opacity-90 scale-100"
-              }`}
-              aria-hidden="true"
-            >
-              <div className="flex items-center gap-2">
-                <Briefcase className="w-3.5 h-3.5 text-sb-blue shrink-0" />
-                <p className="text-xs font-bold text-sb-navy truncate">{UI_COPY.landing.solutionCardJob3}</p>
-              </div>
-              <div className="flex flex-wrap gap-1 pt-2">
-                {UI_COPY.landing.solutionCardJob3Chips.map((chip) => (
-                  <span
-                    key={chip}
-                    className="px-2 py-0.5 rounded-full text-xs font-medium bg-sb-mist-soft text-sb-navy border border-sb-border"
-                  >
-                    {chip}
-                  </span>
-                ))}
-              </div>
-            </div>
+            ))}
 
             {/* Central Merged Summary Card - ALWAYS INTACT & FULLY VISIBLE IN CENTER */}
             <div className="relative z-10 w-full max-w-[420px] p-6 sm:p-7 rounded-2xl bg-white border border-sb-border shadow-sm">

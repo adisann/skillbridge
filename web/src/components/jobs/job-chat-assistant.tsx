@@ -19,7 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export interface ChatMessageItem {
+interface ChatMessageItem {
   id: string;
   role: "user" | "assistant";
   content: string;

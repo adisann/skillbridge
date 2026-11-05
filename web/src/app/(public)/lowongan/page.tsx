@@ -4,7 +4,7 @@ import { JobExplorer } from "@/components/jobs/job-explorer";
 import { SkeletonCard } from "@/components/ui/loading";
 
 export const metadata: Metadata = {
-  title: "Lowongan Kerja Aktif — SkillBridge",
+  title: "Lowongan Kerja Aktif | SkillBridge",
   description:
     "Eksplorasi lowongan kerja terverifikasi dari berbagai bidang dan industri terkemuka.",
 };

@@ -13,7 +13,7 @@ export interface MarketSkillItem {
   isCustomLearned?: boolean;
 }
 
-export interface MarketSkillBarChartProps {
+interface MarketSkillBarChartProps {
   skills: MarketSkillItem[];
   totalSampleN: number;
   dataDate?: string;

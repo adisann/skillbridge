@@ -4,7 +4,7 @@ import { SkillTrends } from "@/components/insights/skill-trends";
 import { SkeletonCard } from "@/components/ui/loading";
 
 export const metadata: Metadata = {
-  title: "Tren Kebutuhan Skill Pasar Kerja — SkillBridge",
+  title: "Tren Kebutuhan Skill Pasar Kerja | SkillBridge",
   description:
     "Analisis frekuensi dan statistik kebutuhan skill paling dicari dari sampel lowongan kerja aktif.",
 };

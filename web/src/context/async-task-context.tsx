@@ -10,15 +10,15 @@ import React, {
 } from "react";
 import { Loader2, CheckCircle2, AlertCircle, X, ArrowRight, ExternalLink } from "lucide-react";
 
-export type AsyncTaskStatus = "running" | "success" | "error";
+type AsyncTaskStatus = "running" | "success" | "error";
 
-export interface AsyncTaskAction<T = unknown> {
+interface AsyncTaskAction<T = unknown> {
   label: string;
   url?: string;
   onClick?: (data?: T) => void;
 }
 
-export interface AsyncTask<T = unknown> {
+interface AsyncTask<T = unknown> {
   id: string;
   type: string;
   title: string;
@@ -31,7 +31,7 @@ export interface AsyncTask<T = unknown> {
   action?: AsyncTaskAction<T>;
 }
 
-export interface RunTaskOptions<T = unknown> {
+interface RunTaskOptions<T = unknown> {
   id?: string;
   type?: string;
   title: string;

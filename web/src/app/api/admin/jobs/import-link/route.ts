@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedAdmin } from "@/lib/supabase/server";
 import { extractJobFromText } from "@/lib/ai/extractor";
+import { enforceRateLimits } from "@/lib/rate-limit";
+import { adminAiImportRules } from "@/lib/rate-limit-policies";
 
 function isSafePublicUrl(urlString: string): { isSafe: boolean; reason?: string } {
   try {
@@ -53,6 +55,9 @@ export async function POST(req: NextRequest) {
     if (!admin || adminErr) {
       return NextResponse.json({ error: adminErr }, { status: adminStatus || 401 });
     }
+
+    const limited = await enforceRateLimits(adminAiImportRules(admin.id));
+    if (limited) return limited;
 
     const body = await req.json();
     const { url } = body;
