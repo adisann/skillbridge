@@ -58,6 +58,9 @@ export const UI_COPY = {
     heroFieldEngineeringChips: ["React", "TypeScript", "Node.js", "Go"] as const,
     heroFieldDesignTitle: "Produk & Desain",
     heroFieldDesignChips: ["UI/UX", "Figma", "Research", "Wireframe"] as const,
+    heroCvTitle: "CV-mu vs lowongan",
+    heroCvFound: ["SQL", "Python"] as const,
+    heroCvMissing: ["Power BI"] as const,
 
     // 2. Masalah
     problemTitle: "Cari kerja seharusnya tidak semelelahkan ini.",
