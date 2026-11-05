@@ -5,114 +5,6 @@ import { DEMO_USER_NAME, syncDemoUserName } from "@/lib/demo-account";
 import { enforceRateLimits, getClientIp } from "@/lib/rate-limit";
 import { authAttemptRules } from "@/lib/rate-limit-policies";
 
-const DEMO_SKILLS = [
-  { name: "SQL", evidence: "Query database transaksi PostgreSQL di CV" },
-  { name: "PostgreSQL", evidence: "PostgreSQL database administration" },
-  { name: "Python", evidence: "Automasi script Python di CV" },
-  { name: "Pandas", evidence: "Manipulasi dataset Pandas" },
-  { name: "Microsoft Excel", evidence: "Microsoft Excel Pivot & VLOOKUP" },
-  { name: "Visualisasi Data", evidence: "Portofolio visualisasi data performa produk" },
-  { name: "Statistika", evidence: "Latar belakang S1 Matematika & Statistika" },
-];
-
-async function ensureDemoResume(
-  serviceDb: ReturnType<typeof getServiceSupabase>,
-  userId: string,
-  forceReset = false
-) {
-  try {
-    // 1. Cek resume aktif milik user demo
-    const { data: existingResumes } = await serviceDb
-      .from("resumes")
-      .select("id, resume_skills(id, skill_id)")
-      .eq("user_id", userId)
-      .eq("is_active", true);
-
-    const existingResume = existingResumes && existingResumes.length > 0 ? existingResumes[0] : null;
-    const existingSkillCount = existingResume?.resume_skills?.length || 0;
-
-    let resumeId = existingResume?.id;
-
-    if (!resumeId) {
-      const { data: newResume, error: insertErr } = await serviceDb
-        .from("resumes")
-        .insert({
-          user_id: userId,
-          filename: "CV_Budi_Pratama_DataAnalyst.pdf",
-          file_url: "https://r2.skillbridge.id/resumes/demo/budi_pratama.pdf",
-          parsed_text:
-            "Lulusan S1 Matematika dengan 2 tahun pengalaman analisis data transaksi di perbankan digital. Mahir SQL PostgreSQL, Python Pandas, Microsoft Excel, dan visualisasi data.",
-          education: "S1 Matematika & Statistika",
-          experience_years: 2,
-          is_active: true,
-        })
-        .select("id")
-        .single();
-
-      if (insertErr || !newResume) {
-        console.error("Gagal insert demo resume:", insertErr);
-        return;
-      }
-      resumeId = newResume.id;
-    } else if (forceReset) {
-      await serviceDb
-        .from("resumes")
-        .update({
-          filename: "CV_Budi_Pratama_DataAnalyst.pdf",
-          file_url: "https://r2.skillbridge.id/resumes/demo/budi_pratama.pdf",
-          parsed_text:
-            "Lulusan S1 Matematika dengan 2 tahun pengalaman analisis data transaksi di perbankan digital. Mahir SQL PostgreSQL, Python Pandas, Microsoft Excel, dan visualisasi data.",
-          education: "S1 Matematika & Statistika",
-          experience_years: 2,
-          is_active: true,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", resumeId);
-    }
-
-    // 2. Jika forceReset atau skill kosong, tautkan kembali 7 demo skills
-    if (forceReset || existingSkillCount === 0) {
-      if (forceReset) {
-        await serviceDb.from("resume_skills").delete().eq("resume_id", resumeId);
-      }
-
-      for (const item of DEMO_SKILLS) {
-        let skillId: string | null = null;
-        const { data: foundSkill } = await serviceDb
-          .from("skills")
-          .select("id")
-          .ilike("name", item.name.trim())
-          .limit(1);
-
-        if (foundSkill && foundSkill.length > 0) {
-          skillId = foundSkill[0].id;
-        } else {
-          const { data: createdSkill } = await serviceDb
-            .from("skills")
-            .insert({ name: item.name.trim(), category: "Data & Analitik" })
-            .select("id")
-            .single();
-          if (createdSkill) skillId = createdSkill.id;
-        }
-
-        if (skillId) {
-          await serviceDb.from("resume_skills").upsert(
-            {
-              resume_id: resumeId,
-              skill_id: skillId,
-              is_claimed_by_user: false,
-              evidence: item.evidence,
-            },
-            { onConflict: "resume_id,skill_id" }
-          );
-        }
-      }
-    }
-  } catch (err) {
-    console.error("Error saat ensureDemoResume:", err);
-  }
-}
-
 export async function POST(req: NextRequest) {
   try {
     const isDemoEnabled =
@@ -159,10 +51,13 @@ export async function POST(req: NextRequest) {
 
     // Khusus aksi "reset"
     if (action === "reset") {
-      await serviceDb.from("saved_jobs").delete().eq("user_id", data.user.id);
-      await serviceDb.from("learning_items").delete().eq("user_id", data.user.id);
-      await serviceDb.from("profiles").update({ target_role: "Data Analyst" }).eq("id", data.user.id);
-      await ensureDemoResume(serviceDb, data.user.id, true);
+      // Reset = kondisi bersih: tanpa CV, skill, lowongan tersimpan, atau rencana belajar.
+      // Hapus resume ikut menghapus resume_skills dan matches (ON DELETE CASCADE).
+      const uid = data.user.id;
+      await serviceDb.from("resumes").delete().eq("user_id", uid);
+      await serviceDb.from("saved_jobs").delete().eq("user_id", uid);
+      await serviceDb.from("learning_items").delete().eq("user_id", uid);
+      await serviceDb.from("profiles").update({ target_role: "Data Analyst" }).eq("id", uid);
 
       return NextResponse.json({
         success: true,
@@ -170,9 +65,8 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Normal login: pastikan resume & skills selalu tersedia idempoten untuk akun demo
+    // Normal login: hanya menyamakan nama; tidak ada data CV/skill dummy yang dibuat otomatis.
     if (role === "juri") {
-      await ensureDemoResume(serviceDb, data.user.id, false);
       await syncDemoUserName(serviceDb, data.user.id);
     }
 
