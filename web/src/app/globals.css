@@ -246,6 +246,12 @@ a.sb-link:hover {
 @keyframes sb-slide-in-right { from { transform: translateX(100%); } to { transform: translateX(0); } }
 @keyframes sb-slide-in-left { from { transform: translateX(-100%); } to { transform: translateX(0); } }
 
+@keyframes sb-rise-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.7); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+/* "backwards": hanya berlaku sebelum/selama animasi, sehingga hover transform tetap bisa bekerja sesudahnya */
+.animate-rise-in { animation: sb-rise-in 520ms var(--ease-out-strong) backwards; }
 .animate-page-enter { animation: sb-page-enter 220ms var(--ease-out-strong) both; }
 .animate-fade-in { animation: sb-fade-in 150ms ease-out both; }
 .animate-pop-in { animation: sb-pop-in 180ms var(--ease-out-strong) both; }
