@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useParallax } from "@/lib/hooks/use-parallax";
 import { UI_COPY } from "@/lib/copy";
 import { PixelArrow } from "./pixel-arrow";
+import { HeroSkillChips } from "./hero-skill-chips";
 
 export function LandingHero() {
   const heroRef = useRef<HTMLElement>(null);
@@ -125,16 +126,7 @@ export function LandingHero() {
                     </div>
                     <p className="text-sm font-bold text-sb-navy">{UI_COPY.landing.heroFieldDataTitle}</p>
                   </div>
-                  <div className="flex flex-wrap gap-1.5 pt-0.5">
-                    {UI_COPY.landing.heroFieldDataChips.map((chip) => (
-                      <span
-                        key={chip}
-                        className="px-2.5 py-1 rounded-full text-xs font-medium bg-sb-mist-soft text-sb-navy border border-sb-border"
-                      >
-                        {chip}
-                      </span>
-                    ))}
-                  </div>
+                  <HeroSkillChips chips={UI_COPY.landing.heroFieldDataChips} />
                 </div>
               </div>
 
@@ -154,16 +146,7 @@ export function LandingHero() {
                     </div>
                     <p className="text-sm font-bold text-sb-navy">{UI_COPY.landing.heroFieldEngineeringTitle}</p>
                   </div>
-                  <div className="flex flex-wrap gap-1.5 pt-0.5">
-                    {UI_COPY.landing.heroFieldEngineeringChips.map((chip) => (
-                      <span
-                        key={chip}
-                        className="px-2.5 py-1 rounded-full text-xs font-medium bg-sb-mist-soft text-sb-navy border border-sb-border"
-                      >
-                        {chip}
-                      </span>
-                    ))}
-                  </div>
+                  <HeroSkillChips chips={UI_COPY.landing.heroFieldEngineeringChips} />
                 </div>
               </div>
 
@@ -184,16 +167,7 @@ export function LandingHero() {
                     </div>
                     <p className="text-sm font-bold text-sb-navy">{UI_COPY.landing.heroFieldDesignTitle}</p>
                   </div>
-                  <div className="flex flex-wrap gap-1.5 pt-0.5">
-                    {UI_COPY.landing.heroFieldDesignChips.map((chip) => (
-                      <span
-                        key={chip}
-                        className="px-2.5 py-1 rounded-full text-xs font-medium bg-sb-mist-soft text-sb-navy border border-sb-border"
-                      >
-                        {chip}
-                      </span>
-                    ))}
-                  </div>
+                  <HeroSkillChips chips={UI_COPY.landing.heroFieldDesignChips} />
                 </div>
               </div>
             </div>
