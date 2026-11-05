@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const EXIT_MS = 200;
+const EXIT_MS = 300;
 const RETURN_MS = 4500;
 
 interface HeroSkillChipsProps {
@@ -12,8 +12,8 @@ interface HeroSkillChipsProps {
 }
 
 /**
- * Chip skill di hero yang bisa disilang. Chip yang disilang keluar dengan animasi,
- * lalu muncul kembali sendiri setelah beberapa detik (satu per satu sesuai waktu silangnya).
+ * Chip skill di hero yang bisa disilang. Chip yang disilang tenggelam (turun, mengecil, memudar),
+ * lalu muncul kembali sendiri (naik perlahan dari bawah) setelah beberapa detik (satu per satu sesuai waktu silangnya).
  */
 export function HeroSkillChips({ chips }: HeroSkillChipsProps) {
   // leaving: sedang animasi keluar; gone: sudah hilang menunggu kembali
@@ -70,10 +70,11 @@ export function HeroSkillChips({ chips }: HeroSkillChipsProps) {
             style={{ transitionDuration: `${EXIT_MS}ms` }}
             className={cn(
               "group/chip inline-flex items-center gap-1 pl-2.5 pr-1 py-1 rounded-full text-xs font-medium",
-              "bg-sb-mist-soft text-sb-navy border border-sb-border select-none animate-pop-in",
+              "bg-sb-mist-soft text-sb-navy border border-sb-border select-none animate-rise-in",
               "transition-[transform,opacity] ease-out-strong",
-              "hover:-translate-y-0.5 hover:scale-[1.04]",
-              isLeaving && "scale-75 opacity-0 pointer-events-none"
+              isLeaving
+                ? "translate-y-4 scale-50 opacity-0 pointer-events-none"
+                : "hover:-translate-y-0.5 hover:scale-[1.04]"
             )}
           >
             {chip}
