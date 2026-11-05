@@ -30,5 +30,12 @@ create trigger protect_profile_role
   before insert or update on public.profiles
   for each row execute function public.protect_profile_role();
 
-drop policy if exists "Service role and users can insert cache" on public.ai_chat_cache;
-drop policy if exists "Service role and users can update cache" on public.ai_chat_cache;
+-- Hanya bila tabel cache sudah ada (migrasi ai_chat_cache sudah dijalankan).
+do $$
+begin
+  if to_regclass('public.ai_chat_cache') is not null then
+    drop policy if exists "Service role and users can insert cache" on public.ai_chat_cache;
+    drop policy if exists "Service role and users can update cache" on public.ai_chat_cache;
+  end if;
+end;
+$$;
