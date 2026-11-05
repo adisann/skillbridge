@@ -71,8 +71,8 @@ export function HeroSkillChips({ chips }: HeroSkillChipsProps) {
             className={cn(
               "group/chip inline-flex items-center gap-1 pl-2.5 pr-1 py-1 rounded-full text-xs font-medium",
               "bg-sb-mist-soft text-sb-navy border border-sb-border select-none animate-pop-in",
-              "transition-[transform,opacity,background-color,border-color,box-shadow] ease-out-strong",
-              "hover:-translate-y-px hover:bg-white hover:border-sb-sky hover:shadow-[0_6px_14px_-8px_rgba(27,54,93,0.45)]",
+              "transition-[transform,opacity] ease-out-strong",
+              "hover:-translate-y-0.5 hover:scale-[1.04]",
               isLeaving && "scale-75 opacity-0 pointer-events-none"
             )}
           >
@@ -83,8 +83,8 @@ export function HeroSkillChips({ chips }: HeroSkillChipsProps) {
               aria-label={`Sembunyikan ${chip}`}
               className={cn(
                 "relative inline-flex h-4 w-4 items-center justify-center rounded-full text-sb-text-2 cursor-pointer before:absolute before:-inset-2 before:content-['']",
-                "transition-[transform,background-color,color] duration-150 ease-out-strong",
-                "hover:bg-sb-critical/15 hover:text-sb-critical hover:rotate-90 active:scale-90",
+                "transition-transform duration-150 ease-out-strong",
+                "hover:rotate-90 hover:scale-125 active:scale-90",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sb-blue"
               )}
             >
