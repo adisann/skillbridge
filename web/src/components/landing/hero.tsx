@@ -2,22 +2,18 @@
 
 import React, { useEffect, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { ArrowRight, BarChart3, Code2, FileText, Palette } from "lucide-react";
+import { ArrowRight, BarChart3, Code2, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useHeroDepth } from "@/lib/hooks/use-hero-depth";
-import { CVSkillBadge } from "@/components/ui/badge";
+import { useParallax } from "@/lib/hooks/use-parallax";
 import { UI_COPY } from "@/lib/copy";
 import { PixelArrow } from "./pixel-arrow";
 
 export function LandingHero() {
-  const heroRef = useRef<HTMLElement | null>(null);
-  // Kedalaman: pointer + scroll menulis CSS variable, tiap lapisan punya laju sendiri.
-  const depthRef = useHeroDepth<HTMLElement>();
-  const setHeroRef = (node: HTMLElement | null) => {
-    heroRef.current = node;
-    depthRef.current = node;
-  };
+  const heroRef = useRef<HTMLElement>(null);
+
+  // Parallax layers for hero (clamped within ±80px, disabled on mobile)
+  const orbRef = useParallax<HTMLDivElement>(0.2);
+  const collageRef = useParallax<HTMLDivElement>(0.4);
 
   // IntersectionObserver to pause hero animations when off-screen
   useEffect(() => {
@@ -41,13 +37,14 @@ export function LandingHero() {
 
   return (
     <section
-      ref={setHeroRef}
+      ref={heroRef}
       id="hero-section"
       className="relative pt-[72px] min-h-[min(100svh,760px)] flex items-center pb-8 sm:pb-12"
     >
       {/* Parallax Layer 1: Ambient background radial glow */}
       <div
-        className="depth-layer depth-back absolute inset-0 -z-10 pointer-events-none"
+        ref={orbRef}
+        className="absolute inset-0 -z-10 pointer-events-none parallax-layer will-change-transform"
         aria-hidden="true"
       >
         <div className="absolute top-1/4 right-20 w-96 h-96 rounded-full bg-sb-mist/40 blur-3xl" />
@@ -96,7 +93,7 @@ export function LandingHero() {
           <div className="relative min-h-[420px] sm:min-h-[460px] flex items-center justify-center overflow-hidden lg:overflow-visible">
             {/* Rising Upward Pixel Arrows in Background (Crisp 0.75-0.85 opacity, behind cards) */}
             <div
-              className="depth-layer depth-back absolute inset-0 pointer-events-none -z-10"
+              className="absolute inset-0 pointer-events-none -z-10"
               style={{
                 maskImage: "linear-gradient(to top, transparent, black 15%, black 85%, transparent)",
                 WebkitMaskImage: "linear-gradient(to top, transparent, black 15%, black 85%, transparent)",
@@ -109,7 +106,8 @@ export function LandingHero() {
 
             {/* Floating Cards Cluster */}
             <div
-              className="depth-layer depth-mid relative w-full max-w-[500px] space-y-3.5 z-10"
+              ref={collageRef}
+              className="relative w-full max-w-[500px] space-y-3.5 parallax-layer will-change-transform z-10"
             >
               {/* Field Card 1 (Float 1) */}
               <div
@@ -196,29 +194,6 @@ export function LandingHero() {
                       </span>
                     ))}
                   </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Lapisan depan: kartu CV yang menutup sebagian kartu bidang (oklusi), bergerak paling cepat */}
-            <div
-              className="depth-layer depth-front hidden sm:block absolute -bottom-9 right-0 lg:-right-6 z-20"
-            >
-              <div style={{ animationDelay: "280ms" }} className="animate-pop-in w-[288px] rounded-2xl border border-sb-border bg-[var(--sb-glass-bg-strong)] p-4 space-y-3 shadow-[0_18px_34px_-14px_rgba(27,54,93,0.35)]">
-                <div className="flex items-center gap-2.5">
-                  <Image src="/logo-mark.svg" alt="" width={28} height={28} className="h-7 w-7 rounded-lg" unoptimized />
-                  <p className="text-xs font-bold text-sb-navy flex items-center gap-1.5">
-                    <FileText className="h-3.5 w-3.5 text-sb-blue" aria-hidden="true" />
-                    {UI_COPY.landing.heroCvTitle}
-                  </p>
-                </div>
-                <div className="flex flex-col items-start gap-1.5">
-                  {UI_COPY.landing.heroCvFound.map((s) => (
-                    <CVSkillBadge key={s} skillName={s} status="found" compact className="whitespace-nowrap" />
-                  ))}
-                  {UI_COPY.landing.heroCvMissing.map((s) => (
-                    <CVSkillBadge key={s} skillName={s} status="missing" compact className="whitespace-nowrap" />
-                  ))}
                 </div>
               </div>
             </div>
