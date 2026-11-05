@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const EXIT_MS = 300;
+const EXIT_MS = 450;
 const RETURN_MS = 4500;
 
 interface HeroSkillChipsProps {
