@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 import { calculateJobMatch } from "@/lib/matching";
+import { parseGpaValue } from "@/lib/gpa";
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,6 +20,7 @@ export async function POST(req: NextRequest) {
       fileUrl,
       r2Key,
       education,
+      gpa: rawGpa,
       experienceYears,
       summary,
       skills,
@@ -36,6 +38,7 @@ export async function POST(req: NextRequest) {
     }
 
     const effectiveUserId = user.id;
+    const gpa = parseGpaValue(rawGpa);
 
     // 0. Update target_role di tabel `profiles` (FR-01)
     if (targetRole) {
@@ -66,6 +69,7 @@ export async function POST(req: NextRequest) {
           file_url: persistentFileUrl,
           parsed_text: summary || "Ringkasan profil kompetensi",
           education: education || "Sarjana (S1)",
+          gpa,
           experience_years: Number(experienceYears) || 0,
           updated_at: new Date().toISOString(),
         })
@@ -79,6 +83,7 @@ export async function POST(req: NextRequest) {
           file_url: persistentFileUrl,
           parsed_text: summary || "Ringkasan profil kompetensi",
           education: education || "Sarjana (S1)",
+          gpa,
           experience_years: Number(experienceYears) || 0,
           is_active: true,
         })
@@ -129,7 +134,7 @@ export async function POST(req: NextRequest) {
     // 3. Kalkulasi Kecocokan dengan Seluruh Lowongan Aktif
     const { data: activeJobs } = await supabase
       .from("jobs")
-      .select("id, title, canonical_title, company, location, experience_years_min, education, seniority, job_skills(is_mandatory, skills(name))")
+      .select("id, title, canonical_title, company, location, experience_years_min, education, min_gpa, seniority, job_skills(is_mandatory, skills(name))")
       .eq("is_active", true);
 
     let matchCount = 0;
@@ -151,6 +156,7 @@ export async function POST(req: NextRequest) {
             skills: skills || [],
             experienceYears: Number(experienceYears) || 0,
             education: education || "Sarjana (S1)",
+            gpa,
             targetRole: targetRole || "Umum",
           },
           {
@@ -160,6 +166,7 @@ export async function POST(req: NextRequest) {
             preferredSkills: prefSkills,
             experienceYearsMin: job.experience_years_min,
             education: job.education,
+            minGpa: job.min_gpa ?? null,
             seniority: job.seniority,
           }
         );
@@ -213,7 +220,7 @@ export async function GET(req: NextRequest) {
 
     const { data: resumes, error } = await supabase
       .from("resumes")
-      .select("id, filename, file_url, education, experience_years, parsed_text, resume_skills(skills(name))")
+      .select("id, filename, file_url, education, gpa, experience_years, parsed_text, resume_skills(skills(name))")
       .eq("user_id", user.id)
       .eq("is_active", true)
       .limit(1);
@@ -241,6 +248,7 @@ export async function GET(req: NextRequest) {
           filename: r.filename,
           fileUrl: r.file_url,
           education: r.education,
+          gpa: parseGpaValue(r.gpa),
           experienceYears: r.experience_years,
           summary: r.parsed_text,
           skills,

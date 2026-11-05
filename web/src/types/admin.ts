@@ -6,6 +6,10 @@ export interface AdminJob {
   location: string;
   employmentType: string;
   seniority: string;
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+  salaryCurrency?: string | null;
+  salaryPeriod?: string | null;
   experienceYearsMin?: number;
   education?: string;
   description?: string;
@@ -59,6 +63,10 @@ export interface JobFormValues {
   role: string;
   seniority: string;
   experience: string;
+  salaryMin: string;
+  salaryMax: string;
+  salaryCurrency: string;
+  salaryPeriod: string;
   education: string;
   requiredSkills: string;
   preferredSkills: string;

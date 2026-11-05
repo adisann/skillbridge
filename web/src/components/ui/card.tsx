@@ -3,6 +3,7 @@ import { Building2, MapPin, Briefcase, ExternalLink, Bookmark, Check } from "luc
 import { cn, formatJobTitle } from "@/lib/utils";
 import { MatchBadge, MatchStatus } from "./badge";
 import { ScoreRing } from "./score-ring";
+import { SalaryText } from "./salary-text";
 import { Button } from "./button";
 
 // -----------------------------------------------------------------------------
@@ -151,6 +152,9 @@ interface JobCardProps {
   location: string;
   employmentType: string;
   seniority?: string;
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+  salaryPeriod?: string | null;
   sourceName?: string;
   sourceUrl: string;
   matchStatus?: MatchStatus;
@@ -172,6 +176,9 @@ export function JobCard({
   location,
   employmentType,
   seniority,
+  salaryMin,
+  salaryMax,
+  salaryPeriod,
   sourceUrl,
   matchStatus = "insufficient_evidence",
   matchScore,
@@ -260,6 +267,7 @@ export function JobCard({
                 <Briefcase className="w-3.5 h-3.5 text-sb-blue shrink-0" />
                 <span>{employmentType}</span>
               </span>
+              <SalaryText salaryMin={salaryMin} salaryMax={salaryMax} salaryPeriod={salaryPeriod} />
             </div>
           </div>
 

@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       source:
-        description: 'Sumber data lowongan (greenhouse, lever, linkedin, jobstreet, all, seed)'
+        description: 'Sumber data lowongan (greenhouse, lever, linkedin, jobstreet, glints, all, seed)'
         required: true
         default: 'all'
         type: choice
@@ -17,6 +17,7 @@ on:
           - lever
           - linkedin
           - jobstreet
+          - glints
           - seed
       limit:
         description: 'Batas jumlah lowongan per sumber'

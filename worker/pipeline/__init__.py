@@ -1,5 +1,5 @@
 from .clean import clean_html_text, render_dynamic_page_if_allowed
-from .extract import ExtractedJobDetails, extract_job_details_rule_based
+from .extract import ExtractedJobDetails, extract_job_details_rule_based, extract_min_gpa
 from .normalize import normalize_skill_name, normalize_skills_list
 from .embed import get_embedding_provider
 from .dedupe import compute_content_hash, Deduplicator
@@ -10,6 +10,7 @@ __all__ = [
     "render_dynamic_page_if_allowed",
     "ExtractedJobDetails",
     "extract_job_details_rule_based",
+    "extract_min_gpa",
     "normalize_skill_name",
     "normalize_skills_list",
     "get_embedding_provider",

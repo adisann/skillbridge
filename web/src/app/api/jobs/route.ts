@@ -4,6 +4,7 @@ import { calculateJobMatch, getDisplayScore } from "@/lib/matching";
 import { getCachedPublicJobs, revalidateJobsCache } from "@/lib/public-jobs";
 import { getCategoryFromTitle, getCategoryBySlug } from "@/lib/job-categories";
 import { loadCandidateProfile } from "@/lib/candidate-profile";
+import { parseAdminSalary } from "@/lib/admin-salary";
 import { splitJobSkills } from "@/lib/job-skills";
 
 export async function GET(req: NextRequest) {
@@ -49,6 +50,7 @@ export async function GET(req: NextRequest) {
       skills: candidateSkills,
       years: candidateYears,
       education: candidateEdu,
+      gpa: candidateGpa,
     } = await loadCandidateProfile(supabase, user?.id ?? null);
 
     // Format lowongan dengan perhitungan hybrid matching
@@ -69,9 +71,7 @@ export async function GET(req: NextRequest) {
       // Jika ada resume aktif, hitung secara dinamis
       if (activeResume) {
         const liveMatch = calculateJobMatch(
-          candidateSkills,
-          candidateYears,
-          candidateEdu,
+          { skills: candidateSkills, experienceYears: candidateYears, education: candidateEdu, gpa: candidateGpa },
           {
             title: j.title,
             canonicalTitle:
@@ -82,6 +82,7 @@ export async function GET(req: NextRequest) {
             preferredSkills: prefSkills,
             experienceYearsMin: j.experience_years_min || null,
             education: j.education || null,
+            minGpa: j.min_gpa ?? null,
             seniority: j.seniority || null,
           }
         );
@@ -122,6 +123,11 @@ export async function GET(req: NextRequest) {
         seniority: j.seniority || "Mid",
         experienceYearsMin: j.experience_years_min ?? null,
         education: j.education || "Bachelor",
+        salaryMin: j.salary_min ?? null,
+        salaryMax: j.salary_max ?? null,
+        salaryCurrency: j.salary_currency ?? null,
+        salaryPeriod: j.salary_period ?? null,
+        minGpa: j.min_gpa ?? null,
         description: j.description,
         sourceName: j.source_name,
         sourceUrl: j.source_url,
@@ -200,6 +206,8 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
+    const salary = parseAdminSalary(body);
+    if (salary.error) return NextResponse.json({ error: salary.error }, { status: 400 });
     const { title, company, location, canonicalTitle, seniority, experienceYearsMin, education, description, requiredSkills, preferredSkills, sourceUrl } = body;
 
     if (!title || !company || !description) {
@@ -232,6 +240,7 @@ export async function POST(req: NextRequest) {
         seniority: seniority || "Mid",
         experience_years_min: Number(experienceYearsMin) || 1,
         education: education || "Bachelor",
+        ...salary.data,
         description: cleanedDesc,
         content_hash: contentHash,
         retrieval_method: "admin_import",
@@ -339,6 +348,8 @@ export async function PUT(req: NextRequest) {
     }
 
     const body = await req.json();
+    const salary = parseAdminSalary(body);
+    if (salary.error) return NextResponse.json({ error: salary.error }, { status: 400 });
     const { id, title, company, location, canonicalTitle, seniority, experienceYearsMin, education, description, requiredSkills, preferredSkills } = body;
 
     if (!id || !title || !company) {
@@ -359,6 +370,7 @@ export async function PUT(req: NextRequest) {
         seniority: seniority || "Mid",
         experience_years_min: Number(experienceYearsMin) || 1,
         education: education || "Bachelor",
+        ...salary.data,
         description: cleanedDesc,
         updated_at: new Date().toISOString(),
       })

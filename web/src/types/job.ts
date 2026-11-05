@@ -14,6 +14,11 @@ export interface JobListItem {
   seniority: string;
   /** Minimal tahun pengalaman; null jika lowongan tidak menyebutkan. */
   experienceYearsMin?: number | null;
+  /** Gaji dari sumber (rupiah per salaryPeriod); null jika tidak diinfokan. */
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+  salaryPeriod?: string | null;
+  minGpa?: number | null;
   sourceName: string;
   sourceUrl: string;
   retrievalMethod: string;
@@ -47,6 +52,10 @@ export interface JobDetailData {
   location: string;
   employmentType: string;
   seniority: string;
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+  salaryPeriod?: string | null;
+  minGpa?: number | null;
   sourceName: string;
   sourceUrl: string;
   retrievalMethod: string;

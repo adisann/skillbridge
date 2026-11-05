@@ -164,6 +164,8 @@ class SupabaseStorage:
                 return "inserted"
 
             # 2. Hubungkan ke job_skills
+            # Skill baru dari sumber lintas bidang (Glints) tidak dilabeli sebagai Data & Analytics
+            skill_category = "Umum" if source_name == "glints" else "Data & Analytics"
             all_skills_to_link = [
                 (s, True) for s in required_skills
             ] + [
@@ -171,7 +173,7 @@ class SupabaseStorage:
             ]
 
             for skill_name, is_mandatory in all_skills_to_link:
-                skill_id = await self._ensure_skill_exists(skill_name)
+                skill_id = await self._ensure_skill_exists(skill_name, category=skill_category)
                 if skill_id:
                     try:
                         self.client.table("job_skills").upsert({
@@ -189,7 +191,7 @@ class SupabaseStorage:
             logger.error(f"Gagal upsert job {job_record.get('external_id')}: {e}")
             raise
 
-    async def _ensure_skill_exists(self, skill_name: str) -> Optional[str]:
+    async def _ensure_skill_exists(self, skill_name: str, category: str = "Data & Analytics") -> Optional[str]:
         """Memastikan skill ada di tabel `skills`, jika belum ada tambahkan secara dinamis."""
         norm_key = skill_name.strip().lower()
         if norm_key in self._skills_cache:
@@ -209,7 +211,7 @@ class SupabaseStorage:
             # Tambahkan jika belum ada
             ins = self.client.table("skills").insert({
                 "name": skill_name.strip(),
-                "category": "Data & Analytics"
+                "category": category
             }).execute()
 
             if ins.data:

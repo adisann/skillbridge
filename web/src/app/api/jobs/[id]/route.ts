@@ -30,6 +30,7 @@ export async function GET(
       skills: candidateSkills,
       years: candidateYears,
       education: candidateEdu,
+      gpa: candidateGpa,
     } = await loadCandidateProfile(supabase, user?.id ?? null);
 
     const { required: reqSkills, preferred: prefSkills } = splitJobSkills(
@@ -38,9 +39,7 @@ export async function GET(
 
     // Hitung live hybrid matching
     const liveMatch = calculateJobMatch(
-      candidateSkills,
-      candidateYears,
-      candidateEdu,
+      { skills: candidateSkills, experienceYears: candidateYears, education: candidateEdu, gpa: candidateGpa },
       {
         title: job.title,
         canonicalTitle: job.canonical_title,
@@ -48,6 +47,7 @@ export async function GET(
         preferredSkills: prefSkills,
         experienceYearsMin: job.experience_years_min || null,
         education: job.education || null,
+        minGpa: job.min_gpa ?? null,
         seniority: job.seniority || null,
       }
     );
@@ -72,6 +72,11 @@ export async function GET(
         seniority: job.seniority || "Mid",
         experienceYearsMin: job.experience_years_min || 1,
         education: job.education || "Bachelor",
+        salaryMin: job.salary_min ?? null,
+        salaryMax: job.salary_max ?? null,
+        salaryCurrency: job.salary_currency ?? null,
+        salaryPeriod: job.salary_period ?? null,
+        minGpa: job.min_gpa ?? null,
         description: job.description,
         contentHash: job.content_hash || "default_hash",
         sourceName: job.source_name,

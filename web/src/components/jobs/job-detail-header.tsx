@@ -1,4 +1,4 @@
-import { Building2, MapPin, ExternalLink, Bookmark, CalendarClock, Briefcase, MessageSquare } from "lucide-react";
+import { Building2, MapPin, ExternalLink, Bookmark, CalendarClock, Briefcase, MessageSquare, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MatchBadge } from "@/components/ui/badge";
@@ -7,6 +7,8 @@ import { cn, formatJobTitle } from "@/lib/utils";
 import { getCategoryBySlug, getCategoryFromTitle } from "@/lib/job-categories";
 import { formatDeadlineDate } from "@/lib/job-detail";
 import type { JobDetailData } from "@/types/job";
+import { SalaryText } from "@/components/ui/salary-text";
+import { formatGpa } from "@/lib/gpa";
 
 interface JobDetailHeaderProps {
   job: JobDetailData;
@@ -46,6 +48,19 @@ export function JobDetailHeader({ job, isGuest, isSaved, onToggleSave, onOpenCha
                 <Briefcase className="w-4 h-4 text-sb-blue" />
                 Tipe: {job.employmentType}
               </span>
+              <SalaryText
+                salaryMin={job.salaryMin}
+                salaryMax={job.salaryMax}
+                salaryPeriod={job.salaryPeriod}
+                className="gap-1.5"
+                iconClassName="w-4 h-4"
+              />
+              {job.minGpa != null && (
+                <span className="flex items-center gap-1.5">
+                  <GraduationCap className="w-4 h-4 text-sb-blue" />
+                  IPK min {formatGpa(job.minGpa)}
+                </span>
+              )}
               <span className="flex items-center gap-1.5 text-sb-text-2 font-medium">
                 <CalendarClock className="w-4 h-4 text-sb-warning" />
                 Deadline:{" "}

@@ -18,6 +18,7 @@ export const DEFAULT_FILTERS: FilterState = {
   postedDate: "all",
   employmentType: "all",
   experience: "all",
+  salary: "all",
 };
 
 /** State filter Job Explorer, termasuk bidang default dari profil pengguna dan sinkronisasi URL. */

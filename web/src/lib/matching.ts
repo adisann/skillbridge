@@ -6,6 +6,7 @@ import {
   type MatchingWeights,
   type MatchingThresholds,
 } from "./matching-config.ts";
+import { compareGpa, gpaScore, formatGpa } from "./gpa.ts";
 
 export type MatchCategory =
   | "match"
@@ -56,6 +57,7 @@ interface CandidateProfileInput {
   skills: string[];
   experienceYears: number;
   education?: string | null;
+  gpa?: number | null;
   targetRole?: string | null;
 }
 
@@ -66,6 +68,7 @@ interface JobProfileInput {
   preferredSkills?: string[];
   experienceYearsMin?: number | null;
   education?: string | null;
+  minGpa?: number | null;
   seniority?: string | null;
 }
 
@@ -89,6 +92,7 @@ export function calculateJobMatch(
   let candidateSkills: string[] = [];
   let candidateYears = 0;
   let candidateEdu = "Sarjana (S1)";
+  let candidateGpa: number | null = null;
   let candidateTargetRole = "Data Analyst";
   let job: JobProfileInput;
 
@@ -101,6 +105,7 @@ export function calculateJobMatch(
     candidateSkills = candidate.skills || [];
     candidateYears = candidate.experienceYears || 0;
     candidateEdu = candidate.education || "Sarjana (S1)";
+    candidateGpa = candidate.gpa ?? null;
     candidateTargetRole = candidate.targetRole || "Data Analyst";
     job = candidateYearsOrJob as JobProfileInput;
   }
@@ -249,7 +254,8 @@ export function calculateJobMatch(
   // ---------------------------------------------------------------------------
   // 4. Evaluasi Pendidikan & Senioritas
   // ---------------------------------------------------------------------------
-  const isEduAvailable = Boolean(job.education || job.seniority);
+  const gpaFit = compareGpa(candidateGpa, job.minGpa);
+  const isEduAvailable = Boolean(job.education || job.seniority || job.minGpa != null);
   let eduScore = 1.0;
 
   if (isEduAvailable) {
@@ -274,7 +280,11 @@ export function calculateJobMatch(
       }
     }
 
-    eduScore = (eduComponent + seniorityComponent) / 2;
+    // IPK hanya dihitung bila lowongan mensyaratkan DAN CV memuat IPK; data kosong tidak menghukum
+    eduScore =
+      gpaFit === "unknown"
+        ? (eduComponent + seniorityComponent) / 2
+        : (eduComponent + seniorityComponent + gpaScore(candidateGpa as number, job.minGpa as number)) / 3;
   }
 
   // ---------------------------------------------------------------------------
@@ -341,7 +351,9 @@ export function calculateJobMatch(
       score: eduScore,
       baseWeight: customWeights.educationSeniority,
       available: isEduAvailable,
-      notes: isEduAvailable ? `${job.education || "Pendidikan umum"} • ${job.seniority || "Semua level"}` : "Kualifikasi terbuka untuk umum",
+      notes: isEduAvailable
+        ? `${job.education || "Pendidikan umum"} • ${job.seniority || "Semua level"}${job.minGpa != null ? ` • IPK min ${formatGpa(job.minGpa)}` : ""}`
+        : "Kualifikasi terbuka untuk umum",
     },
     {
       key: "semantic",
@@ -412,13 +424,23 @@ export function calculateJobMatch(
       `Pengalaman kerja (${candidateYears} tahun) memenuhi kualifikasi minimum yang disyaratkan (${minYears} tahun)`
     );
   }
+  if (gpaFit === "meets") {
+    factorsSupporting.push(
+      `IPK ${formatGpa(candidateGpa as number)} memenuhi syarat minimum IPK ${formatGpa(job.minGpa as number)}`
+    );
+  }
   if (semanticScore >= 0.8) {
     factorsSupporting.push(
       `Profil keahlian sangat relevan dengan bidang data dan analitik yang dicari perusahaan`
     );
   }
 
-  // Faktor Pembatas (Skill Gap & Pengalaman)
+  // Faktor Pembatas (Skill Gap, Pengalaman & IPK)
+  if (gpaFit === "below") {
+    factorsLimiting.push(
+      `IPK ${formatGpa(candidateGpa as number)} di bawah syarat minimum IPK ${formatGpa(job.minGpa as number)}`
+    );
+  }
   if (missingSkills.length > 0) {
     factorsLimiting.push(
       `Skill wajib ${missingSkills.slice(0, 4).join(", ")} belum ditemukan di CV`

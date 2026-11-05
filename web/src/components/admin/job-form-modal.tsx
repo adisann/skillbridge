@@ -71,6 +71,23 @@ export function JobFormModal({
           <Select label="Pendidikan" value={values.education} onChange={set("education")} options={EDUCATION_OPTIONS} />
         </div>
 
+        <fieldset className="space-y-3">
+          <legend className="text-xs font-semibold text-sb-navy">Gaji Pokok (Opsional)</legend>
+          <p className="text-xs text-sb-text-2">Isi nominal penuh tanpa pemisah, misalnya 5000000. Kosongkan jika belum diinfokan; bonus tidak termasuk.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <TextInput label="Gaji Minimum" type="number" min={0} step={1} value={values.salaryMin} onChange={set("salaryMin")} placeholder="5000000" />
+            <TextInput label="Gaji Maksimum" type="number" min={values.salaryMin || 0} step={1} value={values.salaryMax} onChange={set("salaryMax")} placeholder="8000000" />
+            <TextInput label="Mata Uang" value={values.salaryCurrency} onChange={set("salaryCurrency")} placeholder="IDR" pattern="[A-Za-z]{3}" maxLength={3} helperText="Kode 3 huruf, misalnya IDR atau USD." />
+            <Select label="Periode Gaji" value={values.salaryPeriod} onChange={set("salaryPeriod")} options={[
+              { label: "Per Jam", value: "hour" },
+              { label: "Per Hari", value: "day" },
+              { label: "Per Minggu", value: "week" },
+              { label: "Per Bulan", value: "month" },
+              { label: "Per Tahun", value: "year" },
+            ]} />
+          </div>
+        </fieldset>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <TextInput
             label="Skill Wajib (Pisahkan koma)"

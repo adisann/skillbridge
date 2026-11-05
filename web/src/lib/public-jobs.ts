@@ -25,6 +25,11 @@ interface RawPublicJob {
   seniority?: string;
   experience_years_min?: number;
   education?: string;
+  min_gpa?: number | null;
+  salary_min?: number | null;
+  salary_max?: number | null;
+  salary_currency?: string | null;
+  salary_period?: string | null;
   description: string;
   source_name: string;
   source_url: string;

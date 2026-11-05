@@ -19,6 +19,7 @@ from worker.sources import (
     LeverSource,
     LinkedInSource,
     JobstreetSource,
+    GlintsSource,
     SeedSource,
     JobSource
 )
@@ -50,10 +51,12 @@ def get_source_by_name(source_name: str, limit: int = 25) -> JobSource:
         return LinkedInSource(limit=limit)
     elif name == "jobstreet":
         return JobstreetSource(limit=limit)
+    elif name == "glints":
+        return GlintsSource(limit=limit)
     elif name == "seed":
         return SeedSource()
     else:
-        raise ValueError(f"Sumber tidak dikenal: '{source_name}'. Pilihan: greenhouse, lever, linkedin, jobstreet, seed.")
+        raise ValueError(f"Sumber tidak dikenal: '{source_name}'. Pilihan: greenhouse, lever, linkedin, jobstreet, glints, seed.")
 
 
 async def run_worker(source_name: str, limit: int = 15):
@@ -122,8 +125,15 @@ async def run_worker(source_name: str, limit: int = 15):
                 details = extract_job_details_rule_based(raw.title, cleaned_desc)
 
                 # 6. Normalize Skills & Tagging
-                norm_required = normalize_skills_list(details.required_skills, custom_aliases=taxonomy_aliases)
-                norm_preferred = normalize_skills_list(details.preferred_skills, custom_aliases=taxonomy_aliases)
+                hinted_required = [h["name"] for h in raw.skill_hints if h.get("must_have")]
+                hinted_preferred = [h["name"] for h in raw.skill_hints if not h.get("must_have")]
+                norm_required = normalize_skills_list(
+                    details.required_skills + hinted_required, custom_aliases=taxonomy_aliases
+                )
+                norm_preferred = normalize_skills_list(
+                    [s for s in details.preferred_skills + hinted_preferred if s not in hinted_required],
+                    custom_aliases=taxonomy_aliases,
+                )
 
                 # 7. Embedding Vector
                 embedding_text = f"{details.canonical_title} {raw.company} {' '.join(norm_required)} {cleaned_desc[:500]}"
@@ -141,8 +151,18 @@ async def run_worker(source_name: str, limit: int = 15):
                     "location": raw.location or "Indonesia",
                     "employment_type": raw.employment_type or "Full-time",
                     "seniority": details.seniority,
-                    "experience_years_min": details.experience_years_min,
-                    "education": details.education,
+                    "experience_years_min": (
+                        raw.experience_years_min
+                        if raw.experience_years_min is not None
+                        else details.experience_years_min
+                    ),
+                    "education": raw.education_level or details.education,
+                    "min_gpa": details.min_gpa,
+                    "salary_min": raw.salary_min,
+                    "salary_max": raw.salary_max,
+                    "salary_currency": raw.salary_currency,
+                    "salary_period": raw.salary_period,
+                    "expires_at": raw.expires_at.isoformat() if raw.expires_at else None,
                     "description": cleaned_desc,
                     "content_hash": content_hash,
                     "retrieval_method": raw.retrieval_method,
@@ -199,7 +219,7 @@ async def run_worker(source_name: str, limit: int = 15):
 
 async def run_all_sources(limit: int = 10):
     """Menjalankan seluruh sumber secara berurutan dengan isolasi kegagalan."""
-    sources = ["greenhouse", "lever", "linkedin"]
+    sources = ["greenhouse", "lever", "linkedin", "glints"]
     logger.info(f"Menjalankan multi-source worker untuk: {sources}")
     for src in sources:
         try:
@@ -210,7 +230,7 @@ async def run_all_sources(limit: int = 10):
 
 def main():
     parser = argparse.ArgumentParser(description="SkillBridge Automated Job Worker")
-    parser.add_argument("--source", type=str, default="greenhouse", help="Pilihan: greenhouse, lever, linkedin, jobstreet, seed, all")
+    parser.add_argument("--source", type=str, default="greenhouse", help="Pilihan: greenhouse, lever, linkedin, jobstreet, glints, seed, all")
     parser.add_argument("--limit", type=int, default=10, help="Jumlah lowongan maksimal yang diambil")
     parser.add_argument("--export-seed", action="store_true", help="Ekspor database lowongan Supabase menjadi file seed JSON")
 

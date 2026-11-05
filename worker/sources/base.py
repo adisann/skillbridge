@@ -17,6 +17,15 @@ class RawJob(BaseModel):
     employment_type: Optional[str] = None  # Full-time, Part-time, Contract, Internship
     is_remote: bool = False
     metadata: dict = Field(default_factory=dict)
+    expires_at: Optional[datetime] = None
+    # Data terstruktur dari sumber (bila tersedia); jika kosong, diekstrak dari deskripsi
+    salary_min: Optional[int] = None
+    salary_max: Optional[int] = None
+    salary_currency: Optional[str] = None  # IDR
+    salary_period: Optional[str] = None  # hour | day | week | month | year
+    education_level: Optional[str] = None  # High School, Diploma, Bachelor, Master, Doctorate
+    experience_years_min: Optional[int] = None
+    skill_hints: list[dict] = Field(default_factory=list)  # [{"name": str, "must_have": bool}]
 
 
 @runtime_checkable

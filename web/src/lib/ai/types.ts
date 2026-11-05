@@ -13,6 +13,10 @@ export interface ActiveJobContext {
   seniority?: string | null;
   experienceYearsMin?: number | null;
   education?: string | null;
+  minGpa?: number | null;
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+  salaryPeriod?: string | null;
   description: string;
   contentHash: string;
   sourceName: string;
@@ -30,6 +34,7 @@ export interface CandidateCVContext {
   targetRole: string;
   experienceYears: number;
   education: string;
+  gpa?: number | null;
   skills: string[];
   matchScore?: number;
   matchStatus?: string;

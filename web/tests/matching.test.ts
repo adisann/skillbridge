@@ -242,3 +242,34 @@ test("Matching Engine Tests (AC-02, AC-05, AC-06)", async (t) => {
     assert.equal(learningGaps[1].skillName, "Tableau", "Skill gap nomor 2 adalah Tableau (65% pasar)");
   });
 });
+
+test("IPK pada kecocokan: hanya dihitung bila lowongan dan CV sama-sama punya data", async (t) => {
+  const skills = ["SQL", "Python", "Tableau"];
+  const job = {
+    title: "Data Analyst",
+    canonicalTitle: "Data Analyst",
+    requiredSkills: ["SQL", "Python"],
+    education: "Bachelor",
+  };
+  const base = { skills, experienceYears: 2, education: "S1 Statistika", targetRole: "Data Analyst" };
+
+  await t.test("IPK di bawah syarat menjadi faktor pembatas dan menurunkan skor", () => {
+    const withoutGpa = calculateJobMatch(base, job);
+    const below = calculateJobMatch({ ...base, gpa: 2.5 }, { ...job, minGpa: 3.0 });
+    assert.ok(below.factorsLimiting.some((f) => f.includes("IPK 2,50") && f.includes("3,00")));
+    assert.ok(below.score <= withoutGpa.score);
+  });
+
+  await t.test("IPK memenuhi syarat menjadi faktor pendukung", () => {
+    const meets = calculateJobMatch({ ...base, gpa: 3.6 }, { ...job, minGpa: 3.0 });
+    assert.ok(meets.factorsSupporting.some((f) => f.includes("IPK 3,60")));
+    assert.ok(!meets.factorsLimiting.some((f) => f.includes("IPK")));
+  });
+
+  await t.test("CV tanpa IPK tidak dihukum: skor sama seperti lowongan tanpa syarat IPK", () => {
+    const noCvGpa = calculateJobMatch(base, { ...job, minGpa: 3.0 });
+    const noJobGpa = calculateJobMatch(base, job);
+    assert.equal(noCvGpa.score, noJobGpa.score);
+    assert.ok(!noCvGpa.factorsLimiting.some((f) => f.includes("IPK")));
+  });
+});

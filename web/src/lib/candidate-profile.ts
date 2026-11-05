@@ -1,14 +1,16 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getServiceSupabase } from "@/lib/supabase/server";
+import { parseGpaValue } from "@/lib/gpa";
 
 const DEFAULT_EDUCATION = "Sarjana (S1)";
-const RESUME_COLUMNS = "id, experience_years, education, resume_skills(skills(name))";
+const RESUME_COLUMNS = "id, experience_years, education, gpa, resume_skills(skills(name))";
 
 interface CandidateProfile {
   activeResume: Record<string, unknown> | null;
   skills: string[];
   years: number;
   education: string;
+  gpa: number | null;
 }
 
 const EMPTY_PROFILE: CandidateProfile = {
@@ -16,6 +18,7 @@ const EMPTY_PROFILE: CandidateProfile = {
   skills: [],
   years: 0,
   education: DEFAULT_EDUCATION,
+  gpa: null,
 };
 
 async function fetchActiveResumeRows(db: SupabaseClient, userId: string) {
@@ -50,5 +53,6 @@ export async function loadCandidateProfile(
     skills: resumeSkills.flatMap((rs) => (rs.skills?.name ? [rs.skills.name] : [])),
     years: Number(activeResume.experience_years) || 0,
     education: (activeResume.education as string) || DEFAULT_EDUCATION,
+    gpa: parseGpaValue(activeResume.gpa as number | string | null),
   };
 }

@@ -9,6 +9,7 @@ import {
   ArrowRight,
   CheckCircle2,
   XCircle,
+  GraduationCap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScoreRing } from "@/components/ui/score-ring";
@@ -17,6 +18,8 @@ import { MatchBadge } from "@/components/ui/badge";
 import { cn, formatJobTitle } from "@/lib/utils";
 import { getCategoryFromTitle, getCategoryBySlug } from "@/lib/job-categories";
 import type { JobListItem } from "@/types/job";
+import { SalaryText } from "@/components/ui/salary-text";
+import { formatGpa } from "@/lib/gpa";
 
 interface JobPreviewPanelProps {
   job: JobListItem;
@@ -70,6 +73,13 @@ function PreviewHeader({
               <Briefcase className="w-3.5 h-3.5 text-sb-blue shrink-0" />
               <span>{job.employmentType}</span>
             </span>
+            <SalaryText salaryMin={job.salaryMin} salaryMax={job.salaryMax} salaryPeriod={job.salaryPeriod} className="gap-1.5" />
+            {job.minGpa != null && (
+              <span className="flex items-center gap-1.5">
+                <GraduationCap className="w-3.5 h-3.5 text-sb-blue shrink-0" />
+                <span>IPK min {formatGpa(job.minGpa)}</span>
+              </span>
+            )}
           </div>
         </div>
 

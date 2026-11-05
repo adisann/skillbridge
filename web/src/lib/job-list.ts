@@ -1,6 +1,7 @@
 import { getCategoryFromTitle } from "@/lib/job-categories";
 import { isOverseasLocation } from "@/lib/utils";
 import type { FilterState } from "@/lib/job-filters";
+import { hasSalary, monthlySalaryEstimate } from "@/lib/salary";
 import type { JobListItem } from "@/types/job";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -51,6 +52,21 @@ function matchesExperience(job: JobListItem, experience: string | undefined): bo
   return true;
 }
 
+const MILLION = 1_000_000;
+
+/** Filter gaji memakai estimasi per bulan; lowongan tanpa gaji hanya lolos pada "Semua Gaji". */
+function matchesSalary(job: JobListItem, salary: string | undefined): boolean {
+  if (!salary || salary === "all") return true;
+  if (salary === "listed") return hasSalary(job);
+  const monthly = monthlySalaryEstimate(job);
+  if (monthly === null) return false;
+  if (salary === "lt3") return monthly < 3 * MILLION;
+  if (salary === "3-5") return monthly >= 3 * MILLION && monthly < 5 * MILLION;
+  if (salary === "5-10") return monthly >= 5 * MILLION && monthly < 10 * MILLION;
+  if (salary === "gt10") return monthly >= 10 * MILLION;
+  return true;
+}
+
 function matchesSeniority(job: JobListItem, seniority: string): boolean {
   if (seniority === "all") return true;
   return (job.seniority || "").toLowerCase().includes(seniority.toLowerCase());
@@ -70,6 +86,7 @@ export function filterJobs(jobs: JobListItem[], filters: FilterState, referenceT
       matchesWorkType(job, filters.workType) &&
       matchesEmploymentType(job, filters.employmentType) &&
       matchesExperience(job, filters.experience) &&
+      matchesSalary(job, filters.salary) &&
       matchesSeniority(job, filters.seniority) &&
       matchesPostedDate(job, filters.postedDate, referenceTime)
   );

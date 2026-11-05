@@ -8,6 +8,7 @@ export interface FilterState {
   postedDate?: string;
   employmentType?: string;
   experience?: string;
+  salary?: string;
 }
 
 const WORK_TYPE_OPTIONS = [
@@ -32,6 +33,15 @@ const EXPERIENCE_OPTIONS = [
   { label: "1-3 tahun", value: "1-3" },
   { label: "3-5 tahun", value: "3-5" },
   { label: "5+ tahun", value: "5+" },
+];
+
+const SALARY_OPTIONS = [
+  { label: "Semua Gaji", value: "all" },
+  { label: "Gaji dicantumkan", value: "listed" },
+  { label: "Di bawah Rp 3 jt", value: "lt3" },
+  { label: "Rp 3 - 5 jt", value: "3-5" },
+  { label: "Rp 5 - 10 jt", value: "5-10" },
+  { label: "Di atas Rp 10 jt", value: "gt10" },
 ];
 
 const SENIORITY_OPTIONS = [
@@ -133,6 +143,13 @@ export function buildFilterFields(filters: FilterState, bidangOptions: FilterOpt
       options: EXPERIENCE_OPTIONS,
     },
     {
+      key: "salary",
+      id: "filter-salary",
+      label: "Gaji per Bulan",
+      value: filters.salary || "all",
+      options: SALARY_OPTIONS,
+    },
+    {
       key: "seniority",
       id: "filter-seniority",
       label: "Senioritas",
@@ -182,6 +199,13 @@ export function buildActiveFilters(filters: FilterState): ActiveFilter[] {
       key: "experience",
       label: "Pengalaman",
       valueLabel: EXPERIENCE_OPTIONS.find((o) => o.value === filters.experience)?.label || filters.experience,
+    });
+  }
+  if (filters.salary && filters.salary !== "all") {
+    active.push({
+      key: "salary",
+      label: "Gaji",
+      valueLabel: SALARY_OPTIONS.find((o) => o.value === filters.salary)?.label || filters.salary,
     });
   }
   if (filters.seniority && filters.seniority !== "all") {

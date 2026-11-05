@@ -14,6 +14,24 @@ class ExtractedJobDetails(BaseModel):
     preferred_skills: list[str] = Field(default_factory=list)
     experience_years_min: Optional[int] = None
     education: Optional[str] = None  # Bachelor, Master, High School, etc.
+    min_gpa: Optional[float] = None  # IPK minimum (skala 4.00)
+
+
+_GPA_KEYWORD = re.compile(r"\b(?:ipk|gpa|indeks\s+prestasi(?:\s+kumulatif)?)\b", re.IGNORECASE)
+_GPA_NUMBER = re.compile(r"(?<![\d.,])([0-4](?:[.,]\d{1,2})?)(?![\d])")
+
+
+def extract_min_gpa(text: str) -> Optional[float]:
+    """Ambil IPK minimum (skala 4) dari teks, mis. 'IPK minimal 3,00' atau 'min. GPA 3.0'."""
+    for keyword in _GPA_KEYWORD.finditer(text or ""):
+        window = text[keyword.end(): keyword.end() + 40]
+        number = _GPA_NUMBER.search(window)
+        if not number:
+            continue
+        value = float(number.group(1).replace(",", "."))
+        if 1.0 <= value <= 4.0:
+            return round(value, 2)
+    return None
 
 
 # Heuristik rule-based ekstraksi awal sebagai fallback cepat
@@ -33,7 +51,7 @@ def extract_job_details_rule_based(title: str, text: str) -> ExtractedJobDetails
     lower_text = text.lower()
 
     # Tentukan canonical_title
-    if "bi" in lower_title or "business intelligence" in lower_title:
+    if re.search(r"\bbi\b", lower_title) or "business intelligence" in lower_title:
         canonical = "BI Analyst"
     elif "data" in lower_title and "analyst" in lower_title:
         canonical = "Data Analyst"
@@ -123,6 +141,7 @@ def extract_job_details_rule_based(title: str, text: str) -> ExtractedJobDetails
         required_skills=required,
         preferred_skills=preferred,
         experience_years_min=exp_years,
-        education=education
+        education=education,
+        min_gpa=extract_min_gpa(text),
     )
 

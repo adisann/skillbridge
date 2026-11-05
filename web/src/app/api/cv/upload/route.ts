@@ -3,6 +3,7 @@ import { uploadToR2 } from "@/lib/r2";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 import { enforceRateLimits, getClientIp } from "@/lib/rate-limit";
 import { cvUploadRules } from "@/lib/rate-limit-policies";
+import { extractGpaFromText } from "@/lib/gpa";
 
 const ALLOWED_MIME_TYPES = [
   "application/pdf",
@@ -192,6 +193,8 @@ export async function POST(req: NextRequest) {
       education = "Belum teridentifikasi (silakan sesuaikan)";
     }
 
+    const gpa = extractGpaFromText(extractedText);
+
     // Ekstraksi pengalaman
     let experienceYears = 0;
     const expMatch = lowerText.match(/(\d+)\+?\s*(?:tahun|thn|years?|yrs?)\b/);
@@ -215,6 +218,7 @@ export async function POST(req: NextRequest) {
       fileUrl: presignedUrl,
       r2Key: safeKey,
       education,
+      gpa,
       experienceYears,
       summary,
       skills: finalSkills,

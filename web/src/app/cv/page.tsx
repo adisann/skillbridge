@@ -22,6 +22,7 @@ import { useAuth } from "@/lib/supabase/auth-context";
 import { useAsyncTask } from "@/context/async-task-context";
 import { cn } from "@/lib/utils";
 import { fetchDeduped, clearDedupedCache } from "@/lib/fetcher";
+import { formatGpa, parseGpaValue } from "@/lib/gpa";
 
 interface ExtractedResumeState {
   candidateName: string;
@@ -29,6 +30,8 @@ interface ExtractedResumeState {
   fileUrl: string | null;
   r2Key: string | null;
   education: string;
+  /** IPK sebagai teks input (cth. "3,75"); kosong jika tidak dicantumkan. */
+  gpa: string;
   experienceYears: number;
   summary: string;
   skills: string[];
@@ -40,6 +43,7 @@ const EMPTY_RESUME: ExtractedResumeState = {
   fileUrl: null,
   r2Key: null,
   education: "",
+  gpa: "",
   experienceYears: 0,
   summary: "",
   skills: [],
@@ -73,6 +77,7 @@ export default function CVPage() {
             filename?: string;
             fileUrl?: string;
             education?: string;
+            gpa?: number | null;
             experienceYears?: number;
             summary?: string;
             skills?: string[];
@@ -86,6 +91,7 @@ export default function CVPage() {
             fileUrl: data.resume.fileUrl || null,
             r2Key: null,
             education: data.resume.education || "Sarjana (S1)",
+            gpa: data.resume.gpa != null ? formatGpa(data.resume.gpa) : "",
             experienceYears: data.resume.experienceYears || 0,
             summary: data.resume.summary || "",
             skills: data.resume.skills || [],
@@ -139,6 +145,7 @@ export default function CVPage() {
             fileUrl: data.fileUrl,
             r2Key: data.r2Key,
             education: data.education,
+            gpa: typeof data.gpa === "number" ? formatGpa(data.gpa) : "",
             experienceYears: data.experienceYears,
             summary: data.summary,
             skills: data.skills,
@@ -188,6 +195,7 @@ export default function CVPage() {
       fileUrl: currentResume.fileUrl,
       r2Key: currentResume.r2Key,
       education: currentResume.education,
+      gpa: parseGpaValue(currentResume.gpa),
       experienceYears: currentResume.experienceYears,
       summary: currentResume.summary,
       skills,
@@ -249,6 +257,7 @@ export default function CVPage() {
           fileUrl: null,
           r2Key: null,
           education: "-",
+          gpa: "",
           experienceYears: 0,
           summary: "Seluruh data CV telah dibersihkan secara permanen dari server dan basis data.",
           skills: [],
@@ -413,6 +422,37 @@ export default function CVPage() {
                     className="w-full text-xs font-semibold px-3 py-1.5 rounded-lg border border-sb-border focus:outline-none focus:ring-1 focus:ring-sb-blue bg-white text-sb-navy"
                   />
                   <span className="text-xs text-sb-text-2 block">Koreksi jenjang pendidikan formalmu.</span>
+                </div>
+
+                {/* Editor IPK */}
+                <div className="p-3.5 rounded-xl border border-sb-border bg-white/70 shadow-2xs space-y-1.5">
+                  <label htmlFor="cv-gpa" className="flex items-center gap-1.5 text-xs font-bold text-sb-navy">
+                    <GraduationCap className="w-4 h-4 text-sb-blue" />
+                    IPK (skala 4,00)
+                  </label>
+                  <input
+                    id="cv-gpa"
+                    type="text"
+                    inputMode="decimal"
+                    value={currentResume.gpa}
+                    onChange={(e) => {
+                      setCurrentResume((prev) => ({ ...prev, gpa: e.target.value }));
+                      setHasUnsavedDraft(true);
+                    }}
+                    placeholder="cth. 3,75"
+                    aria-invalid={currentResume.gpa !== "" && parseGpaValue(currentResume.gpa) === null}
+                    className="w-full text-xs font-semibold px-3 py-1.5 rounded-lg border border-sb-border focus:outline-none focus:ring-1 focus:ring-sb-blue bg-white text-sb-navy"
+                  />
+                  <span
+                    className={cn(
+                      "text-xs block",
+                      currentResume.gpa !== "" && parseGpaValue(currentResume.gpa) === null ? "text-sb-risk" : "text-sb-text-2"
+                    )}
+                  >
+                    {currentResume.gpa !== "" && parseGpaValue(currentResume.gpa) === null
+                      ? "Isi angka antara 1,00 dan 4,00, atau kosongkan."
+                      : "Dipakai untuk lowongan yang mensyaratkan IPK. Boleh dikosongkan."}
+                  </span>
                 </div>
 
                 {/* Editor Pengalaman Kerja */}

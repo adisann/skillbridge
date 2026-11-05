@@ -16,6 +16,7 @@ import {
 } from "@/lib/ai/cache";
 import { ActiveJobContext, CandidateCVContext, ChatMessage } from "@/lib/ai/types";
 import { calculateJobMatch, getDisplayScore } from "@/lib/matching";
+import { parseGpaValue } from "@/lib/gpa";
 import { splitJobSkills, type JobSkillRow } from "@/lib/job-skills";
 
 const MAX_MESSAGE_CHARS = 500;
@@ -132,6 +133,10 @@ export async function POST(
       seniority: job.seniority || "Tidak dirinci",
       experienceYearsMin: job.experience_years_min,
       education: job.education,
+      minGpa: job.min_gpa ?? null,
+      salaryMin: job.salary_min ?? null,
+      salaryMax: job.salary_max ?? null,
+      salaryPeriod: job.salary_period ?? null,
       description: job.description,
       contentHash: job.content_hash || "default_hash",
       sourceName: job.source_name,
@@ -177,7 +182,7 @@ export async function POST(
 
       const { data: resumeRows } = await supabase
         .from("resumes")
-        .select("id, user_id, experience_years, education, updated_at, resume_skills(skills(name))")
+        .select("id, user_id, experience_years, education, gpa, updated_at, resume_skills(skills(name))")
         .eq("user_id", user.id)
         .eq("is_active", true)
         .order("created_at", { ascending: false })
@@ -212,10 +217,14 @@ export async function POST(
         .eq("id", user.id)
         .maybeSingle();
 
+      const candidateGpa = parseGpaValue(activeResume.gpa);
       const liveMatch = calculateJobMatch(
-        candidateSkills,
-        Number(activeResume.experience_years) || 0,
-        activeResume.education || "Sarjana (S1)",
+        {
+          skills: candidateSkills,
+          experienceYears: Number(activeResume.experience_years) || 0,
+          education: activeResume.education || "Sarjana (S1)",
+          gpa: candidateGpa,
+        },
         {
           title: job.title,
           canonicalTitle: job.canonical_title,
@@ -223,6 +232,7 @@ export async function POST(
           preferredSkills: prefSkills,
           experienceYearsMin: job.experience_years_min || null,
           education: job.education || null,
+          minGpa: job.min_gpa ?? null,
           seniority: job.seniority || null,
         }
       );
@@ -234,6 +244,7 @@ export async function POST(
         targetRole: profile?.target_role || job.canonical_title,
         experienceYears: Number(activeResume.experience_years) || 0,
         education: activeResume.education || "Sarjana (S1)",
+        gpa: candidateGpa,
         skills: candidateSkills,
         matchScore: getDisplayScore(liveMatch) ?? undefined,
         matchStatus: liveMatch.matchStatus,

@@ -1,6 +1,7 @@
 import { Copy, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { formatSalaryRange, SALARY_UNKNOWN_LABEL } from "@/lib/salary";
 import type { AdminJob } from "@/types/admin";
 
 const VISIBLE_SKILLS = 4;
@@ -34,6 +35,7 @@ export function JobCatalogTab({ jobs, onEdit, onDuplicate, onDelete }: JobCatalo
               </div>
             </CardHeader>
             <CardContent className="space-y-3 pb-3">
+              <p className="text-xs font-semibold text-sb-navy">{formatSalaryRange(job) || SALARY_UNKNOWN_LABEL}</p>
               <div className="flex flex-wrap gap-1">
                 {(job.requiredSkills || []).slice(0, VISIBLE_SKILLS).map((s) => (
                   <span key={s} className="px-2 py-0.5 rounded bg-sb-mist-soft text-xs text-sb-navy font-medium">
