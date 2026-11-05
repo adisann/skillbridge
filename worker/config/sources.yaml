@@ -1,0 +1,40 @@
+# Konfigurasi sumber lowongan kerja terverifikasi untuk SkillBridge Worker
+# Utamakan perusahaan dengan operasi atau lowongan di Indonesia / Asia Tenggara
+
+greenhouse:
+  enabled: true
+  rate_limit_per_second: 1.0
+  boards:
+    - binance      # Verified: Asia Tenggara (Singapore, Hong Kong, Remote) - Data Analyst & BI Analyst
+    - cloudflare   # Verified: Singapore / APAC / Hybrid Data Analyst
+    - gitlab       # Verified: Global Remote Data & Analytics
+    - canonical    # Verified: Global Remote Data & Analytics
+
+lever:
+  enabled: true
+  rate_limit_per_second: 1.0
+  sites:
+    - everseen     # Verified (api.eu.lever.co): BI Analyst & Data Ops
+    - kwalee       # Verified (api.eu.lever.co): Senior Data Analyst (APAC/India)
+    - spotify      # Verified (api.lever.co): Data Scientist & Analytics
+    - palantir     # Verified (api.lever.co): Data Analyst & Compliance
+
+linkedin:
+  enabled: true
+  rate_limit_per_second: 1.0
+  max_jobs_per_run: 25
+  default_search_terms:
+    - "Data Analyst"
+    - "BI Analyst"
+  default_location: "Indonesia"
+  anonymous_rules:
+    no_auth_cookies: true
+    discard_recruiter_data: true
+    halt_on_rate_limit: true
+
+playwright:
+  allowed_domains:
+    - "boards.greenhouse.io"
+    - "jobs.lever.co"
+
+

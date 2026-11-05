@@ -1,0 +1,61 @@
+name: SkillBridge Data Worker
+
+on:
+  schedule:
+    # Terjadwal harian pukul 02:00 UTC (09:00 WIB)
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      source:
+        description: 'Sumber data lowongan (greenhouse, lever, linkedin, jobstreet, all, seed)'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - greenhouse
+          - lever
+          - linkedin
+          - jobstreet
+          - seed
+      limit:
+        description: 'Batas jumlah lowongan per sumber'
+        required: true
+        default: '15'
+
+jobs:
+  run-worker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r worker/requirements.txt
+
+      - name: Run Test Suite
+        run: |
+          pytest worker/tests/
+
+      - name: Execute Worker Job Crawler
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          AI_PROVIDER: ${{ secrets.AI_PROVIDER || 'gemini' }}
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+          EMBEDDING_DIMENSIONS: '768'
+        run: |
+          SOURCE_NAME="${{ github.event.inputs.source || 'all' }}"
+          LIMIT_VAL="${{ github.event.inputs.limit || '15' }}"
+          echo "Menjalankan worker untuk sumber: $SOURCE_NAME (limit: $LIMIT_VAL)"
+          python -m worker.main --source "$SOURCE_NAME" --limit "$LIMIT_VAL"
+
+
