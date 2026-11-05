@@ -1,3 +1,4 @@
+import { ownedResumeKey } from "@/lib/r2";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 import { calculateJobMatch } from "@/lib/matching";
@@ -49,7 +50,10 @@ export async function POST(req: NextRequest) {
     }
 
     // 1. Simpan atau perbarui resume di tabel `resumes` (FR-02 & NFR-02)
-    const persistentFileUrl = fileUrl || (r2Key ? `r2://${r2Key}` : null);
+    // File hanya boleh menunjuk ke objek milik pengguna ini; URL/key buatan klien diabaikan.
+    const ownedKey = ownedResumeKey(user.id, r2Key) ?? ownedResumeKey(user.id, fileUrl);
+    const persistentFileUrl = ownedKey ? `r2://${ownedKey}` : null;
+    const fileUrlPatch = persistentFileUrl ? { file_url: persistentFileUrl } : {};
 
     const { data: existingResume } = await supabase
       .from("resumes")
@@ -66,7 +70,7 @@ export async function POST(req: NextRequest) {
         .from("resumes")
         .update({
           filename: filename || "CV_Terunggah.pdf",
-          file_url: persistentFileUrl,
+          ...fileUrlPatch,
           parsed_text: summary || "Ringkasan profil kompetensi",
           education: education || "Sarjana (S1)",
           gpa,

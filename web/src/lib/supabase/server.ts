@@ -43,13 +43,12 @@ export async function createServerSupabaseClient(req?: NextRequest) {
 
 /**
  * Mengambil dan memverifikasi sesi pengguna yang sedang login di server.
- * Memeriksa token Supabase Auth nyata serta cookie sesi server `sb_user_session`.
+ * Hanya sesi Supabase Auth yang diverifikasi server (getUser memvalidasi token ke Auth).
+ * Tidak ada cookie buatan sendiri yang dipercaya.
  */
 export async function getAuthenticatedUser(req?: NextRequest) {
   const supabase = await createServerSupabaseClient(req);
-  const cookieStore = await cookies();
-
-  // 1. Coba verifikasi via Supabase Auth resmi
+  // Verifikasi token via Supabase Auth
   try {
     const {
       data: { user },
@@ -60,49 +59,7 @@ export async function getAuthenticatedUser(req?: NextRequest) {
       return { user, supabase, error: null };
     }
   } catch {
-    // Lanjutkan pengecekan cookie fallback server jika jaringan/token sedang refresh
-  }
-
-  // 2. Verifikasi via cookie sesi server `sb_user_session` (httpOnly, Secure, SameSite=Lax)
-  const sessionCookie = cookieStore.get("sb_user_session")?.value;
-  if (sessionCookie) {
-    try {
-      const parsed = JSON.parse(sessionCookie);
-      if (parsed && parsed.userId) {
-        // Validasi keaslian user ke tabel profiles
-        const serviceDb = getServiceSupabase();
-        const { data: profile } = await serviceDb
-          .from("profiles")
-          .select("id, email, full_name, role, target_role")
-          .eq("id", parsed.userId)
-          .maybeSingle();
-
-        if (profile) {
-          const verifiedUser = {
-            id: profile.id,
-            email: profile.email,
-            user_metadata: {
-              full_name: profile.full_name,
-              target_role: profile.target_role,
-            },
-            app_metadata: {
-              role: profile.role,
-            },
-            aud: "authenticated",
-            role: "authenticated",
-          } as unknown as {
-            id: string;
-            email?: string;
-            user_metadata: { full_name?: string; target_role?: string };
-            app_metadata: { role?: string };
-          };
-
-          return { user: verifiedUser, supabase, error: null };
-        }
-      }
-    } catch {
-      // Cookie rusak atau format tidak valid
-    }
+    // Jaringan/token bermasalah: dianggap tidak terautentikasi
   }
 
   return { user: null, supabase, error: "Tidak terautentikasi" };
@@ -110,7 +67,7 @@ export async function getAuthenticatedUser(req?: NextRequest) {
 
 /**
  * Memverifikasi apakah request berasal dari pengguna dengan role 'admin'.
- * Memeriksa auth.getUser() nyata serta verifikasi kolom role pada tabel profiles.
+ * Sesi diverifikasi lewat Supabase Auth, role dibaca dari tabel profiles.
  */
 export async function getAuthenticatedAdmin(req?: NextRequest) {
   const { user, supabase, error } = await getAuthenticatedUser(req);
@@ -132,12 +89,10 @@ export async function getAuthenticatedAdmin(req?: NextRequest) {
     .eq("id", user.id)
     .maybeSingle();
 
-  const isMetadataAdmin =
-    (user.user_metadata as Record<string, unknown>)?.role === "admin" ||
-    (user.app_metadata as Record<string, unknown>)?.role === "admin";
+  // Hanya kolom profiles.role yang dipercaya. user_metadata bisa diubah user sendiri.
   const isProfileAdmin = profile?.role === "admin";
 
-  if (!isMetadataAdmin && !isProfileAdmin) {
+  if (!isProfileAdmin) {
     return {
       admin: null,
       user,

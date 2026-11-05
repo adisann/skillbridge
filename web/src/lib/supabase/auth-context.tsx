@@ -18,11 +18,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   isAdmin: boolean;
-  login: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
-  loginDemo: () => Promise<void>;
-  loginDemoJuri: () => Promise<void>;
-  loginDemoAdmin: () => Promise<void>;
-  register: (email: string, pass: string, name: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, pass: string) => Promise<{ success: boolean; error?: string; role?: "user" | "admin" }>;
   logout: () => Promise<void>;
   resetDemoState: () => Promise<void>;
   updateUserTargetRole: (newRole: string) => void;
@@ -97,36 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const loginDemoJuri = async () => {
-    setIsLoading(true);
-    try {
-      const res = await fetch("/api/auth/demo", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: "juri" }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.user) {
-        throw new Error(data.error || "Gagal masuk ke akun juri demo.");
-      }
-
-      clearDedupedCache();
-      setUser(data.user);
-      setIsLoading(false);
-      router.push("/dashboard");
-    } catch (err) {
-      console.error("[Auth] loginDemoJuri gagal:", err);
-      setIsLoading(false);
-    }
-  };
-
-  const loginDemoAdmin = async () => {
-    // Admin harus memasukkan kata sandi nyata, diarahkan ke form login
-    router.push("/login?admin=1");
-  };
-
-  const login = async (email: string, pass: string): Promise<{ success: boolean; error?: string }> => {
+  const login = async (email: string, pass: string): Promise<{ success: boolean; error?: string; role?: "user" | "admin" }> => {
     setIsLoading(true);
 
     if (!pass || !pass.trim()) {
@@ -150,48 +117,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       clearDedupedCache();
       setUser(data.user);
       setIsLoading(false);
-      return { success: true };
+      return { success: true, role: data.user.role };
     } catch (err: unknown) {
       const error = err as Error;
       setIsLoading(false);
       return { success: false, error: error.message || "Gagal menghubungi layanan autentikasi." };
     }
-  };
-
-  const register = async (email: string, pass: string, name: string): Promise<{ success: boolean; error?: string }> => {
-    setIsLoading(true);
-    const cleanEmail = email.trim().toLowerCase();
-
-    try {
-      const supabase = createClient();
-      const { data, error } = await supabase.auth.signUp({
-        email: cleanEmail,
-        password: pass,
-        options: {
-          data: {
-            full_name: name,
-            target_role: "Data Analyst",
-          },
-        },
-      });
-
-      if (error) {
-        setIsLoading(false);
-        return { success: false, error: error.message || "Pendaftaran gagal." };
-      }
-
-      if (data?.user) {
-        // Otomatis login ke sesi cookie server
-        return await login(cleanEmail, pass);
-      }
-    } catch (err: unknown) {
-      const error = err as Error;
-      setIsLoading(false);
-      return { success: false, error: error.message || "Gagal menghubungkan ke server autentikasi." };
-    }
-
-    setIsLoading(false);
-    return { success: false, error: "Pendaftaran tidak dapat diselesaikan." };
   };
 
   const logout = async () => {
@@ -233,7 +164,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
     }
-    await loginDemoJuri();
+    // Sesi tetap sama (sudah login); halaman memuat ulang datanya setelah reset.
   };
 
   const updateUserTargetRole = (newRole: string) => {
@@ -263,10 +194,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated,
         isAdmin,
         login,
-        loginDemo: loginDemoJuri,
-        loginDemoJuri,
-        loginDemoAdmin,
-        register,
         logout,
         resetDemoState,
         updateUserTargetRole,

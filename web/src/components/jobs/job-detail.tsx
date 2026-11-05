@@ -25,7 +25,7 @@ interface JobDetailProps {
 export function JobDetail({ jobId, mode = "user" }: JobDetailProps) {
   const isGuest = mode === "guest";
   const router = useRouter();
-  const { user, loginDemo } = useAuth();
+  const { user } = useAuth();
   const { job, isLoading, isSaved, errorMsg, toggleSave } = useJobDetail(jobId, isGuest);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
@@ -76,13 +76,7 @@ export function JobDetail({ jobId, mode = "user" }: JobDetailProps) {
 
       {isGuest ? (
         <>
-          <GuestLoginPrompt
-            jobId={job.id}
-            onTryDemo={async () => {
-              await loginDemo();
-              router.push(`/jobs/${job.id}`);
-            }}
-          />
+          <GuestLoginPrompt jobId={job.id} />
           <GuestRequirementsCard job={job} />
         </>
       ) : (

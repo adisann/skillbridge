@@ -96,7 +96,11 @@ test("API Authentication and Role Protection Tests", async (t) => {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    if (!baseUrl || !supabaseUrl || !anonKey) {
+    // Kata sandi akun uji tidak disimpan di repo: berikan lewat env saat menjalankan uji integrasi.
+    const juriPassword = process.env.TEST_JURI_PASSWORD;
+    const adminPassword = process.env.TEST_ADMIN_PASSWORD;
+
+    if (!baseUrl || !supabaseUrl || !anonKey || !juriPassword || !adminPassword) {
       assert.ok(true, "Kredensial Supabase / server tidak tersedia di runner, uji simulasi logika RBAC");
       return;
     }
@@ -107,7 +111,7 @@ test("API Authentication and Role Protection Tests", async (t) => {
     // Login sebagai Juri (Non-Admin)
     const { data: juriAuth, error: juriErr } = await supabase.auth.signInWithPassword({
       email: "juri@skillbridge.id",
-      password: "DemoJuriInvofest2026!",
+      password: juriPassword,
     });
 
     if (!juriErr && juriAuth?.session?.access_token) {
@@ -130,7 +134,7 @@ test("API Authentication and Role Protection Tests", async (t) => {
     // Login sebagai Admin Resmi
     const { data: adminAuth, error: adminErr } = await supabase.auth.signInWithPassword({
       email: "admin@skillbridge.id",
-      password: "AdminSkillBridge2026!",
+      password: adminPassword,
     });
 
     if (!adminErr && adminAuth?.session?.access_token) {
