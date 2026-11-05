@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import {
-  Sparkles,
+  Check,
   Search,
   Mail,
   Lock,
@@ -53,7 +53,7 @@ export default function DesignSystemPage() {
   // State interaktif untuk komponen demonstrasi
   const [searchValue, setSearchValue] = useState("");
   const [filters, setFilters] = useState<FilterState>({
-    role: "Data Analyst",
+    role: "all",
     workType: "all",
     seniority: "all",
   });
@@ -162,8 +162,9 @@ export default function DesignSystemPage() {
       align: "right",
       render: (row) => (
         row.inCV ? (
-          <span className="text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-            ✓ Tercantum
+          <span className="inline-flex items-center gap-1 text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+            <Check className="w-3 h-3 text-emerald-600" />
+            Tercantum
           </span>
         ) : (
           <span className="text-slate-600 font-medium bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
@@ -181,14 +182,14 @@ export default function DesignSystemPage() {
       {/* --------------------------------------------------------------------- */}
       <section className="space-y-3 pb-8 border-b border-slate-200">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold border border-blue-200">
-          <Sparkles className="w-3.5 h-3.5" />
-          SkillBridge Design System v1.0
+          <Palette className="w-3.5 h-3.5" />
+          SkillBridge Design System
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
           Panduan Desain & Pustaka Komponen UI
         </h1>
         <p className="text-sm sm:text-base text-slate-600 max-w-3xl leading-relaxed">
-          Fondasi desain SkillBridge dirancang khusus untuk memenuhi standar kompetisi INVOFEST 2026: identitas biru-hijau yang profesional dan modern, tipografi yang tegas, tata letak responsif, serta kepatuhan penuh terhadap aksesibilitas status non-warna.
+          Fondasi desain SkillBridge dirancang dengan prinsip modern, minimalis, dan fungsional: identitas biru-hijau yang profesional, tipografi yang tegas, tata letak responsif, serta kepatuhan penuh terhadap aksesibilitas status non-warna.
         </p>
       </section>
 
@@ -428,15 +429,15 @@ export default function DesignSystemPage() {
           <div className="flex flex-wrap items-center gap-3 pt-2">
             <Button
               variant="primary"
-              leftIcon={<Sparkles className="w-4 h-4" />}
+              leftIcon={<SlidersHorizontal className="w-4 h-4" />}
             >
-              Dengan Left Icon
+              Dengan Ikon Kiri
             </Button>
             <Button
               variant="outline"
               rightIcon={<ArrowRight className="w-4 h-4" />}
             >
-              Dengan Right Icon
+              Dengan Ikon Kanan
             </Button>
             <Button
               variant="primary"
@@ -495,21 +496,23 @@ export default function DesignSystemPage() {
             <Select
               label="Target Posisi Karier"
               options={[
+                { label: "Semua Posisi", value: "all" },
+                { label: "Software Engineer", value: "se" },
+                { label: "Product Manager", value: "pm" },
                 { label: "Data Analyst", value: "da" },
-                { label: "Business Intelligence Analyst", value: "bi" },
-                { label: "Junior Analytics Engineer", value: "ae" },
+                { label: "UI/UX Designer", value: "ux" },
               ]}
             />
 
             <Textarea
               label="Koreksi Skill / Ringkasan Manual CV"
-              placeholder="Tambahkan skill yang Anda kuasai namun belum tercantum di CV..."
+              placeholder="Tambahkan skill yang kamu kuasai namun belum tercantum di CV..."
               helperText="Skill tambahan akan ditandai sebagai klaim mandiri pengguna."
             />
 
             <Checkbox
               label="Setujui Pemrosesan Data CV"
-              description="CV Anda diproses secara privat dan dapat dihapus permanen kapan pun (NFR-02)."
+              description="CV-mu diproses secara privat dan dapat dihapus permanen kapan pun."
               defaultChecked
             />
           </Card>
@@ -521,7 +524,7 @@ export default function DesignSystemPage() {
       {/* --------------------------------------------------------------------- */}
       <section className="space-y-6">
         <div className="flex items-center gap-2.5 pb-2 border-b border-slate-200">
-          <Sparkles className="w-5 h-5 text-blue-600" />
+          <Layers className="w-5 h-5 text-blue-600" />
           <h2 className="text-xl font-bold text-slate-900 tracking-tight">
             6. Badge & Indikator Status (Aksesibilitas Non-Warna)
           </h2>
@@ -531,7 +534,7 @@ export default function DesignSystemPage() {
           {/* Status Kecocokan Lowongan */}
           <div className="space-y-2">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Status Kecocokan Lowongan (FR-05 & AC-05)
+              Status Kecocokan Lowongan
             </h4>
             <div className="flex flex-wrap items-center gap-3">
               <MatchBadge status="match" score={88} />
@@ -544,7 +547,7 @@ export default function DesignSystemPage() {
           {/* Status Skill CV */}
           <div className="space-y-2">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Status Keberadaan Skill di CV (FR-06, FR-08, AC-04)
+              Status Keberadaan Skill di CV
             </h4>
             <div className="flex flex-wrap items-center gap-3">
               <CVSkillBadge skillName="SQL" status="found" isMandatory />
@@ -566,7 +569,7 @@ export default function DesignSystemPage() {
         <div className="flex items-center gap-2.5 pb-2 border-b border-slate-200">
           <SlidersHorizontal className="w-5 h-5 text-blue-600" />
           <h2 className="text-xl font-bold text-slate-900 tracking-tight">
-            7. Kontrol Filter Dinamis (FR-01, FR-04, AC-03)
+            7. Kontrol Filter Dinamis
           </h2>
         </div>
 
@@ -596,7 +599,7 @@ export default function DesignSystemPage() {
           <MetricCard
             title="Total Lowongan Relevan"
             value="26"
-            subtitle="Tersaring untuk Data Analyst di Indonesia"
+            subtitle="Tersaring untuk berbagai role pekerjaan di Indonesia"
             icon={<Briefcase className="w-4 h-4" />}
             badge={
               <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
@@ -694,7 +697,7 @@ export default function DesignSystemPage() {
         <div className="flex items-center gap-2.5 pb-2 border-b border-slate-200">
           <TrendingUp className="w-5 h-5 text-blue-600" />
           <h2 className="text-xl font-bold text-slate-900 tracking-tight">
-            10. Visualisasi Chart Kebutuhan Pasar (FR-07, FR-08, AC-03)
+            10. Visualisasi Chart Kebutuhan Pasar
           </h2>
         </div>
 
@@ -729,7 +732,7 @@ export default function DesignSystemPage() {
           />
           <EmptyState
             title="Belum Ada Dokumen CV Diunggah"
-            description="Unggah CV berformat PDF atau DOCX Anda untuk melihat pencocokan otomatis dan perbandingan top skill pasar."
+            description="Unggah CV berformat PDF atau DOCX-mu untuk melihat pencocokan otomatis dan perbandingan top skill pasar."
             actionLabel="Unggah Dokumen CV Sekarang"
             onAction={() => {}}
           />
@@ -799,18 +802,18 @@ export default function DesignSystemPage() {
           <AlertBanner
             type="info"
             title="Data Sampel Demo Tersedia"
-            message="Untuk kelancaran presentasi, seed data lokal telah terisi lengkap untuk role Data Analyst dan BI Analyst."
+            message="Untuk kelancaran presentasi, seed data lokal telah terisi lengkap untuk berbagai bidang pekerjaan."
           />
           <AlertBanner
             type="success"
             title="Skill Berhasil Diperbarui"
-            message="Perubahan daftar skill CV Anda telah disimpan. Skor kecocokan lowongan otomatis diperhitungkan ulang."
+            message="Perubahan daftar skill CV-mu telah disimpan. Skor kecocokan lowongan otomatis diperhitungkan ulang."
           />
 
           <div className="pt-2">
             <ErrorState
               title="Koneksi Layanan Terputus"
-              message="Tidak dapat menjangkau server Supabase. Pastikan konfigurasi jaringan atau variabel lingkungan Anda sudah benar."
+              message="Tidak dapat menjangkau server Supabase. Pastikan konfigurasi jaringan atau variabel lingkunganmu sudah benar."
               onRetry={() => alert("Mencoba menghubungkan kembali...")}
             />
           </div>

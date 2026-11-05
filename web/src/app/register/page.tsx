@@ -8,6 +8,7 @@ import { SkillBridgeLogo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 import { TextInput, Checkbox } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { AlertBanner } from "@/components/ui/error";
 import { useAuth } from "@/lib/supabase/auth-context";
 
 export default function RegisterPage() {
@@ -16,12 +17,24 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [consent, setConsent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!consent) {
+      setErrorMessage("Kamu harus menyetujui pemrosesan CV untuk mendaftar akun.");
+      return;
+    }
     setIsLoading(true);
-    await register(email, password, name);
+    setErrorMessage(null);
+    const res = await register(email, password, name);
+    setIsLoading(false);
+    if (!res.success) {
+      setErrorMessage(res.error || "Pendaftaran akun gagal. Silakan periksa kembali datamu.");
+      return;
+    }
     router.push("/dashboard");
   };
 
@@ -37,6 +50,14 @@ export default function RegisterPage() {
             Buat akun untuk menyimpan CV dan menganalisis kesesuaian pasar kerja
           </p>
         </div>
+
+        {errorMessage && (
+          <AlertBanner
+            type="error"
+            title="Registrasi Belum Berhasil"
+            message={errorMessage}
+          />
+        )}
 
         <Card className="border-slate-200 shadow-md">
           <CardHeader>
@@ -79,9 +100,10 @@ export default function RegisterPage() {
 
               <Checkbox
                 label="Saya menyetujui pemrosesan CV untuk analisis"
-                description="CV Anda diproses secara privat dan dapat dihapus permanen kapan pun (NFR-02)."
+                description="CV-mu diproses secara privat dan dapat dihapus permanen kapan pun."
                 required
-                defaultChecked
+                checked={consent}
+                onChange={(e) => setConsent(e.target.checked)}
               />
 
               <Button

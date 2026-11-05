@@ -1,5 +1,5 @@
 import React from "react";
-import { Building2, MapPin, Briefcase, ExternalLink, Bookmark } from "lucide-react";
+import { Building2, MapPin, Briefcase, ExternalLink, Bookmark, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MatchBadge, MatchStatus } from "./badge";
 import { Button } from "./button";
@@ -14,7 +14,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-xl border border-slate-200 bg-white shadow-xs hover:border-slate-300 transition-all",
+        "rounded-xl border border-slate-200 bg-white shadow-xs hover:border-slate-300 transition-colors duration-150",
         className
       )}
       {...props}
@@ -100,7 +100,7 @@ export function MetricCard({
   return (
     <div
       className={cn(
-        "p-5 rounded-xl border border-slate-200 bg-white shadow-xs hover:border-blue-200 transition-all flex flex-col justify-between",
+        "p-5 rounded-xl border border-slate-200 bg-white shadow-xs hover:border-blue-200 transition-colors duration-150 flex flex-col justify-between",
         className
       )}
     >
@@ -130,7 +130,7 @@ export function MetricCard({
 }
 
 // -----------------------------------------------------------------------------
-// JobCard (FR-03, FR-05, FR-06)
+// JobCard
 // Menampilkan judul, perusahaan, lokasi, level, sumber asli, status kecocokan
 // -----------------------------------------------------------------------------
 export interface JobCardProps {
@@ -143,7 +143,7 @@ export interface JobCardProps {
   sourceName: string;
   sourceUrl: string;
   matchStatus: MatchStatus;
-  matchScore: number;
+  matchScore?: number | null;
   matchedSkills: string[];
   missingSkills: string[];
   isSaved?: boolean;
@@ -158,7 +158,6 @@ export function JobCard({
   location,
   employmentType,
   seniority,
-  sourceName,
   sourceUrl,
   matchStatus,
   matchScore,
@@ -170,40 +169,31 @@ export function JobCard({
   className,
 }: JobCardProps) {
   return (
-    <Card className={cn("hover:shadow-md transition-all duration-200 border-slate-200", className)}>
-      <CardHeader>
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
-                <Building2 className="w-3 h-3 mr-1 text-slate-400" />
-                {company}
+    <Card
+      className={cn(
+        "overflow-hidden flex flex-col justify-between h-full hover:shadow-md hover:border-slate-300 transition-[border-color,box-shadow] duration-200 border-slate-200 bg-white",
+        className
+      )}
+    >
+      <CardHeader className="p-5 pb-3 space-y-3">
+        {/* Top Meta Bar: Company + Seniority & Bookmark */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-1.5 min-w-0 flex-1">
+            <span
+              className="inline-flex items-center text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md max-w-[200px] sm:max-w-[260px] truncate"
+              title={company}
+            >
+              <Building2 className="w-3 h-3 mr-1 text-slate-400 shrink-0" />
+              <span className="truncate">{company}</span>
+            </span>
+            {seniority && (
+              <span className="text-[11px] font-medium text-slate-500 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded-md shrink-0">
+                {seniority}
               </span>
-              {seniority && (
-                <span className="text-xs font-medium text-slate-500 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded">
-                  {seniority}
-                </span>
-              )}
-              <span className="text-[11px] text-slate-400 font-mono">
-                Sumber: {sourceName}
-              </span>
-            </div>
-            <h4 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight hover:text-blue-600 transition-colors">
-              {title}
-            </h4>
-            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 pt-0.5">
-              <span className="flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                {location}
-              </span>
-              <span className="flex items-center gap-1">
-                <Briefcase className="w-3.5 h-3.5 text-slate-400" />
-                {employmentType}
-              </span>
-            </div>
+            )}
           </div>
-          <div className="flex flex-col items-end gap-2 shrink-0">
-            <MatchBadge status={matchStatus} score={matchScore} />
+
+          <div className="flex items-center gap-1.5 shrink-0">
             {onSaveToggle && (
               <button
                 type="button"
@@ -215,65 +205,113 @@ export function JobCard({
                     : "text-slate-400 hover:text-slate-600 hover:bg-slate-50 border-transparent"
                 )}
                 aria-label={isSaved ? "Hapus dari simpanan" : "Simpan lowongan"}
+                title={isSaved ? "Tersimpan" : "Simpan lowongan"}
               >
                 <Bookmark className={cn("w-4 h-4", isSaved && "fill-current")} />
               </button>
             )}
           </div>
         </div>
+
+        {/* Title & Match Badge Row */}
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2.5">
+          <div className="min-w-0 flex-1">
+            <h4 className="text-base font-bold text-slate-900 tracking-tight line-clamp-2 leading-snug">
+              {onViewDetails ? (
+                <button
+                  type="button"
+                  onClick={onViewDetails}
+                  className="text-left font-bold text-slate-900 hover:text-blue-600 transition-colors cursor-pointer w-full focus:outline-none focus:underline"
+                  title={title}
+                >
+                  {title}
+                </button>
+              ) : (
+                <span title={title}>{title}</span>
+              )}
+            </h4>
+            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 pt-1">
+              <span className="flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span>{location}</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <Briefcase className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span>{employmentType}</span>
+              </span>
+            </div>
+          </div>
+
+          <div className="shrink-0 self-start sm:self-auto pt-0.5 sm:pt-0">
+            <MatchBadge status={matchStatus} score={matchScore} />
+          </div>
+        </div>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="px-5 py-3 flex-1">
         {/* Breakdown Singkat Kecocokan */}
-        <div className="mt-2 space-y-2 text-xs">
+        <div className="space-y-2.5 text-xs">
           {matchedSkills.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="font-semibold text-emerald-800 text-[11px]">
+            <div className="space-y-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">
                 Cocok:
               </span>
-              {matchedSkills.map((s) => (
-                <span
-                  key={s}
-                  className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-medium"
-                >
-                  ✓ {s}
-                </span>
-              ))}
+              <div className="flex flex-wrap items-center gap-1.5">
+                {matchedSkills.map((s) => (
+                  <span
+                    key={s}
+                    className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200/80 font-medium text-[11px]"
+                  >
+                    <Check className="w-3 h-3 text-emerald-600 mr-1 shrink-0 stroke-[2.5]" />
+                    {s}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
 
           {missingSkills.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="font-semibold text-slate-600 text-[11px]">
+            <div className="space-y-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
                 Belum ditemukan:
               </span>
-              {missingSkills.map((s) => (
-                <span
-                  key={s}
-                  className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 font-medium"
-                >
-                  {s}
-                </span>
-              ))}
+              <div className="flex flex-wrap items-center gap-1.5">
+                {missingSkills.map((s) => (
+                  <span
+                    key={s}
+                    className="px-2 py-0.5 rounded-md bg-slate-50 text-slate-700 border border-slate-200 font-medium text-[11px]"
+                  >
+                    {s}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
         </div>
       </CardContent>
 
-      <CardFooter className="justify-between bg-slate-50/60 rounded-b-xl gap-2">
-        <a
-          href={sourceUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline"
-        >
-          Lihat Lowongan Asli
-          <ExternalLink className="w-3.5 h-3.5" />
-        </a>
+      <CardFooter className="px-5 py-3.5 justify-between items-center bg-slate-50/70 border-t border-slate-100 rounded-b-xl gap-2 mt-auto">
+        <div className="min-w-0">
+          {sourceUrl && sourceUrl.trim() !== "" ? (
+            <a
+              href={sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+            >
+              <span>Lihat Sumber Asli</span>
+              <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+            </a>
+          ) : (
+            <span className="text-xs text-slate-400">
+              Rincian kontak di deskripsi
+            </span>
+          )}
+        </div>
 
         {onViewDetails && (
-          <Button variant="outline" size="sm" onClick={onViewDetails}>
-            Detail Match & Gap
+          <Button variant="outline" size="sm" onClick={onViewDetails} className="shrink-0">
+            Detail Lowongan
           </Button>
         )}
       </CardFooter>

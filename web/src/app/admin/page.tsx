@@ -12,6 +12,10 @@ import {
   History,
   Pencil,
   Trash2,
+  Link2,
+  ScanText,
+  X,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -20,6 +24,7 @@ import { DataTable, Column } from "@/components/ui/table";
 import { AlertBanner } from "@/components/ui/error";
 import { SkeletonTable } from "@/components/ui/loading";
 import { ProtectedRoute } from "@/components/layout/protected-route";
+import { useAsyncTask } from "@/context/async-task-context";
 
 interface AdminJob {
   id: string;
@@ -33,6 +38,7 @@ interface AdminJob {
   education?: string;
   description?: string;
   sourceName: string;
+  sourceUrl?: string;
   retrievalMethod: string;
   requiredSkills: string[];
   preferredSkills?: string[];
@@ -76,6 +82,7 @@ export default function AdminPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notification, setNotification] = useState<{ type: "success" | "error" | "info"; message: string } | null>(null);
+  const { runTask } = useAsyncTask();
 
   // Form Tambah Lowongan
   const [showAddModal, setShowAddModal] = useState(false);
@@ -89,6 +96,20 @@ export default function AdminPage() {
   const [formRequiredSkills, setFormRequiredSkills] = useState("SQL, Python, Excel");
   const [formPreferredSkills, setFormPreferredSkills] = useState("Tableau, Power BI");
   const [formDescription, setFormDescription] = useState("");
+  const [formSourceUrl, setFormSourceUrl] = useState("");
+
+  // Modal Impor via Tautan (URL)
+  const [showUrlModal, setShowUrlModal] = useState(false);
+  const [inputUrl, setInputUrl] = useState("");
+  const [isExtractingUrl, setIsExtractingUrl] = useState(false);
+  const [urlError, setUrlError] = useState<string | null>(null);
+
+  // Modal Impor via OCR (Poster / Flyer)
+  const [showOcrModal, setShowOcrModal] = useState(false);
+  const [ocrFile, setOcrFile] = useState<File | null>(null);
+  const [ocrPreview, setOcrPreview] = useState<string | null>(null);
+  const [isExtractingOcr, setIsExtractingOcr] = useState(false);
+  const [ocrError, setOcrError] = useState<string | null>(null);
 
   // Form Edit Lowongan
   const [showEditModal, setShowEditModal] = useState(false);
@@ -167,44 +188,212 @@ export default function AdminPage() {
     };
   }, []);
 
+  const fillAddFormWithExtractedJob = (job: {
+    title?: string;
+    company?: string;
+    location?: string;
+    canonicalTitle?: string;
+    seniority?: string;
+    experienceYearsMin?: number | string;
+    education?: string;
+    requiredSkills?: string[];
+    preferredSkills?: string[];
+    description?: string;
+    sourceUrl?: string;
+  }) => {
+    setFormTitle(job.title || "");
+    setFormCompany(job.company || "");
+    setFormLocation(job.location || "Indonesia (Hybrid)");
+    setFormRole(job.canonicalTitle || "Data Analyst");
+    setFormSeniority(job.seniority || "Junior");
+    setFormExperience(String(job.experienceYearsMin || 1));
+    setFormEducation(job.education || "Bachelor");
+    setFormRequiredSkills((job.requiredSkills || []).join(", "));
+    setFormPreferredSkills((job.preferredSkills || []).join(", "));
+    setFormDescription(job.description || "");
+    setFormSourceUrl(job.sourceUrl || "");
+  };
+
   const handleCreateJob = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    try {
-      const res = await fetch("/api/jobs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: formTitle,
-          company: formCompany,
-          location: formLocation,
-          canonicalTitle: formRole,
-          seniority: formSeniority,
-          experienceYearsMin: parseInt(formExperience, 10) || 1,
-          education: formEducation,
-          requiredSkills: formRequiredSkills.split(",").map((s) => s.trim()).filter(Boolean),
-          preferredSkills: formPreferredSkills.split(",").map((s) => s.trim()).filter(Boolean),
-          description: formDescription,
-          sourceUrl: "https://skillbridge.id/admin",
-        }),
-      });
 
-      const data = await res.json();
-      if (!res.ok || data.error) throw new Error(data.error || "Gagal menyimpan");
+    const payload = {
+      title: formTitle.trim(),
+      company: formCompany.trim(),
+      location: formLocation.trim(),
+      canonicalTitle: formRole,
+      seniority: formSeniority,
+      experienceYearsMin: parseInt(formExperience, 10) || 1,
+      education: formEducation,
+      requiredSkills: formRequiredSkills.split(",").map((s) => s.trim()).filter(Boolean),
+      preferredSkills: formPreferredSkills.split(",").map((s) => s.trim()).filter(Boolean),
+      description: formDescription.trim(),
+      sourceUrl: formSourceUrl.trim() || "",
+    };
 
-      setNotification({ type: "success", message: data.message });
-      setShowAddModal(false);
-      // Reset form
-      setFormTitle("");
-      setFormCompany("");
-      setFormDescription("");
-      fetchData();
-    } catch (err: unknown) {
-      const error = err as Error;
-      setNotification({ type: "error", message: error.message });
-    } finally {
-      setIsSubmitting(false);
+    // Tutup modal segera agar non-blocking
+    setShowAddModal(false);
+
+    // Reset form
+    setFormTitle("");
+    setFormCompany("");
+    setFormLocation("Jakarta, Indonesia (Hybrid)");
+    setFormRole("Data Analyst");
+    setFormSeniority("Mid");
+    setFormExperience("2");
+    setFormEducation("Bachelor");
+    setFormRequiredSkills("SQL, Python, Excel");
+    setFormPreferredSkills("Tableau, Power BI");
+    setFormDescription("");
+    setFormSourceUrl("");
+
+    // Jalankan di latar belakang dengan Global Promise Toast
+    runTask({
+      type: "create_job",
+      title: `Menyimpan: ${payload.title}`,
+      description: `${payload.company} • Menjalankan deduplikasi & embedding vektor...`,
+      promise: async () => {
+        const res = await fetch("/api/jobs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+        if (!res.ok || data.error) throw new Error(data.error || "Gagal menyimpan lowongan");
+        fetchData();
+        return data;
+      },
+      action: {
+        label: "Buka Job Explorer",
+        url: "/jobs",
+      },
+    });
+  };
+
+  // Handler Ekstraksi dari Tautan (URL) - Non-Blocking
+  const handleExtractFromUrl = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const targetUrl = inputUrl.trim();
+    if (!targetUrl) return;
+
+    setIsExtractingUrl(true);
+    setUrlError(null);
+
+    // Tutup modal segera agar pengguna bebas bernavigasi
+    setShowUrlModal(false);
+    setInputUrl("");
+
+    runTask({
+      type: "url_import",
+      title: "Mengekstrak Lowongan dari Tautan",
+      description: `${targetUrl.slice(0, 50)}...`,
+      promise: async () => {
+        try {
+          const res = await fetch("/api/admin/jobs/import-link", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url: targetUrl }),
+          });
+
+          const data = await res.json();
+          if (!res.ok || data.error) throw new Error(data.error || "Gagal mengekstrak tautan lowongan.");
+          return data.job;
+        } finally {
+          setIsExtractingUrl(false);
+        }
+      },
+      onSuccess: (job) => {
+        if (job && typeof job === "object") {
+          fillAddFormWithExtractedJob(job as Parameters<typeof fillAddFormWithExtractedJob>[0]);
+          setShowAddModal(true);
+        }
+      },
+      action: {
+        label: "Tinjau Data Lowongan",
+        onClick: (job) => {
+          if (job && typeof job === "object") {
+            fillAddFormWithExtractedJob(job as Parameters<typeof fillAddFormWithExtractedJob>[0]);
+            setShowAddModal(true);
+          }
+        },
+      },
+    });
+  };
+
+  // Handler Pilihan File OCR Flyer
+  const handleOcrFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setOcrFile(file);
+    setOcrError(null);
+
+    if (file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setOcrPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setOcrPreview(null);
     }
+  };
+
+  // Handler Ekstraksi dari OCR Gambar - Non-Blocking
+  const handleExtractFromOcr = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ocrFile) {
+      setOcrError("Silakan pilih file poster/flyer lowongan kerja terlebih dahulu.");
+      return;
+    }
+
+    const targetFile = ocrFile;
+    setIsExtractingOcr(true);
+    setOcrError(null);
+
+    // Tutup modal segera agar pengguna bebas bernavigasi
+    setShowOcrModal(false);
+    setOcrFile(null);
+    setOcrPreview(null);
+
+    runTask({
+      type: "ocr_import",
+      title: `OCR Poster: ${targetFile.name}`,
+      description: "Membaca teks flyer via Multi-Tier OCR (Gemini Vision → Groq → LlamaParse)...",
+      promise: async () => {
+        try {
+          const formData = new FormData();
+          formData.append("file", targetFile);
+
+          const res = await fetch("/api/admin/jobs/import-ocr", {
+            method: "POST",
+            body: formData,
+          });
+
+          const data = await res.json();
+          if (!res.ok || data.error) throw new Error(data.error || "Gagal melakukan OCR pada poster.");
+          return data.job;
+        } finally {
+          setIsExtractingOcr(false);
+        }
+      },
+      onSuccess: (job) => {
+        if (job && typeof job === "object") {
+          fillAddFormWithExtractedJob(job as Parameters<typeof fillAddFormWithExtractedJob>[0]);
+          setShowAddModal(true);
+        }
+      },
+      action: {
+        label: "Tinjau Data Lowongan",
+        onClick: (job) => {
+          if (job && typeof job === "object") {
+            fillAddFormWithExtractedJob(job as Parameters<typeof fillAddFormWithExtractedJob>[0]);
+            setShowAddModal(true);
+          }
+        },
+      },
+    });
   };
 
   const handleOpenEdit = (job: AdminJob) => {
@@ -259,7 +448,7 @@ export default function AdminPage() {
   };
 
   const handleDeleteJob = async (job: AdminJob) => {
-    if (!window.confirm(`Apakah Anda yakin ingin menghapus lowongan "${job.title}" di ${job.company} dari basis data?`)) {
+    if (!window.confirm(`Apakah kamu yakin ingin menghapus lowongan "${job.title}" di ${job.company} dari basis data?`)) {
       return;
     }
     setIsSubmitting(true);
@@ -291,19 +480,20 @@ export default function AdminPage() {
           company: job.company,
           location: job.location,
           canonicalTitle: job.canonicalTitle,
-          seniority: job.seniority,
-          experienceYearsMin: 2,
-          education: "Bachelor",
-          requiredSkills: job.requiredSkills || ["SQL", "Excel"],
-          preferredSkills: ["Tableau"],
-          description: `Salinan data kualifikasi dari ${job.title} di ${job.company}. Melewati pipeline deduplikasi dan embedding.`,
-          sourceUrl: "https://skillbridge.id/admin",
+          employmentType: job.employmentType || "Full-time",
+          seniority: job.seniority || "Mid",
+          experienceYearsMin: job.experienceYearsMin ?? 0,
+          education: job.education || "Sarjana (S1)",
+          requiredSkills: job.requiredSkills || [],
+          preferredSkills: job.preferredSkills || [],
+          description: job.description || `Deskripsi pekerjaan ${job.title} di ${job.company}.`,
+          sourceUrl: job.sourceUrl || "",
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
-      setNotification({ type: "success", message: `Lowongan '${job.title}' berhasil diduplikasi ke database.` });
+      setNotification({ type: "success", message: `Lowongan '${job.title}' berhasil diduplikasi secara utuh ke database.` });
       fetchData();
     } catch (err: unknown) {
       const error = err as Error;
@@ -314,25 +504,22 @@ export default function AdminPage() {
   };
 
   const handleTriggerWorker = async (sourceName: string) => {
-    setIsSubmitting(true);
-    setNotification({ type: "info", message: `Memicu sinkronisasi worker untuk '${sourceName}'...` });
-    try {
-      const res = await fetch("/api/admin/worker-runs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sourceName }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-
-      setNotification({ type: "success", message: `Sinkronisasi '${sourceName}' berhasil dicatat di riwayat audit worker_runs.` });
-      fetchData();
-    } catch (err: unknown) {
-      const error = err as Error;
-      setNotification({ type: "error", message: error.message });
-    } finally {
-      setIsSubmitting(false);
-    }
+    runTask({
+      type: "worker_sync",
+      title: `Sinkronisasi Worker: ${sourceName}`,
+      description: `Menjalankan ingestion pipeline untuk sumber ${sourceName}...`,
+      promise: async () => {
+        const res = await fetch("/api/admin/worker-runs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sourceName }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Gagal sinkronisasi");
+        fetchData();
+        return data;
+      },
+    });
   };
 
   const handleCreateAlias = async (e: React.FormEvent) => {
@@ -384,7 +571,7 @@ export default function AdminPage() {
     if (!file) return;
 
     const text = await file.text();
-    const lines = text.split("\n").filter((l) => l.trim().length > 0);
+    const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
     if (lines.length <= 1) {
       setNotification({ type: "error", message: "File CSV kosong atau tidak memiliki data baris." });
       return;
@@ -392,20 +579,47 @@ export default function AdminPage() {
 
     setIsSubmitting(true);
     let importedCount = 0;
+    let failedCount = 0;
+
+    // Helper parser baris CSV dengan penanganan tanda kutip ganda (RFC 4180)
+    const parseCsvCells = (row: string): string[] => {
+      const cells: string[] = [];
+      let current = "";
+      let inQuotes = false;
+      for (let i = 0; i < row.length; i++) {
+        const char = row[i];
+        if (char === '"') {
+          if (inQuotes && row[i + 1] === '"') {
+            current += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === "," && !inQuotes) {
+          cells.push(current.trim());
+          current = "";
+        } else {
+          current += char;
+        }
+      }
+      cells.push(current.trim());
+      return cells;
+    };
 
     try {
-      // Header: title,company,location,role,required_skills,description
+      // Format kolom: title,company,location,role,required_skills,description,source_url
       for (let i = 1; i < lines.length; i++) {
-        const parts = lines[i].split(",");
-        if (parts.length >= 3) {
+        const parts = parseCsvCells(lines[i]);
+        if (parts.length >= 3 && parts[0]) {
           const title = parts[0]?.trim() || "Data Analyst";
           const company = parts[1]?.trim() || "Perusahaan Mitra";
           const location = parts[2]?.trim() || "Indonesia";
           const role = parts[3]?.trim() || "Data Analyst";
-          const reqSkills = (parts[4] || "SQL,Excel").split(";").map((s) => s.trim());
-          const description = parts[5]?.trim() || `${title} di ${company}. Persyaratan: ${reqSkills.join(", ")}`;
+          const reqSkills = (parts[4] || "SQL;Excel").split(/[;,]/).map((s) => s.trim()).filter(Boolean);
+          const description = parts[5]?.trim() || `${title} di ${company}. Persyaratan teknis: ${reqSkills.join(", ")}.`;
+          const sourceUrl = parts[6]?.trim() || "";
 
-          await fetch("/api/jobs", {
+          const res = await fetch("/api/jobs", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -414,19 +628,34 @@ export default function AdminPage() {
               location,
               canonicalTitle: role,
               seniority: "Mid",
-              experienceYearsMin: 2,
-              education: "Bachelor",
-              requiredSkills: reqSkills,
-              preferredSkills: ["Tableau"],
+              experienceYearsMin: 1,
+              education: "Sarjana (S1)",
+              requiredSkills: reqSkills.length > 0 ? reqSkills : ["SQL", "Excel"],
+              preferredSkills: [],
               description,
-              sourceUrl: "https://skillbridge.id/admin/csv",
+              sourceUrl,
             }),
           });
-          importedCount++;
+
+          if (res.ok) {
+            importedCount++;
+          } else {
+            failedCount++;
+          }
         }
       }
 
-      setNotification({ type: "success", message: `Berhasil mengimpor ${importedCount} lowongan dari CSV melalui pipeline.` });
+      if (importedCount > 0) {
+        setNotification({
+          type: "success",
+          message: `Berhasil mengimpor ${importedCount} lowongan dari CSV.${failedCount > 0 ? ` (${failedCount} baris dilewati karena format/duplikasi).` : ""}`,
+        });
+      } else {
+        setNotification({
+          type: "error",
+          message: `Tidak ada lowongan yang berhasil diimpor (${failedCount} baris gagal divalidasi).`,
+        });
+      }
       fetchData();
     } catch {
       setNotification({ type: "error", message: "Terjadi kesalahan saat memproses baris CSV." });
@@ -489,20 +718,36 @@ export default function AdminPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              Dashboard Admin Import & Monitoring (FR-12)
+              Dashboard Admin Import & Monitoring
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 mt-1">
               Kelola katalog lowongan manual, taksonomi normalisasi skill, dan pantau log audit riwayat worker_runs.
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowUrlModal(true)}
+              leftIcon={<Link2 className="w-3.5 h-3.5 text-blue-600" />}
+            >
+              Impor via Tautan (URL)
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowOcrModal(true)}
+              leftIcon={<ScanText className="w-3.5 h-3.5 text-emerald-600" />}
+            >
+              Impor via OCR (Flyer)
+            </Button>
             <Button
               variant="primary"
               size="sm"
               onClick={() => setShowAddModal(true)}
               leftIcon={<Plus className="w-4 h-4" />}
             >
-              Tambah Lowongan
+              Tambah Manual
             </Button>
             <label className="cursor-pointer">
               <input
@@ -512,9 +757,9 @@ export default function AdminPage() {
                 className="hidden"
                 disabled={isSubmitting}
               />
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 shadow-2xs">
-                <UploadCloud className="w-3.5 h-3.5 text-blue-600" />
-                Impor CSV
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 shadow-2xs transition-colors">
+                <UploadCloud className="w-3.5 h-3.5 text-slate-500" />
+                CSV
               </span>
             </label>
           </div>
@@ -533,7 +778,7 @@ export default function AdminPage() {
           <button
             type="button"
             onClick={() => setActiveTab("jobs")}
-            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-all ${
+            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-colors duration-150 ${
               activeTab === "jobs"
                 ? "border-blue-600 text-blue-600"
                 : "border-transparent text-slate-500 hover:text-slate-800"
@@ -545,7 +790,7 @@ export default function AdminPage() {
           <button
             type="button"
             onClick={() => setActiveTab("skills")}
-            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-all ${
+            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-colors duration-150 ${
               activeTab === "skills"
                 ? "border-blue-600 text-blue-600"
                 : "border-transparent text-slate-500 hover:text-slate-800"
@@ -557,7 +802,7 @@ export default function AdminPage() {
           <button
             type="button"
             onClick={() => setActiveTab("runs")}
-            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-all ${
+            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-colors duration-150 ${
               activeTab === "runs"
                 ? "border-blue-600 text-blue-600"
                 : "border-transparent text-slate-500 hover:text-slate-800"
@@ -686,7 +931,7 @@ export default function AdminPage() {
                     <CardHeader>
                       <CardTitle>Pemetaan Alias & Sinonim Skill</CardTitle>
                       <CardDescription>
-                        Menstandarkan istilah sinonim (cth: postgres $\to$ PostgreSQL) agar teragregasi di Market Skill Insights.
+                        Menstandarkan istilah sinonim (contoh: postgres → PostgreSQL) agar teragregasi di Market Skill Insights.
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -774,7 +1019,7 @@ export default function AdminPage() {
                   <CardHeader>
                     <CardTitle>Pemicu Sinkronisasi Worker (GitHub Actions & Live Crawler)</CardTitle>
                     <CardDescription>
-                      Pipeline otomatis terjadwal via GitHub Actions (<code className="font-mono text-[11px] bg-slate-100 px-1 py-0.5 rounded">.github/workflows/worker.yml</code>) setiap hari pukul 02:00 UTC dan mendukung pemicu manual <code className="font-mono text-[11px] bg-slate-100 px-1 py-0.5 rounded">workflow_dispatch</code>. Anda juga dapat memicu crawling on-demand langsung di bawah ini untuk demonstrasi live penjurian.
+                      Pipeline otomatis terjadwal via GitHub Actions (<code className="font-mono text-[11px] bg-slate-100 px-1 py-0.5 rounded">.github/workflows/worker.yml</code>) setiap hari pukul 02:00 UTC dan mendukung pemicu manual <code className="font-mono text-[11px] bg-slate-100 px-1 py-0.5 rounded">workflow_dispatch</code>. Kamu juga dapat memicu sinkronisasi langsung di bawah ini untuk pengujian data.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -845,9 +1090,10 @@ export default function AdminPage() {
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="text-slate-400 hover:text-slate-600 font-bold"
+                  className="text-slate-400 hover:text-slate-600 p-1 rounded-md"
+                  aria-label="Tutup"
                 >
-                  ✕
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
@@ -932,6 +1178,18 @@ export default function AdminPage() {
                   />
                 </div>
 
+                <div>
+                  <TextInput
+                    label="Tautan Sumber Asli (Source URL)"
+                    value={formSourceUrl}
+                    onChange={(e) => setFormSourceUrl(e.target.value)}
+                    placeholder="https://... (Kosongkan jika dari flyer fisik/poster)"
+                  />
+                  <p className="mt-1 text-[11px] text-slate-400">
+                    Biarkan kosong jika lowongan berasal dari poster / flyer cetak tanpa tautan web.
+                  </p>
+                </div>
+
                 <Textarea
                   label="Deskripsi Lengkap Lowongan *"
                   rows={4}
@@ -954,6 +1212,232 @@ export default function AdminPage() {
           </div>
         )}
 
+        {/* Modal Impor via Tautan (URL) */}
+        {showUrlModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+            <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <Link2 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900">Impor Lowongan via Tautan (URL)</h3>
+                    <p className="text-xs text-slate-500">AI Scraper & Structured Extractor</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowUrlModal(false);
+                    setUrlError(null);
+                  }}
+                  className="text-slate-400 hover:text-slate-600 p-1 rounded-md"
+                  aria-label="Tutup"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleExtractFromUrl} className="space-y-4">
+                <div>
+                  <TextInput
+                    label="URL Lowongan Pekerjaan *"
+                    placeholder="cth. https://boards.greenhouse.io/... atau https://www.linkedin.com/jobs/view/..."
+                    value={inputUrl}
+                    onChange={(e) => setInputUrl(e.target.value)}
+                    required
+                    disabled={isExtractingUrl}
+                  />
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    Mendukung link dari Greenhouse, Lever, LinkedIn, JobStreet, atau situs karir perusahaan resmi.
+                  </p>
+                </div>
+
+                {urlError && (
+                  <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700">
+                    {urlError}
+                  </div>
+                )}
+
+                {/* Contoh Tautan Siap Uji Demo */}
+                <div className="space-y-1.5 pt-1">
+                  <span className="text-[11px] font-semibold text-slate-600">Contoh Tautan Siap Uji Demo:</span>
+                  <div className="flex flex-col gap-1 text-[11px]">
+                    <button
+                      type="button"
+                      onClick={() => setInputUrl("https://boards.greenhouse.io/cloudflare/jobs/8109620?gh_jid=8109620")}
+                      className="text-left text-blue-600 hover:underline truncate"
+                    >
+                      • Greenhouse: Cloudflare - Data Analyst
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setInputUrl("https://jobs.eu.lever.co/kwalee/5f40e053-75ed-408c-b3b4-7523e746e8a3")}
+                      className="text-left text-blue-600 hover:underline truncate"
+                    >
+                      • Lever: Kwalee - Senior Data Analyst
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setInputUrl("https://id.jobstreet.com/id/job/95044393")}
+                      className="text-left text-blue-600 hover:underline truncate"
+                    >
+                      • JobStreet: Sinau Bina Sampoerno - Product Analyst
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    type="button"
+                    onClick={() => {
+                      setShowUrlModal(false);
+                      setUrlError(null);
+                    }}
+                    disabled={isExtractingUrl}
+                  >
+                    Batal
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    type="submit"
+                    disabled={isExtractingUrl || !inputUrl.trim()}
+                    leftIcon={isExtractingUrl ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Link2 className="w-3.5 h-3.5" />}
+                  >
+                    {isExtractingUrl ? "Mengambil & Mengekstrak..." : "Ambil & Ekstrak"}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Impor via OCR (Flyer / Poster) */}
+        {showOcrModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+            <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <ScanText className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900">Impor Lowongan via OCR (Flyer / Poster)</h3>
+                    <p className="text-xs text-slate-500">Multi-Tier OCR (Gemini Vision • Groq Vision • LlamaParse)</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowOcrModal(false);
+                    setOcrError(null);
+                    setOcrPreview(null);
+                    setOcrFile(null);
+                  }}
+                  className="text-slate-400 hover:text-slate-600 p-1 rounded-md"
+                  aria-label="Tutup"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="p-2.5 rounded-lg bg-emerald-50/70 border border-emerald-200/60 text-[11px] text-emerald-800 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>
+                  Didukung multi-layer OCR: <strong>Gemini Vision</strong> &rarr; <strong>Groq Vision (Qwen 3.8-27B)</strong> &rarr; <strong>LlamaParse v2</strong> dengan fallback otomatis saat server padat.
+                </span>
+              </div>
+
+              <form onSubmit={handleExtractFromOcr} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="block text-xs font-semibold text-slate-700">
+                    Unggah File Poster / Flyer Lowongan Kerja *
+                  </label>
+                  <div className="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:border-emerald-500 transition-colors bg-slate-50/50">
+                    {ocrPreview ? (
+                      <div className="space-y-3">
+                        <div className="relative inline-block max-h-48 rounded-lg overflow-hidden border border-slate-200 shadow-2xs">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={ocrPreview} alt="Pratinjau Flyer" className="max-h-48 object-contain mx-auto" />
+                        </div>
+                        <p className="text-xs font-semibold text-slate-800">{ocrFile?.name}</p>
+                        <label className="inline-block cursor-pointer">
+                          <input
+                            type="file"
+                            accept="image/*,application/pdf"
+                            onChange={handleOcrFileChange}
+                            className="hidden"
+                            disabled={isExtractingOcr}
+                          />
+                          <span className="text-xs text-emerald-600 hover:underline font-semibold">
+                            Ganti Gambar / File
+                          </span>
+                        </label>
+                      </div>
+                    ) : (
+                      <label className="cursor-pointer block py-4 space-y-2">
+                        <input
+                          type="file"
+                          accept="image/*,application/pdf"
+                          onChange={handleOcrFileChange}
+                          className="hidden"
+                          disabled={isExtractingOcr}
+                        />
+                        <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
+                          <UploadCloud className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <span className="text-xs font-bold text-slate-800">Klik untuk memilih flyer/poster</span>
+                          <span className="text-xs text-slate-500"> atau seret file ke sini</span>
+                        </div>
+                        <p className="text-[11px] text-slate-400">
+                          Mendukung PNG, JPG, WEBP, atau PDF (Maks. 10 MB)
+                        </p>
+                      </label>
+                    )}
+                  </div>
+                </div>
+
+                {ocrError && (
+                  <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700">
+                    {ocrError}
+                  </div>
+                )}
+
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    type="button"
+                    onClick={() => {
+                      setShowOcrModal(false);
+                      setOcrError(null);
+                      setOcrPreview(null);
+                      setOcrFile(null);
+                    }}
+                    disabled={isExtractingOcr}
+                  >
+                    Batal
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    type="submit"
+                    disabled={isExtractingOcr || !ocrFile}
+                    leftIcon={isExtractingOcr ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ScanText className="w-3.5 h-3.5" />}
+                  >
+                    {isExtractingOcr ? "Membaca Teks (OCR)..." : "Baca & Ekstrak OCR"}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
         {/* Modal Edit Lowongan */}
         {showEditModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
@@ -963,9 +1447,10 @@ export default function AdminPage() {
                 <button
                   type="button"
                   onClick={() => setShowEditModal(false)}
-                  className="text-slate-400 hover:text-slate-600 font-bold"
+                  className="text-slate-400 hover:text-slate-600 p-1 rounded-md"
+                  aria-label="Tutup"
                 >
-                  ✕
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 

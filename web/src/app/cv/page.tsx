@@ -6,7 +6,9 @@ import {
   Plus,
   Trash2,
   ArrowRight,
-  Sparkles,
+  FileCheck,
+  Check,
+  AlertCircle,
   GraduationCap,
   Briefcase,
   UploadCloud,
@@ -18,6 +20,9 @@ import { AlertBanner } from "@/components/ui/error";
 import { ProtectedRoute } from "@/components/layout/protected-route";
 import { Spinner } from "@/components/ui/loading";
 import { useAuth } from "@/lib/supabase/auth-context";
+import { useAsyncTask } from "@/context/async-task-context";
+import { cn } from "@/lib/utils";
+import { fetchDeduped, clearDedupedCache } from "@/lib/fetcher";
 
 interface ExtractedResumeState {
   candidateName: string;
@@ -61,34 +66,41 @@ export default function CVPage() {
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [consentGiven, setConsentGiven] = useState(true);
+  // Persetujuan aktif (opt-in explicit, default false)
+  const [consentGiven, setConsentGiven] = useState(false);
   const [currentResume, setCurrentResume] = useState<ExtractedResumeState>(DEFAULT_MATCH_CV);
   const [skills, setSkills] = useState<string[]>(DEFAULT_MATCH_CV.skills);
+  const [manualSkills, setManualSkills] = useState<string[]>([]);
   const [newSkillInput, setNewSkillInput] = useState("");
   const [targetRole, setTargetRole] = useState("Data Analyst");
 
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedDraft, setHasUnsavedDraft] = useState(false);
-  const [notification, setNotification] = useState<{ type: "success" | "error" | "info"; message: string } | null>({
-    type: "info",
-    message: "AC-01 Siap: Anda dapat meninjau dan mengoreksi skill di bawah. Data dan kalkulasi lowongan baru masuk ke basis data saat Anda menekan tombol 'Submit CV & Hitung Match'.",
-  });
+  const { runTask } = useAsyncTask();
+  const [notification, setNotification] = useState<{ type: "success" | "error" | "info"; message: string } | null>(null);
 
   // Muat resume aktif yang tersimpan di database jika ada
   useEffect(() => {
     let isMounted = true;
     const loadSavedCV = async () => {
       try {
-        const queryParams = new URLSearchParams();
-        if (user?.id) queryParams.append("userId", user.id);
-        const res = await fetch(`/api/cv/save?${queryParams.toString()}`);
-        const data = await res.json();
+        const data = await fetchDeduped<{
+          resume?: {
+            filename?: string;
+            fileUrl?: string;
+            education?: string;
+            experienceYears?: number;
+            summary?: string;
+            skills?: string[];
+          };
+        }>("/api/cv/save");
+
         if (isMounted && data.resume && data.resume.skills && data.resume.skills.length > 0) {
           setCurrentResume({
             candidateName: data.resume.filename?.replace(/\.[^/.]+$/, "").replace(/_/g, " ") || "Profil Pengguna",
             filename: data.resume.filename || "CV_Aktif.pdf",
-            fileUrl: data.resume.fileUrl,
+            fileUrl: data.resume.fileUrl || null,
             r2Key: null,
             education: data.resume.education || "Sarjana (S1)",
             experienceYears: data.resume.experienceYears || 0,
@@ -106,7 +118,7 @@ export default function CVPage() {
     return () => {
       isMounted = false;
     };
-  }, [user?.id]);
+  }, []);
 
   const handlePresetSelect = async (preset: "match" | "underqualified") => {
     setIsLoading(true);
@@ -134,7 +146,7 @@ export default function CVPage() {
         setHasUnsavedDraft(true);
         setNotification({
           type: "info",
-          message: `CV Contoh '${data.candidateName}' (${preset === "match" ? "Kasus Match" : "Kasus Underqualified"}) berhasil dimuat di preview. Klik 'Submit CV & Hitung Match' untuk menyimpan ke basis data dan menghitung kecocokan.`,
+          message: `CV Contoh '${data.candidateName}' (${preset === "match" ? "Kandidat Cocok" : "Kandidat Kurang Cocok"}) berhasil dimuat. Klik 'Simpan CV & Hitung Kecocokan' untuk menghitung skor kecocokan.`,
         });
       }
     } catch {
@@ -154,60 +166,67 @@ export default function CVPage() {
     if (!consentGiven) {
       setNotification({
         type: "error",
-        message: "Harap setujui persetujuan pemrosesan data CV terlebih dahulu (NFR-02 Privasi CV).",
+        message: "Harap setujui persetujuan pemrosesan data CV terlebih dahulu.",
       });
       return;
     }
 
-    setIsLoading(true);
-    setNotification(null);
+    const targetFile = file;
+    if (fileInputRef.current) fileInputRef.current.value = "";
 
-    try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await fetch("/api/cv/upload", { method: "POST", body: fd });
-      const data = await res.json();
+    runTask({
+      type: "cv_upload",
+      title: `Memproses CV: ${targetFile.name}`,
+      description: "Mengunggah berkas CV & mengekstrak keterampilan kerja...",
+      promise: async () => {
+        setIsLoading(true);
+        try {
+          const fd = new FormData();
+          fd.append("file", targetFile);
+          const res = await fetch("/api/cv/upload", { method: "POST", body: fd });
+          const data = await res.json();
 
-      if (!res.ok || data.error) {
-        throw new Error(data.error || "Gagal mengunggah berkas");
-      }
+          if (!res.ok || data.error) {
+            throw new Error(data.error || "Gagal mengunggah berkas");
+          }
 
-      const uploadedState: ExtractedResumeState = {
-        candidateName: data.candidateName,
-        filename: data.filename,
-        fileUrl: data.fileUrl,
-        r2Key: data.r2Key,
-        education: data.education,
-        experienceYears: data.experienceYears,
-        summary: data.summary,
-        skills: data.skills,
-        isPreset: false,
-      };
+          const uploadedState: ExtractedResumeState = {
+            candidateName: data.candidateName,
+            filename: data.filename,
+            fileUrl: data.fileUrl,
+            r2Key: data.r2Key,
+            education: data.education,
+            experienceYears: data.experienceYears,
+            summary: data.summary,
+            skills: data.skills,
+            isPreset: false,
+          };
 
-      // Ganti seluruh skill state dengan hasil ekstraksi berkas baru
-      setCurrentResume(uploadedState);
-      setSkills(data.skills);
-      setHasUnsavedDraft(true);
-      setNotification({
-        type: "info",
-        message: `Berkas '${data.filename}' berhasil diparsing di memori. Tinjau dan koreksi skill di bawah (AC-01), lalu klik 'Submit CV & Hitung Match' untuk menyimpan ke basis data Supabase.`,
-      });
-    } catch (err: unknown) {
-      const error = err as Error;
-      setNotification({
-        type: "error",
-        message: error.message || "Gagal memproses berkas CV.",
-      });
-    } finally {
-      setIsLoading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
+          setCurrentResume(uploadedState);
+          setSkills(data.skills);
+          setHasUnsavedDraft(true);
+          setNotification({
+            type: "info",
+            message: `Berkas '${data.filename}' berhasil diproses. Tinjau dan koreksi keahlian di bawah, lalu klik 'Simpan CV & Hitung Kecocokan'.`,
+          });
+
+          return uploadedState;
+        } finally {
+          setIsLoading(false);
+        }
+      },
+      action: {
+        label: "Tinjau Skill Ekstraksi",
+        url: "/cv",
+      },
+    });
   };
 
   const handleAddSkill = () => {
     const trimmed = newSkillInput.trim();
     if (trimmed && !skills.map((s) => s.toLowerCase()).includes(trimmed.toLowerCase())) {
       setSkills([...skills, trimmed]);
+      setManualSkills((prev) => [...prev, trimmed]);
       setNewSkillInput("");
       setHasUnsavedDraft(true);
     }
@@ -215,65 +234,70 @@ export default function CVPage() {
 
   const handleRemoveSkill = (skillToRemove: string) => {
     setSkills(skills.filter((s) => s !== skillToRemove));
+    setManualSkills((prev) => prev.filter((s) => s !== skillToRemove));
     setHasUnsavedDraft(true);
   };
 
   const handleSaveAndMatch = async () => {
-    setIsSaving(true);
-    try {
-      const res = await fetch("/api/cv/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user?.id,
-          targetRole,
-          filename: currentResume.filename,
-          fileUrl: currentResume.fileUrl,
-          r2Key: currentResume.r2Key,
-          education: currentResume.education,
-          experienceYears: currentResume.experienceYears,
-          summary: currentResume.summary,
-          skills,
-        }),
-      });
+    const payload = {
+      userId: user?.id,
+      targetRole,
+      filename: currentResume.filename,
+      fileUrl: currentResume.fileUrl,
+      r2Key: currentResume.r2Key,
+      education: currentResume.education,
+      experienceYears: currentResume.experienceYears,
+      summary: currentResume.summary,
+      skills,
+      manualSkills,
+    };
 
-      const data = await res.json();
-      if (!res.ok || data.error) {
-        throw new Error(data.error || "Gagal menyimpan CV");
-      }
+    runTask({
+      type: "cv_save_match",
+      title: "Sinkronisasi CV & Pencocokan Lowongan",
+      description: `Menyimpan ${skills.length} keahlian & menghitung skor kecocokan 42 lowongan...`,
+      promise: async () => {
+        setIsSaving(true);
+        try {
+          clearDedupedCache();
+          const data = await fetchDeduped<{ error?: string; message?: string }>("/api/cv/save", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
 
-      setHasUnsavedDraft(false);
-      setNotification({
-        type: "success",
-        message: `Berhasil disubmit! ${data.message} Seluruh transaksi basis data dan kalkulasi kecocokan 42 lowongan selesai diproses.`,
-      });
-    } catch (err: unknown) {
-      const error = err as Error;
-      setNotification({
-        type: "error",
-        message: error.message || "Gagal menyimpan CV ke database.",
-      });
-    } finally {
-      setIsSaving(false);
-    }
+          setHasUnsavedDraft(false);
+          setNotification({
+            type: "success",
+            message: `Berhasil disubmit! ${data.message} Seluruh transaksi basis data dan kalkulasi kecocokan 42 lowongan selesai diproses.`,
+          });
+          return data;
+        } finally {
+          setIsSaving(false);
+        }
+      },
+      action: {
+        label: "Buka Job Explorer",
+        url: "/jobs",
+      },
+    });
   };
 
   const handleDeleteResume = async () => {
-    if (!confirm("Apakah Anda yakin ingin menghapus dokumen CV, hasil ekstraksi, dan seluruh kalkulasi match secara permanen?")) {
+    if (!confirm("Apakah kamu yakin ingin menghapus dokumen CV, hasil ekstraksi, dan seluruh kalkulasi match secara permanen?")) {
       return;
     }
 
     setIsLoading(true);
     try {
-      const res = await fetch("/api/cv/delete", {
+      clearDedupedCache();
+      const data = await fetchDeduped<{ success?: boolean }>("/api/cv/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: user?.id,
           r2Key: currentResume.r2Key,
         }),
       });
-      const data = await res.json();
 
       if (data.success) {
         setSkills([]);
@@ -309,26 +333,26 @@ export default function CVPage() {
         {/* Header */}
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Unggah Dokumen CV & Koreksi Kompetensi (AC-01)
+            CV Saya
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Alur: Persetujuan $\to$ Simpan di R2 Privat $\to$ Ekstraksi Teks $\to$ Koreksi Pengguna $\to$ Normalisasi & Simpan ke Supabase.
+            Unggah berkas CV-mu atau pilih profil contoh untuk membandingkan kecocokan dengan lowongan target.
           </p>
         </div>
 
         {notification && (
           <AlertBanner
             type={notification.type}
-            title={notification.type === "success" ? "Berhasil" : notification.type === "error" ? "Peringatan" : "Informasi Alur"}
+            title={notification.type === "success" ? "Berhasil" : notification.type === "error" ? "Peringatan" : "Informasi"}
             message={notification.message}
           />
         )}
 
-        {/* Skenario Uji Juri (AC-05) */}
+        {/* Skenario Contoh CV */}
         <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/80 space-y-3">
           <div className="flex items-center gap-2 text-xs font-bold text-blue-900">
-            <Sparkles className="w-4 h-4 text-blue-600" />
-            Skenario Cepat Uji Juri (AC-05: Dua Kasus CV Berbeda):
+            <FileCheck className="w-4 h-4 text-blue-600" />
+            Pilihan Profil Contoh untuk Perbandingan:
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <Button
@@ -350,12 +374,12 @@ export default function CVPage() {
           </div>
         </div>
 
-        {/* Section 1: Unggah CV & Persetujuan Privasi (NFR-02 & NFR-06) */}
+        {/* Section 1: Unggah CV & Persetujuan Privasi */}
         <Card>
           <CardHeader>
             <CardTitle>1. Unggah Dokumen CV Baru (PDF / DOCX)</CardTitle>
             <CardDescription>
-              Dokumen disimpan di bucket Cloudflare R2 privat via Presigned URL. Ukuran maksimal 5 MB.
+              Dokumen disimpan secara aman dan privat. Ukuran maksimal 5 MB.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -368,7 +392,7 @@ export default function CVPage() {
                 className="mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
               />
               <span>
-                <strong>Persetujuan Privasi (NFR-02):</strong> Saya menyetujui dokumen CV ini diproses secara aman untuk ekstraksi keterampilan kerja dan pencocokan lowongan. Dokumen dapat dihapus permanen kapan saja.
+                <strong>Persetujuan Privasi:</strong> Saya menyetujui dokumen CV ini diproses secara aman untuk ekstraksi keterampilan kerja dan pencocokan lowongan. Dokumen dapat dihapus permanen kapan saja.
               </span>
             </label>
 
@@ -417,6 +441,16 @@ export default function CVPage() {
                 options={[
                   { label: "Data Analyst", value: "Data Analyst" },
                   { label: "Business Intelligence (BI) Analyst", value: "BI Analyst" },
+                  { label: "Software Engineer", value: "Software Engineer" },
+                  { label: "Frontend Developer", value: "Frontend Developer" },
+                  { label: "Backend Developer", value: "Backend Developer" },
+                  { label: "Product Manager", value: "Product Manager" },
+                  { label: "UI/UX Designer", value: "UI/UX Designer" },
+                  { label: "Digital Marketing Specialist", value: "Digital Marketing Specialist" },
+                  { label: "Financial Analyst", value: "Financial Analyst" },
+                  { label: "Operations Specialist", value: "Operations Specialist" },
+                  { label: "Cybersecurity Analyst", value: "Cybersecurity Analyst" },
+                  { label: "Lainnya (Umum)", value: "General" },
                 ]}
               />
             </CardContent>
@@ -424,43 +458,80 @@ export default function CVPage() {
 
           <Card className="md:col-span-2">
             <CardHeader>
-              <CardTitle>Profil Hasil Ekstraksi</CardTitle>
+              <CardTitle>Profil Hasil Ekstraksi (Pendidikan & Pengalaman)</CardTitle>
               <CardDescription>
-                File: <strong className="text-slate-800">{currentResume.filename}</strong>
+                File: <strong className="text-slate-800">{currentResume.filename}</strong> — Kamu dapat mengoreksi kualifikasi sebelum disimpan.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                <div className="p-3 rounded-lg border border-slate-200 bg-slate-50 flex items-center gap-2.5">
-                  <GraduationCap className="w-5 h-5 text-blue-600 shrink-0" />
-                  <div>
-                    <span className="text-slate-400 block font-medium">Pendidikan</span>
-                    <span className="font-semibold text-slate-900">{currentResume.education}</span>
-                  </div>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
+                {/* Editor Pendidikan */}
+                <div className="p-3.5 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-1.5">
+                  <label className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                    <GraduationCap className="w-4 h-4 text-blue-600" />
+                    Pendidikan Terakhir
+                  </label>
+                  <input
+                    type="text"
+                    value={currentResume.education}
+                    onChange={(e) => {
+                      setCurrentResume((prev) => ({ ...prev, education: e.target.value }));
+                      setHasUnsavedDraft(true);
+                    }}
+                    placeholder="cth. S1 Sains Data / Sarjana Komputer"
+                    className="w-full text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-slate-50/50"
+                  />
+                  <span className="text-[10px] text-slate-400 block">Koreksi jenjang pendidikan formalmu.</span>
                 </div>
 
-                <div className="p-3 rounded-lg border border-slate-200 bg-slate-50 flex items-center gap-2.5">
-                  <Briefcase className="w-5 h-5 text-emerald-600 shrink-0" />
-                  <div>
-                    <span className="text-slate-400 block font-medium">Pengalaman Kerja</span>
-                    <span className="font-semibold text-slate-900">{currentResume.experienceYears} Tahun Relevan</span>
+                {/* Editor Pengalaman Kerja */}
+                <div className="p-3.5 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-1.5">
+                  <label className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                    <Briefcase className="w-4 h-4 text-emerald-600" />
+                    Pengalaman Kerja Relevan
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={0}
+                      max={35}
+                      value={currentResume.experienceYears}
+                      onChange={(e) => {
+                        const val = Math.max(0, parseInt(e.target.value, 10) || 0);
+                        setCurrentResume((prev) => ({ ...prev, experienceYears: val }));
+                        setHasUnsavedDraft(true);
+                      }}
+                      className="w-24 text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-slate-50/50"
+                    />
+                    <span className="text-xs text-slate-600 font-semibold">Tahun Relevan</span>
                   </div>
+                  <span className="text-[10px] text-slate-400 block">Durasi kumulatif pengalaman di role target.</span>
                 </div>
               </div>
 
-              <p className="text-xs text-slate-600 leading-relaxed italic border-l-2 border-blue-500 pl-3 py-1">
-                &ldquo;{currentResume.summary}&rdquo;
-              </p>
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-slate-500">Ringkasan Profil Dokumen:</label>
+                <input
+                  type="text"
+                  value={currentResume.summary}
+                  onChange={(e) => {
+                    setCurrentResume((prev) => ({ ...prev, summary: e.target.value }));
+                    setHasUnsavedDraft(true);
+                  }}
+                  className="w-full text-xs text-slate-700 px-3 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-slate-50/50"
+                  placeholder="Ringkasan kualifikasi singkat..."
+                />
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Section 3: Koreksi Skill Pengguna (AC-01) */}
+        {/* Section 3: Koreksi Skill Pengguna */}
         <Card>
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <CardTitle className="flex items-center gap-2">
-                <span>3. Tinjau & Koreksi Daftar Skill (AC-01)</span>
+                <span>3. Tinjau & Koreksi Daftar Skill</span>
                 <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-100 text-blue-800">
                   {skills.length} Skill Terdaftar
                 </span>
@@ -496,22 +567,35 @@ export default function CVPage() {
                   Belum ada skill yang ditambahkan. Gunakan kolom input di bawah untuk menambahkan.
                 </span>
               ) : (
-                skills.map((s) => (
-                  <span
-                    key={s}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-800 shadow-2xs hover:border-slate-300 transition-all"
-                  >
-                    <span>{s}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveSkill(s)}
-                      className="text-slate-400 hover:text-red-600 p-0.5 rounded transition-colors"
-                      title={`Hapus skill ${s}`}
+                skills.map((s) => {
+                  const isManual = manualSkills.includes(s);
+                  return (
+                    <span
+                      key={s}
+                      className={cn(
+                        "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold shadow-2xs transition-colors duration-150",
+                        isManual
+                          ? "border-amber-200 bg-amber-50/80 text-amber-900"
+                          : "border-slate-200 bg-white text-slate-800 hover:border-slate-300"
+                      )}
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </span>
-                ))
+                      <span>{s}</span>
+                      {isManual && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-200/80 text-amber-900">
+                          Klaim Mandiri
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSkill(s)}
+                        className="text-slate-400 hover:text-red-600 p-0.5 rounded transition-colors"
+                        title={`Hapus skill ${s}`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </span>
+                  );
+                })
               )}
             </div>
 
@@ -531,10 +615,18 @@ export default function CVPage() {
           </CardContent>
 
           <CardFooter className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50/80 rounded-b-xl border-t border-slate-200">
-            <span className="text-xs text-slate-500">
-              {hasUnsavedDraft
-                ? "⚠️ Draft baru: Tekan 'Submit CV & Hitung Match' untuk menyimpan ke database dan memperbarui kalkulasi lowongan."
-                : "✓ Profil dan kalkulasi kecocokan tersimpan di database Supabase."}
+            <span className="text-xs text-slate-500 flex items-center gap-1.5">
+              {hasUnsavedDraft ? (
+                <>
+                  <AlertCircle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <span>Draft baru: Simpan CV untuk memperbarui kalkulasi kecocokan lowongan.</span>
+                </>
+              ) : (
+                <>
+                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>Profil dan kecocokan lowongan tersimpan.</span>
+                </>
+              )}
             </span>
             <div className="flex items-center gap-3 w-full sm:w-auto">
               <Button
@@ -547,11 +639,11 @@ export default function CVPage() {
                 {isSaving ? (
                   <>
                     <Spinner size="sm" className="mr-2" />
-                    Menyimpan & Menghitung Match...
+                    Menyimpan & Menghitung Kecocokan...
                   </>
                 ) : (
                   <>
-                    {hasUnsavedDraft ? "Submit CV & Hitung Match" : "Kalkulasi Ulang Match"}
+                    {hasUnsavedDraft ? "Simpan CV & Hitung Kecocokan" : "Hitung Ulang Kecocokan"}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </>
                 )}

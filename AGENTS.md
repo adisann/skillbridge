@@ -69,6 +69,7 @@ worker/
     greenhouse.py               # Public API client
     lever.py                    # Public API client
     linkedin.py                 # Anonymous guest scraper
+    jobstreet.py                # Public search & LinkedIn fallback scraper
     seed.py                     # Offline fallback seed loader
   pipeline/
     clean.py                    # HTML/text sanitation
@@ -102,6 +103,7 @@ class JobSource(Protocol):
 | Greenhouse | `GET https://boards-api.greenhouse.io/v1/boards/{token}/jobs?content=true` | GitHub Actions (cron/manual) | API publik, tanpa autentikasi |
 | Lever | `GET https://api.lever.co/v0/postings/{site}?mode=json&skip=N&limit=100` | GitHub Actions (cron/manual) | API publik, fallback `api.eu.lever.co` |
 | LinkedIn | `python-jobspy` / public job search | GitHub Actions (cron/manual) | Akses anonim, tanpa credential/login |
+| JobStreet | `python-jobspy` / public search | GitHub Actions (cron/manual) | Endpoint publik Indonesia, fallback otomatis jika LinkedIn dibatasi |
 | Admin Import | Input manual atau CSV | Manual Admin (FR-12) | Dashboard admin |
 | Seed | File JSON/SQL crawl offline | On-demand / Demo Fallback | Dipakai saat demo bila koneksi gagal |
 
@@ -112,7 +114,7 @@ class JobSource(Protocol):
 4. **Rate Limiting & Kesantunan Server:** Batasi request maksimal 1 per detik per host, dengan batas maksimum 25 lowongan per eksekusi.
 5. **Anti-Bot & Error Handling:** Jika server merespons dengan HTTP `429` (Too Many Requests), `403` (Forbidden), CAPTCHA, atau dialihkan ke halaman login, worker **segera berhenti tanpa retry agresif**.
 6. **Kejujuran Data:** Simpan `retrieval_method = 'jobspy'`, waktu crawling, dan URL asli lowongan. Jangan merekayasa statistik atau postingan fiktif.
-7. **Isolasi Kegagalan:** Kegagalan pengambilan dari LinkedIn tidak boleh menggagalkan pipeline sumber lain (Greenhouse, Lever, atau Seed).
+7. **Isolasi Kegagalan & Fallback JobStreet:** Kegagalan pengambilan dari LinkedIn tidak boleh menggagalkan pipeline sumber lain. Jika scraping LinkedIn kosong atau terkena rate limit, worker secara otomatis mengaktifkan fallback ke JobStreet Indonesia (maksimal 10 lowongan).
 
 ### Penggunaan Playwright & BeautifulSoup
 - **httpx + BeautifulSoup:** Pilihan utama yang ringan dan cepat untuk fetching dan parsing dokumen HTML/API publik.

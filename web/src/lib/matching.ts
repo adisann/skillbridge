@@ -2,6 +2,7 @@ import {
   DEFAULT_MATCHING_WEIGHTS,
   DEFAULT_MATCHING_THRESHOLDS,
   RELATED_SKILLS_MAP,
+  getCanonicalSkill,
   type MatchingWeights,
   type MatchingThresholds,
 } from "./matching-config.ts";
@@ -99,6 +100,9 @@ export function calculateJobMatch(
   const normCandidateSkills = new Set(
     candidateSkills.map((s) => s.trim().toLowerCase())
   );
+  const canonicalCandidateSkills = new Set(
+    candidateSkills.map((s) => getCanonicalSkill(s))
+  );
 
   // Evaluasi Insufficient Evidence di awal
   const isCandidateEmpty =
@@ -124,25 +128,28 @@ export function calculateJobMatch(
     for (let i = 0; i < reqSkills.length; i++) {
       const skillName = reqSkills[i].trim();
       const skillLower = skillName.toLowerCase();
+      const skillCanonical = getCanonicalSkill(skillName);
       let status: RequirementStatus = "belum_ditemukan";
       let statusLabel: RequirementEvaluation["statusLabel"] = "Belum ditemukan di CV";
-      let evidence = "Belum ditemukan penyebutan skill ini di CV pelamar.";
+      let evidence = "Belum ada di CV-mu";
 
-      if (normCandidateSkills.has(skillLower)) {
+      const isDirectMatch = normCandidateSkills.has(skillLower) || canonicalCandidateSkills.has(skillCanonical);
+
+      if (isDirectMatch) {
         status = "cocok";
         statusLabel = "Cocok di CV";
-        evidence = `Tercantum pada kualifikasi CV pelamar.`;
+        evidence = `Tercantum pada kualifikasi CV-mu.`;
         matchedSkills.push(skillName);
         earnedPoints += 1.0;
       } else {
         // Cek apakah ada bukti kemampuan serumpun (AC-02: Belum cukup bukti)
-        const related = RELATED_SKILLS_MAP[skillLower] || [];
-        const foundRelated = related.find((r) => normCandidateSkills.has(r.toLowerCase()));
+        const related = RELATED_SKILLS_MAP[skillLower] || RELATED_SKILLS_MAP[skillCanonical] || [];
+        const foundRelated = related.find((r) => normCandidateSkills.has(r.toLowerCase()) || canonicalCandidateSkills.has(getCanonicalSkill(r)));
 
         if (foundRelated) {
           status = "belum_cukup_bukti";
           statusLabel = "Belum cukup bukti";
-          evidence = `CV memuat kompetensi serumpun (${foundRelated}), namun belum ada rincian bukti penggunaan alat ini secara spesifik.`;
+          evidence = `CV-mu memuat kompetensi serumpun (${foundRelated}), namun belum ada rincian bukti penggunaan alat ini secara spesifik.`;
           unprovenSkills.push(skillName);
           earnedPoints += 0.5; // Bobot parsial untuk bukti terkait
         } else {
@@ -177,24 +184,27 @@ export function calculateJobMatch(
     for (let i = 0; i < prefSkills.length; i++) {
       const skillName = prefSkills[i].trim();
       const skillLower = skillName.toLowerCase();
+      const skillCanonical = getCanonicalSkill(skillName);
       let status: RequirementStatus = "belum_ditemukan";
       let statusLabel: RequirementEvaluation["statusLabel"] = "Belum ditemukan di CV";
-      let evidence = "Belum ditemukan pada dokumen CV.";
+      let evidence = "Belum ada di CV-mu";
 
-      if (normCandidateSkills.has(skillLower)) {
+      const isDirectMatch = normCandidateSkills.has(skillLower) || canonicalCandidateSkills.has(skillCanonical);
+
+      if (isDirectMatch) {
         status = "cocok";
         statusLabel = "Cocok di CV";
-        evidence = "Tercantum pada kualifikasi CV pelamar.";
+        evidence = "Tercantum pada kualifikasi CV-mu.";
         if (!matchedSkills.includes(skillName)) matchedSkills.push(skillName);
         earnedPoints += 1.0;
       } else {
-        const related = RELATED_SKILLS_MAP[skillLower] || [];
-        const foundRelated = related.find((r) => normCandidateSkills.has(r.toLowerCase()));
+        const related = RELATED_SKILLS_MAP[skillLower] || RELATED_SKILLS_MAP[skillCanonical] || [];
+        const foundRelated = related.find((r) => normCandidateSkills.has(r.toLowerCase()) || canonicalCandidateSkills.has(getCanonicalSkill(r)));
 
         if (foundRelated) {
           status = "belum_cukup_bukti";
           statusLabel = "Belum cukup bukti";
-          evidence = `CV memuat kompetensi pendukung (${foundRelated}), namun belum tercantum alat ini secara spesifik.`;
+          evidence = `CV-mu memuat kompetensi pendukung (${foundRelated}), namun belum tercantum alat ini secara spesifik.`;
           if (!unprovenSkills.includes(skillName)) unprovenSkills.push(skillName);
           earnedPoints += 0.5;
         }

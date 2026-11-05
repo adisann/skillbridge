@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useTransition, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Sparkles, Info } from "lucide-react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/input";
 import { FilterBar, FilterState } from "@/components/ui/filter";
@@ -11,7 +10,10 @@ import { JobCard } from "@/components/ui/card";
 import { SkeletonCard } from "@/components/ui/loading";
 import { EmptyState } from "@/components/ui/empty-state";
 import { AlertBanner } from "@/components/ui/error";
+import { Pagination } from "@/components/ui/pagination";
 import { useAuth } from "@/lib/supabase/auth-context";
+import { cn } from "@/lib/utils";
+import { fetchDeduped } from "@/lib/fetcher";
 
 interface LiveJob {
   id: string;
@@ -37,19 +39,50 @@ interface LiveJob {
 }
 
 export default function JobsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+          <div className="h-24 rounded-2xl bg-white border border-slate-200 animate-pulse" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        </div>
+      }
+    >
+      <JobsContent />
+    </Suspense>
+  );
+}
+
+function JobsContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const { user } = useAuth();
   const [jobs, setJobs] = useState<LiveJob[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<FilterState>({
     role: "all",
     workType: "all",
     seniority: "all",
+    location: "all",
+    postedDate: "all",
   });
   const [savedJobIds, setSavedJobIds] = useState<string[]>([]);
+  const [referenceTime, setReferenceTime] = useState<number>(0);
+
+  const updatePaginationUrl = (newPage: number, newSize: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", String(newPage));
+    params.set("pageSize", String(newSize));
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -59,20 +92,15 @@ export default function JobsPage() {
         const queryParams = new URLSearchParams();
         if (filters.role !== "all") queryParams.append("role", filters.role);
         if (search.trim()) queryParams.append("q", search.trim());
-        if (user?.id) queryParams.append("userId", user.id);
 
-        const res = await fetch(`/api/jobs?${queryParams.toString()}`);
-        const data = await res.json();
+        const [data, sData] = await Promise.all([
+          fetchDeduped<{ jobs: LiveJob[] }>(`/api/jobs?${queryParams.toString()}`),
+          fetchDeduped<{ savedJobIds?: string[] }>(`/api/saved-jobs`).catch(() => ({ savedJobIds: [] })),
+        ]);
 
-        if (!res.ok) throw new Error(data.error || "Gagal memuat lowongan");
         setJobs(data.jobs || []);
-
-        // Muat ID lowongan tersimpan
-        const sRes = await fetch(`/api/saved-jobs?${queryParams.toString()}`);
-        if (sRes.ok) {
-          const sData = await sRes.json();
-          if (sData.savedJobIds) setSavedJobIds(sData.savedJobIds);
-        }
+        setReferenceTime(Date.now());
+        if (sData.savedJobIds) setSavedJobIds(sData.savedJobIds);
       } catch (err: unknown) {
         const error = err as Error;
         setErrorMsg(error.message || "Gagal memuat lowongan");
@@ -91,10 +119,10 @@ export default function JobsPage() {
     );
 
     try {
-      await fetch("/api/saved-jobs", {
+      await fetchDeduped("/api/saved-jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user?.id, jobId: id }),
+        body: JSON.stringify({ jobId: id }),
       });
     } catch {
       setSavedJobIds((prev) =>
@@ -104,6 +132,18 @@ export default function JobsPage() {
   };
 
   const filteredJobs = jobs.filter((job) => {
+    // Filter Lokasi
+    if (filters.location && filters.location !== "all") {
+      const locTarget = filters.location.toLowerCase();
+      const loc = (job.location || "").toLowerCase();
+      if (locTarget === "remote") {
+        if (!loc.includes("remote")) return false;
+      } else {
+        if (!loc.includes(locTarget)) return false;
+      }
+    }
+
+    // Filter Tipe Kerja (Onsite eksklusif, tidak meloloskan hybrid)
     if (filters.workType !== "all") {
       const targetType = filters.workType.toLowerCase();
       const loc = (job.location || "").toLowerCase();
@@ -113,15 +153,51 @@ export default function JobsPage() {
 
       if (targetType === "remote" && !isRemote) return false;
       if (targetType === "hybrid" && !isHybrid) return false;
-      if (targetType === "onsite" && isRemote) return false;
+      if (targetType === "onsite" && (isRemote || isHybrid)) return false;
     }
+
+    // Filter Senioritas
     if (filters.seniority !== "all") {
       const targetSen = filters.seniority.toLowerCase();
       const sen = (job.seniority || "").toLowerCase();
       if (!sen.includes(targetSen)) return false;
     }
+
+    // Filter Tanggal
+    if (filters.postedDate && filters.postedDate !== "all") {
+      const days = filters.postedDate === "7d" ? 7 : filters.postedDate === "14d" ? 14 : 30;
+      const maxAgeMs = days * 24 * 60 * 60 * 1000;
+      const retDate = job.retrievedAt ? new Date(job.retrievedAt).getTime() : 0;
+      if (referenceTime > 0 && retDate > 0 && referenceTime - retDate > maxAgeMs) return false;
+    }
+
     return true;
   });
+
+  // Derive page & pageSize directly from URL query params
+  const rawPage = parseInt(searchParams.get("page") || "1", 10);
+  const rawPageSize = parseInt(searchParams.get("pageSize") || "10", 10);
+  const pageSize = [10, 20, 50].includes(rawPageSize) ? rawPageSize : 10;
+  const totalPages = Math.max(1, Math.ceil(filteredJobs.length / pageSize));
+  const currentPage = Math.min(Math.max(1, isNaN(rawPage) ? 1 : rawPage), totalPages);
+
+  const handlePageChange = (newPage: number) => {
+    startTransition(() => {
+      updatePaginationUrl(newPage, pageSize);
+    });
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    startTransition(() => {
+      updatePaginationUrl(1, newSize);
+    });
+  };
+
+  // Paginated slice for current page
+  const paginatedJobs = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredJobs.slice(start, start + pageSize);
+  }, [filteredJobs, currentPage, pageSize]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -129,18 +205,16 @@ export default function JobsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Job Explorer (Cari Lowongan Nyata)
+            Cari Lowongan
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Menampilkan lowongan aktif dari Greenhouse, Lever, JobStreet Indonesia, dan LinkedIn yang dipadankan dengan CV Anda.
+            Menampilkan lowongan aktif dari Greenhouse, Lever, JobStreet Indonesia, dan LinkedIn yang dipadankan dengan CV-mu.
+          </p>
+          <p className="text-xs text-slate-400 mt-1">
+            Skor menunjukkan kecocokan CV dengan persyaratan, bukan peluang diterima.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Link href="/insights">
-            <Button variant="outline" size="sm" rightIcon={<Sparkles className="w-4 h-4 text-emerald-600" />}>
-              Market Insights
-            </Button>
-          </Link>
           <Link href="/cv">
             <Button variant="primary" size="sm">
               Koreksi CV
@@ -157,22 +231,33 @@ export default function JobsPage() {
         />
       )}
 
-      {/* Catatan Transparansi Skor */}
-      <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-200/80 flex items-start gap-2.5 text-xs text-blue-950">
-        <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-        <div>
-          <span className="font-bold">Prinsip Transparansi Penilaian:</span> Skor kesesuaian adalah estimasi matematis kualifikasi CV Anda terhadap persyaratan lowongan (exact skill, experience, & semantic), bukan peluang atau probabilitas diterima kerja.
-        </div>
-      </div>
-
       {/* Filter and Search Bar */}
       <div className="space-y-4">
         <SearchInput
           placeholder="Cari posisi pekerjaan, perusahaan, atau skill (cth. SQL, Python, Tableau)..."
           value={search}
-          onChange={(val) => setSearch(val)}
+          onChange={(val) => {
+            setSearch(val);
+            updatePaginationUrl(1, pageSize);
+          }}
         />
-        <FilterBar filters={filters} onChange={setFilters} />
+        <FilterBar
+          filters={filters}
+          onChange={(newFilters) => {
+            setFilters(newFilters);
+            updatePaginationUrl(1, pageSize);
+          }}
+          onReset={() => {
+            setFilters({
+              role: "all",
+              workType: "all",
+              seniority: "all",
+              location: "all",
+              postedDate: "all",
+            });
+            updatePaginationUrl(1, pageSize);
+          }}
+        />
       </div>
 
       {isLoading ? (
@@ -191,19 +276,28 @@ export default function JobsPage() {
             onAction={() => {
               setSearch("");
               setFilters({ role: "all", workType: "all", seniority: "all" });
+              updatePaginationUrl(1, pageSize);
             }}
           />
         </div>
       ) : (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between text-xs text-slate-500">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between text-xs text-slate-500 px-1">
+            <span className="font-semibold text-slate-800">
+              {filteredJobs.length} lowongan ditemukan
+            </span>
             <span>
-              Menampilkan <strong>{filteredJobs.length} lowongan aktif</strong> dari basis data Supabase
+              Halaman {currentPage} dari {Math.max(1, Math.ceil(filteredJobs.length / pageSize))}
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredJobs.map((job) => (
+          <div
+            className={cn(
+              "grid grid-cols-1 lg:grid-cols-2 gap-6 transition-opacity duration-150",
+              isPending ? "opacity-40" : "opacity-100"
+            )}
+          >
+            {paginatedJobs.map((job) => (
               <JobCard
                 key={job.id}
                 id={job.id}
@@ -224,6 +318,16 @@ export default function JobsPage() {
               />
             ))}
           </div>
+
+          {/* Pagination Controls */}
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filteredJobs.length}
+            pageSize={pageSize}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+            itemLabel="lowongan"
+          />
         </div>
       )}
     </div>

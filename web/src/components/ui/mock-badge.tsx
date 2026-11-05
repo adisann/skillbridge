@@ -1,5 +1,5 @@
 import React from "react";
-import { Info, Sparkles } from "lucide-react";
+import { Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MOCK_DISCLAIMER } from "@/mock";
 
@@ -18,8 +18,8 @@ export function MockDataDisclaimer({
           className
         )}
       >
-        <Sparkles className="w-3 h-3 text-amber-600" />
-        Data Sampel Demo
+        <Info className="w-3 h-3 text-amber-600" />
+        Data Sampel
       </span>
     );
   }
@@ -38,7 +38,7 @@ export function MockDataDisclaimer({
         </span>
       </div>
       <span className="shrink-0 text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-amber-200/60 text-amber-900">
-        Demo Mode
+        Sampel
       </span>
     </div>
   );

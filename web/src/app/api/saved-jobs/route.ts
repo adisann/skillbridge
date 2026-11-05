@@ -1,24 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-function getServiceSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-  return createClient(url, serviceKey);
-}
+import { getAuthenticatedUser } from "@/lib/supabase/server";
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const userId = searchParams.get("userId") || "00000000-0000-0000-0000-000000000001";
+    const { user, supabase, error: authError } = await getAuthenticatedUser(req);
+    if (!user || authError) {
+      return NextResponse.json(
+        { error: "Sesi autentikasi tidak ditemukan. Silakan login terlebih dahulu untuk mengakses lowongan tersimpan." },
+        { status: 401 }
+      );
+    }
 
-    const supabase = getServiceSupabase();
+    const effectiveUserId = user.id;
 
-    // 1. Ambil seluruh saved_jobs untuk user
+    // 1. Ambil seluruh saved_jobs untuk user aktif
     const { data: savedRows, error: savedErr } = await supabase
       .from("saved_jobs")
       .select("job_id, created_at")
-      .eq("user_id", userId)
+      .eq("user_id", effectiveUserId)
       .order("created_at", { ascending: false });
 
     if (savedErr) throw new Error(savedErr.message);
@@ -37,12 +36,27 @@ export async function GET(req: NextRequest) {
 
     if (jobsErr) throw new Error(jobsErr.message);
 
-    // 3. Ambil data match
-    const { data: matches } = await supabase
-      .from("matches")
-      .select("job_id, match_status, score, factors_supporting, factors_limiting")
-      .eq("user_id", userId)
-      .in("job_id", jobIds);
+    // 3. Ambil data match dan resume aktif untuk evaluasi akurat
+    const [{ data: matches }, { data: userResumes }] = await Promise.all([
+      supabase
+        .from("matches")
+        .select("job_id, match_status, score, factors_supporting, factors_limiting, score_breakdown")
+        .eq("user_id", effectiveUserId)
+        .in("job_id", jobIds),
+      supabase
+        .from("resumes")
+        .select("id, resume_skills(skills(name))")
+        .eq("user_id", effectiveUserId)
+        .eq("is_active", true)
+        .limit(1),
+    ]);
+
+    const userSkillSet = new Set<string>();
+    if (userResumes && userResumes.length > 0) {
+      for (const rs of (userResumes[0].resume_skills as unknown as Array<{ skills: { name: string } }>) || []) {
+        if (rs.skills?.name) userSkillSet.add(rs.skills.name.toLowerCase());
+      }
+    }
 
     const matchMap = new Map();
     if (matches) {
@@ -54,13 +68,26 @@ export async function GET(req: NextRequest) {
     const savedJobs = (jobs || []).map((j: Record<string, unknown>) => {
       const m = matchMap.get(j.id as string);
       const reqSkills: string[] = [];
-      const prefSkills: string[] = [];
 
       for (const js of (j.job_skills as unknown as Array<{ is_mandatory: boolean; skills: { name: string } }>) || []) {
-        if (js.skills?.name) {
-          if (js.is_mandatory) reqSkills.push(js.skills.name);
-          else prefSkills.push(js.skills.name);
+        if (js.skills?.name && js.is_mandatory) {
+          reqSkills.push(js.skills.name);
         }
+      }
+
+      let matchedSkills: string[] = [];
+      let missingSkills: string[] = [];
+
+      const breakdownData = m?.score_breakdown as { matchedSkills?: string[]; missingSkills?: string[] } | undefined;
+      if (breakdownData?.matchedSkills) {
+        matchedSkills = breakdownData.matchedSkills;
+        missingSkills = breakdownData.missingSkills || [];
+      } else if (userSkillSet.size > 0) {
+        matchedSkills = reqSkills.filter((s) => userSkillSet.has(s.toLowerCase()));
+        missingSkills = reqSkills.filter((s) => !userSkillSet.has(s.toLowerCase()));
+      } else {
+        matchedSkills = [];
+        missingSkills = reqSkills;
       }
 
       return {
@@ -72,19 +99,25 @@ export async function GET(req: NextRequest) {
         seniority: j.seniority || "Mid",
         sourceName: j.source_name,
         sourceUrl: j.source_url,
-        matchScore: m ? Number(m.score) : 75,
-        matchStatus: m ? m.match_status : "match",
-        matchedSkills: reqSkills.slice(0, 3),
-        missingSkills: reqSkills.slice(3, 5),
+        matchScore: m ? Number(m.score) : userSkillSet.size > 0 ? 50 : 0,
+        matchStatus: m ? m.match_status : userSkillSet.size > 0 ? "underqualified" : "insufficient_evidence",
+        matchedSkills,
+        missingSkills,
         factorsSupporting: m ? m.factors_supporting : [],
         factorsLimiting: m ? m.factors_limiting : [],
       };
     });
 
-    return NextResponse.json({
-      savedJobs,
-      savedJobIds: jobIds,
-    });
+    const headers = new Headers();
+    headers.set("Cache-Control", "private, no-store, must-revalidate");
+
+    return NextResponse.json(
+      {
+        savedJobs,
+        savedJobIds: jobIds,
+      },
+      { headers }
+    );
   } catch (error: unknown) {
     const err = error as Error;
     return NextResponse.json(
@@ -96,15 +129,22 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const { user, supabase, error: authError } = await getAuthenticatedUser(req);
+    if (!user || authError) {
+      return NextResponse.json(
+        { error: "Sesi autentikasi tidak ditemukan. Silakan login terlebih dahulu untuk menyimpan lowongan." },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json();
-    const { jobId, userId } = body;
+    const { jobId } = body;
 
     if (!jobId) {
       return NextResponse.json({ error: "jobId wajib disertakan" }, { status: 400 });
     }
 
-    const effectiveUserId = userId || "00000000-0000-0000-0000-000000000001";
-    const supabase = getServiceSupabase();
+    const effectiveUserId = user.id;
 
     // Cek apakah sudah tersimpan
     const { data: existing } = await supabase
@@ -155,4 +195,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-

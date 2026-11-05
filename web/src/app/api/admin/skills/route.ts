@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { getAuthenticatedAdmin, getServiceSupabase } from "@/lib/supabase/server";
 
-function getServiceSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-  return createClient(url, serviceKey);
-}
-
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const { admin, error: adminErr, status: adminStatus } = await getAuthenticatedAdmin(req);
+    if (!admin || adminErr) {
+      return NextResponse.json({ error: adminErr }, { status: adminStatus || 401 });
+    }
+
     const supabase = getServiceSupabase();
     const { data: skills, error: sErr } = await supabase
       .from("skills")
@@ -36,6 +35,11 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const { admin, error: adminErr, status: adminStatus } = await getAuthenticatedAdmin(req);
+    if (!admin || adminErr) {
+      return NextResponse.json({ error: adminErr }, { status: adminStatus || 401 });
+    }
+
     const body = await req.json();
     const { skillName, alias, category } = body;
 

@@ -98,8 +98,8 @@ values
   (
     '33333333-0000-0000-0000-000000000001',
     'greenhouse',
-    'gh-40112',
-    'https://boards.greenhouse.io/nusantarafintech/jobs/40112',
+    'gh-8109620',
+    'https://boards.greenhouse.io/cloudflare/jobs/8109620?gh_jid=8109620',
     'Junior Data Analyst',
     'Data Analyst',
     'PT Nusantara FinTech',
@@ -117,8 +117,8 @@ values
   (
     '33333333-0000-0000-0000-000000000002',
     'linkedin',
-    'li-412988102',
-    'https://www.linkedin.com/jobs/view/412988102',
+    'li-4478504092-seed',
+    'https://www.linkedin.com/jobs/view/4478504092',
     'Business Intelligence (BI) Analyst',
     'BI Analyst',
     'Karya Logistik Express',
@@ -136,8 +136,8 @@ values
   (
     '33333333-0000-0000-0000-000000000003',
     'lever',
-    'lev-88a2e1',
-    'https://jobs.lever.co/asiaecommerce/88a2e1',
+    'lev-5f40e053-seed',
+    'https://jobs.eu.lever.co/kwalee/5f40e053-75ed-408c-b3b4-7523e746e8a3',
     'Commercial Data Analyst',
     'Data Analyst',
     'PT Asia E-Commerce Global',

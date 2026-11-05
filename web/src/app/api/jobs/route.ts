@@ -1,79 +1,69 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { getAuthenticatedUser, getAuthenticatedAdmin, getServiceSupabase } from "@/lib/supabase/server";
 import { calculateJobMatch } from "@/lib/matching";
-
-function getServiceSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-  return createClient(url, serviceKey);
-}
+import { getCachedPublicJobs, revalidateJobsCache } from "@/lib/public-jobs";
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const role = searchParams.get("role");
     const query = searchParams.get("q");
-    const userId = searchParams.get("userId") || "00000000-0000-0000-0000-000000000001";
 
-    const supabase = getServiceSupabase();
+    const { user, supabase } = await getAuthenticatedUser(req);
 
-    // 1. Ambil lowongan aktif dari Supabase
-    let dbQuery = supabase
-      .from("jobs")
-      .select("*, job_skills(is_mandatory, skills(name))")
-      .eq("is_active", true)
-      .order("created_at", { ascending: false });
+    // 1. Ambil katalog lowongan aktif dari cache server (unstable_cache tag 'jobs')
+    const allJobs = await getCachedPublicJobs();
 
+    // Filter lowongan berdasarkan role dan query pencarian
+    let filteredJobs = allJobs;
     if (role && role !== "all") {
-      dbQuery = dbQuery.ilike("canonical_title", `%${role}%`);
+      const lowerRole = role.toLowerCase();
+      filteredJobs = filteredJobs.filter(
+        (j) =>
+          (j.canonical_title || "").toLowerCase().includes(lowerRole) ||
+          (j.title || "").toLowerCase().includes(lowerRole)
+      );
     }
     if (query) {
-      dbQuery = dbQuery.or(`title.ilike.%${query}%,company.ilike.%${query}%,location.ilike.%${query}%`);
+      const q = query.toLowerCase();
+      filteredJobs = filteredJobs.filter(
+        (j) =>
+          (j.title || "").toLowerCase().includes(q) ||
+          (j.company || "").toLowerCase().includes(q) ||
+          (j.location || "").toLowerCase().includes(q)
+      );
     }
 
-    const { data: jobs, error: jobsErr } = await dbQuery;
-    if (jobsErr) {
-      throw new Error(jobsErr.message);
-    }
-
-    // 2. Ambil resume aktif pengguna jika ada
-    const { data: resumeRows } = await supabase
-      .from("resumes")
-      .select("id, experience_years, education, resume_skills(skills(name))")
-      .eq("user_id", userId)
-      .eq("is_active", true)
-      .limit(1);
-
-    const activeResume = resumeRows && resumeRows.length > 0 ? resumeRows[0] : null;
+    // 2. Ambil resume aktif pengguna jika pengguna terautentikasi
+    let activeResume: Record<string, unknown> | null = null;
     const candidateSkills: string[] = [];
-    if (activeResume && activeResume.resume_skills) {
-      for (const rs of activeResume.resume_skills as unknown as Array<{ skills: { name: string } }>) {
-        if (rs.skills?.name) candidateSkills.push(rs.skills.name);
-      }
-    }
-    const candidateYears = activeResume ? Number(activeResume.experience_years) || 0 : 0;
-    const candidateEdu = activeResume ? activeResume.education || "Sarjana (S1)" : "Sarjana (S1)";
+    let candidateYears = 0;
+    let candidateEdu = "Sarjana (S1)";
 
-    // 3. Ambil data matches tersimpan
-    const { data: matches } = await supabase
-      .from("matches")
-      .select("job_id, match_status, score, factors_supporting, factors_limiting, score_breakdown")
-      .eq("user_id", userId);
+    if (user) {
+      const { data: resumeRows } = await supabase
+        .from("resumes")
+        .select("id, experience_years, education, resume_skills(skills(name))")
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+        .limit(1);
 
-    const matchMap = new Map();
-    if (matches) {
-      for (const m of matches) {
-        matchMap.set(m.job_id, m);
+      activeResume = resumeRows && resumeRows.length > 0 ? (resumeRows[0] as unknown as Record<string, unknown>) : null;
+      if (activeResume && activeResume.resume_skills) {
+        for (const rs of activeResume.resume_skills as unknown as Array<{ skills: { name: string } }>) {
+          if (rs.skills?.name) candidateSkills.push(rs.skills.name);
+        }
       }
+      candidateYears = activeResume ? Number(activeResume.experience_years) || 0 : 0;
+      candidateEdu = activeResume ? (activeResume.education as string) || "Sarjana (S1)" : "Sarjana (S1)";
     }
 
     // Format lowongan dengan perhitungan hybrid matching
-    const formattedJobs = (jobs || []).map((j: Record<string, unknown>) => {
-      const m = matchMap.get(j.id as string);
+    const formattedJobs = filteredJobs.map((j) => {
       const reqSkills: string[] = [];
       const prefSkills: string[] = [];
 
-      for (const js of (j.job_skills as unknown as Array<{ is_mandatory: boolean; skills: { name: string } }>) || []) {
+      for (const js of j.job_skills || []) {
         if (js.skills?.name) {
           if (js.is_mandatory) reqSkills.push(js.skills.name);
           else prefSkills.push(js.skills.name);
@@ -81,7 +71,7 @@ export async function GET(req: NextRequest) {
       }
 
       // Hitung atau ambil data matching
-      let matchScore = 70;
+      let matchScore: number | null = null;
       let matchStatus = "match";
       let matchedSkills: string[] = [];
       let missingSkills: string[] = [];
@@ -91,43 +81,39 @@ export async function GET(req: NextRequest) {
       let scoreBreakdown: unknown[] = [];
       let requirementsEvaluation: unknown[] = [];
 
-      // Jika ada resume aktif, hitung secara dinamis atau ekstrak dari cache DB
+      // Jika ada resume aktif, hitung secara dinamis
       if (activeResume) {
         const liveMatch = calculateJobMatch(
           candidateSkills,
           candidateYears,
           candidateEdu,
           {
-            title: j.title as string,
-            canonicalTitle: j.canonical_title as string,
+            title: j.title,
+            canonicalTitle: j.canonical_title,
             requiredSkills: reqSkills,
             preferredSkills: prefSkills,
-            experienceYearsMin: (j.experience_years_min as number) || null,
-            education: (j.education as string) || null,
-            seniority: (j.seniority as string) || null,
+            experienceYearsMin: j.experience_years_min || null,
+            education: j.education || null,
+            seniority: j.seniority || null,
           }
         );
 
-        matchScore = m ? Number(m.score) : liveMatch.score;
-        matchStatus = m ? m.match_status : liveMatch.matchStatus;
+        matchScore = liveMatch.score;
+        matchStatus = liveMatch.matchStatus;
         matchedSkills = liveMatch.matchedSkills;
         missingSkills = liveMatch.missingSkills;
         unprovenSkills = liveMatch.unprovenSkills;
-        factorsSupporting = m?.factors_supporting?.length ? m.factors_supporting : liveMatch.factorsSupporting;
-        factorsLimiting = m?.factors_limiting?.length ? m.factors_limiting : liveMatch.factorsLimiting;
+        factorsSupporting = liveMatch.factorsSupporting;
+        factorsLimiting = liveMatch.factorsLimiting;
         scoreBreakdown = liveMatch.breakdown;
         requirementsEvaluation = liveMatch.requirementsEvaluation;
-      } else if (m) {
-        matchScore = Number(m.score);
-        matchStatus = m.match_status;
-        factorsSupporting = m.factors_supporting || [];
-        factorsLimiting = m.factors_limiting || [];
-        scoreBreakdown = Array.isArray(m.score_breakdown) ? m.score_breakdown : (m.score_breakdown as Record<string, unknown>)?.breakdown as unknown[] || [];
       } else {
-        matchScore = 0;
+        matchScore = null;
         matchStatus = "insufficient_evidence";
         factorsLimiting = ["CV belum terunggah. Unggah CV untuk mengevaluasi kecocokan kualifikasi."];
         factorsSupporting = ["Data lowongan resmi terverifikasi."];
+        scoreBreakdown = [];
+        requirementsEvaluation = [];
       }
 
       return {
@@ -146,6 +132,8 @@ export async function GET(req: NextRequest) {
         sourceUrl: j.source_url,
         retrievalMethod: j.retrieval_method,
         retrievedAt: j.retrieved_at,
+        expiresAt: j.expires_at || null,
+        deadline: j.expires_at || null,
         requiredSkills: reqSkills,
         preferredSkills: prefSkills,
         matchScore,
@@ -160,19 +148,56 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    return NextResponse.json({
-      jobs: formattedJobs,
-      total: formattedJobs.length,
-    });
+    const headers = new Headers();
+    if (user) {
+      headers.set("Cache-Control", "private, no-store, must-revalidate");
+    } else {
+      headers.set("Cache-Control", "public, s-maxage=900, stale-while-revalidate=60");
+    }
+
+    return NextResponse.json(
+      {
+        jobs: formattedJobs,
+        total: formattedJobs.length,
+      },
+      { headers }
+    );
   } catch (error: unknown) {
     const err = error as Error;
     return NextResponse.json({ error: err.message || "Gagal memuat lowongan" }, { status: 500 });
   }
 }
 
+function resolveCanonicalTitle(title: string, explicitCanonical?: string): string {
+  if (explicitCanonical && explicitCanonical.trim()) {
+    return explicitCanonical.trim();
+  }
+  const lower = title.toLowerCase();
+  if (/\b(bi|business intelligence)\b/i.test(lower)) return "BI Analyst";
+  if (/\b(data analyst|analis data|analytics specialist)\b/i.test(lower)) return "Data Analyst";
+  if (/\b(data scientist|sains data)\b/i.test(lower)) return "Data Scientist";
+  if (/\b(data engineer|rekayasa data)\b/i.test(lower)) return "Data Engineer";
+  if (/\b(software engineer|software developer|programmer)\b/i.test(lower)) return "Software Engineer";
+  if (/\b(frontend|front-end)\b/i.test(lower)) return "Frontend Developer";
+  if (/\b(backend|back-end)\b/i.test(lower)) return "Backend Developer";
+  if (/\b(fullstack|full-stack)\b/i.test(lower)) return "Full Stack Developer";
+  if (/\b(product manager|manajer produk)\b/i.test(lower)) return "Product Manager";
+  if (/\b(ui\/ux|ux designer|ui designer|product designer)\b/i.test(lower)) return "UI/UX Designer";
+  if (/\b(cyber|cybersecurity|keamanan siber)\b/i.test(lower)) return "Cyber Security Engineer";
+  if (/\b(marketing|pemasaran)\b/i.test(lower)) return "Digital Marketing";
+  if (/\b(finance|keuangan|akuntan|accounting)\b/i.test(lower)) return "Finance & Accounting";
+  if (/\b(operations|operasional)\b/i.test(lower)) return "Operations Specialist";
+  return title.trim();
+}
+
 // POST: Admin Import (Tambah manual atau impor CSV lewat pipeline yang sama)
 export async function POST(req: NextRequest) {
   try {
+    const { admin, error: adminErr, status: adminStatus } = await getAuthenticatedAdmin(req);
+    if (!admin || adminErr) {
+      return NextResponse.json({ error: adminErr }, { status: adminStatus || 401 });
+    }
+
     const body = await req.json();
     const { title, company, location, canonicalTitle, seniority, experienceYearsMin, education, description, requiredSkills, preferredSkills, sourceUrl } = body;
 
@@ -197,9 +222,9 @@ export async function POST(req: NextRequest) {
       .insert({
         source_name: "admin_import",
         external_id: externalId,
-        source_url: sourceUrl || "https://skillbridge.id/admin",
+        source_url: (sourceUrl && typeof sourceUrl === "string") ? sourceUrl.trim() : "",
         title: title.trim(),
-        canonical_title: canonicalTitle || (title.toLowerCase().includes("bi") ? "BI Analyst" : "Data Analyst"),
+        canonical_title: resolveCanonicalTitle(title, canonicalTitle),
         company: company.trim(),
         location: location || "Indonesia (Remote / Hybrid)",
         employment_type: "Full-time",
@@ -238,11 +263,23 @@ export async function POST(req: NextRequest) {
       }
 
       if (skillId) {
+        // Cari kalimat asli di deskripsi yang memuat nama skill untuk requirement_snippet kontekstual
+        let snippet = `Kualifikasi ${item.is_mandatory ? 'wajib' : 'tambahan'} ${sName}`;
+        if (cleanedDesc) {
+          const sentences = cleanedDesc.split(/[.\n•;]+/).map((s: string) => s.trim());
+          const matchSentence = sentences.find((s: string) =>
+            new RegExp(`\\b${sName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(s)
+          );
+          if (matchSentence && matchSentence.length > 5 && matchSentence.length < 160) {
+            snippet = matchSentence;
+          }
+        }
+
         await supabase.from("job_skills").upsert({
           job_id: jobId,
           skill_id: skillId,
           is_mandatory: item.is_mandatory,
-          requirement_snippet: `Kualifikasi ${item.is_mandatory ? 'wajib' : 'tambahan'} ${sName}`,
+          requirement_snippet: snippet,
         }, { onConflict: "job_id,skill_id" });
       }
     }
@@ -279,6 +316,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    revalidateJobsCache();
+
     return NextResponse.json({
       success: true,
       jobId,
@@ -293,6 +332,11 @@ export async function POST(req: NextRequest) {
 // PUT: Admin Edit Lowongan
 export async function PUT(req: NextRequest) {
   try {
+    const { admin, error: adminErr, status: adminStatus } = await getAuthenticatedAdmin(req);
+    if (!admin || adminErr) {
+      return NextResponse.json({ error: adminErr }, { status: adminStatus || 401 });
+    }
+
     const body = await req.json();
     const { id, title, company, location, canonicalTitle, seniority, experienceYearsMin, education, description, requiredSkills, preferredSkills } = body;
 
@@ -310,7 +354,7 @@ export async function PUT(req: NextRequest) {
         title: title.trim(),
         company: company.trim(),
         location: location || "Indonesia (Remote / Hybrid)",
-        canonical_title: canonicalTitle || (title.toLowerCase().includes("bi") ? "BI Analyst" : "Data Analyst"),
+        canonical_title: resolveCanonicalTitle(title, canonicalTitle),
         seniority: seniority || "Mid",
         experience_years_min: Number(experienceYearsMin) || 1,
         education: education || "Bachelor",
@@ -385,6 +429,8 @@ export async function PUT(req: NextRequest) {
       }
     }
 
+    revalidateJobsCache();
+
     return NextResponse.json({
       success: true,
       message: `Lowongan '${title}' berhasil diperbarui.`,
@@ -398,6 +444,11 @@ export async function PUT(req: NextRequest) {
 // DELETE: Admin Hapus Lowongan
 export async function DELETE(req: NextRequest) {
   try {
+    const { admin, error: adminErr, status: adminStatus } = await getAuthenticatedAdmin(req);
+    if (!admin || adminErr) {
+      return NextResponse.json({ error: adminErr }, { status: adminStatus || 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     let jobId = searchParams.get("id");
 
@@ -415,6 +466,8 @@ export async function DELETE(req: NextRequest) {
     // Hapus dari tabel jobs (otomatis cascading ke job_skills, matches, saved_jobs)
     const { error } = await supabase.from("jobs").delete().eq("id", jobId);
     if (error) throw new Error(error.message);
+
+    revalidateJobsCache();
 
     return NextResponse.json({
       success: true,

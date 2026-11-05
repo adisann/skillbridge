@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { getAuthenticatedUser } from "@/lib/supabase/server";
 import { calculateJobMatch } from "@/lib/matching";
-
-function getServiceSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-  return createClient(url, serviceKey);
-}
 
 export async function GET(
   req: NextRequest,
@@ -14,10 +8,7 @@ export async function GET(
 ) {
   try {
     const { id: jobId } = await context.params;
-    const { searchParams } = new URL(req.url);
-    const userId = searchParams.get("userId") || "00000000-0000-0000-0000-000000000001";
-
-    const supabase = getServiceSupabase();
+    const { user, supabase } = await getAuthenticatedUser(req);
 
     // 1. Ambil detail lowongan
     const { data: job, error: jobErr } = await supabase
@@ -30,31 +21,29 @@ export async function GET(
       return NextResponse.json({ error: "Lowongan tidak ditemukan" }, { status: 404 });
     }
 
-    // 2. Ambil resume aktif pengguna jika ada
-    const { data: resumeRows } = await supabase
-      .from("resumes")
-      .select("id, experience_years, education, resume_skills(skills(name))")
-      .eq("user_id", userId)
-      .eq("is_active", true)
-      .limit(1);
-
-    const activeResume = resumeRows && resumeRows.length > 0 ? resumeRows[0] : null;
+    // 2. Ambil resume aktif pengguna jika terautentikasi
+    let activeResume: Record<string, unknown> | null = null;
     const candidateSkills: string[] = [];
-    if (activeResume && activeResume.resume_skills) {
-      for (const rs of activeResume.resume_skills as unknown as Array<{ skills: { name: string } }>) {
-        if (rs.skills?.name) candidateSkills.push(rs.skills.name);
-      }
-    }
-    const candidateYears = activeResume ? Number(activeResume.experience_years) || 0 : 0;
-    const candidateEdu = activeResume ? activeResume.education || "Sarjana (S1)" : "Sarjana (S1)";
+    let candidateYears = 0;
+    let candidateEdu = "Sarjana (S1)";
 
-    // 3. Ambil data match dari tabel matches
-    const { data: match } = await supabase
-      .from("matches")
-      .select("match_status, score, factors_supporting, factors_limiting, score_breakdown")
-      .eq("user_id", userId)
-      .eq("job_id", jobId)
-      .single();
+    if (user) {
+      const { data: resumeRows } = await supabase
+        .from("resumes")
+        .select("id, experience_years, education, resume_skills(skills(name))")
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+        .limit(1);
+
+      activeResume = resumeRows && resumeRows.length > 0 ? (resumeRows[0] as unknown as Record<string, unknown>) : null;
+      if (activeResume && activeResume.resume_skills) {
+        for (const rs of activeResume.resume_skills as unknown as Array<{ skills: { name: string } }>) {
+          if (rs.skills?.name) candidateSkills.push(rs.skills.name);
+        }
+      }
+      candidateYears = activeResume ? Number(activeResume.experience_years) || 0 : 0;
+      candidateEdu = activeResume ? (activeResume.education as string) || "Sarjana (S1)" : "Sarjana (S1)";
+    }
 
     const reqSkills: string[] = [];
     const prefSkills: string[] = [];
@@ -94,21 +83,28 @@ export async function GET(
         experienceYearsMin: job.experience_years_min || 1,
         education: job.education || "Bachelor",
         description: job.description,
+        contentHash: job.content_hash || "default_hash",
         sourceName: job.source_name,
         sourceUrl: job.source_url,
         retrievalMethod: job.retrieval_method,
         retrievedAt: job.retrieved_at,
+        expiresAt: job.expires_at || null,
+        deadline: job.expires_at || null,
         requiredSkills: reqSkills,
         preferredSkills: prefSkills,
-        matchScore: match ? Number(match.score) : liveMatch.score,
-        matchStatus: match ? match.match_status : liveMatch.matchStatus,
-        matchedSkills: liveMatch.matchedSkills,
-        missingSkills: liveMatch.missingSkills,
-        unprovenSkills: liveMatch.unprovenSkills,
-        factorsSupporting: match?.factors_supporting?.length ? match.factors_supporting : liveMatch.factorsSupporting,
-        factorsLimiting: match?.factors_limiting?.length ? match.factors_limiting : liveMatch.factorsLimiting,
-        scoreBreakdown: liveMatch.breakdown,
-        requirementsEvaluation: liveMatch.requirementsEvaluation,
+        matchScore: activeResume ? liveMatch.score : null,
+        matchStatus: activeResume ? liveMatch.matchStatus : "insufficient_evidence",
+        matchedSkills: activeResume ? liveMatch.matchedSkills : [],
+        missingSkills: activeResume ? liveMatch.missingSkills : reqSkills,
+        unprovenSkills: activeResume ? liveMatch.unprovenSkills : [],
+        factorsSupporting: activeResume ? liveMatch.factorsSupporting : ["Data lowongan resmi terverifikasi."],
+        factorsLimiting: activeResume ? liveMatch.factorsLimiting : ["CV belum terunggah. Unggah CV untuk mengevaluasi kecocokan."],
+        scoreBreakdown: activeResume ? liveMatch.breakdown : [],
+        requirementsEvaluation: activeResume ? liveMatch.requirementsEvaluation : [],
+      },
+    }, {
+      headers: {
+        "Cache-Control": user ? "private, no-store, must-revalidate" : "public, s-maxage=900, stale-while-revalidate=60",
       },
     });
   } catch (error: unknown) {

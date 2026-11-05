@@ -22,19 +22,21 @@ interface AuthContextType {
   loginDemoAdmin: () => Promise<void>;
   register: (email: string, pass: string, name: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
+  resetDemoState: () => Promise<void>;
+  updateUserTargetRole: (newRole: "Data Analyst" | "BI Analyst") => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const DEMO_JURI_USER: AuthProfile = {
+export const DEMO_JURI_USER: AuthProfile = {
   id: "00000000-0000-0000-0000-000000000001",
   email: "juri@skillbridge.demo",
-  fullName: "Budi Pratama (Juri Lomba)",
+  fullName: "Budi Pratama",
   role: "user",
   targetRole: "Data Analyst",
 };
 
-const DEMO_ADMIN_USER: AuthProfile = {
+export const DEMO_ADMIN_USER: AuthProfile = {
   id: "00000000-0000-0000-0000-000000000002",
   email: "admin@skillbridge.demo",
   fullName: "Administrator SkillBridge",
@@ -43,130 +45,203 @@ const DEMO_ADMIN_USER: AuthProfile = {
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthProfile | null>(DEMO_JURI_USER);
-  const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState<AuthProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // Load persisted demo session from localStorage if available
+  // Load session saat awal muat via endpoint server /api/me (berbasis cookie httpOnly)
   useEffect(() => {
     let isMounted = true;
-    const initSession = async () => {
+
+    const fetchSession = async () => {
       try {
-        const saved = typeof window !== "undefined" ? localStorage.getItem("skillbridge_demo_session") : null;
-        if (saved && isMounted) {
-          setUser(JSON.parse(saved));
-          return;
+        const res = await fetch("/api/me", {
+          headers: { "Cache-Control": "no-cache" },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted) {
+            setUser(data.user || null);
+            setIsLoading(false);
+            return;
+          }
         }
-      } catch {
-        // Fallback below
+      } catch (err) {
+        console.warn("[AuthContext] Inisialisasi sesi server:", err);
       }
 
       if (isMounted) {
-        setUser(DEMO_JURI_USER);
-        try {
-          if (typeof window !== "undefined") {
-            localStorage.setItem("skillbridge_demo_session", JSON.stringify(DEMO_JURI_USER));
-          }
-        } catch {
-          // ignore storage error
-        }
+        setUser(null);
+        setIsLoading(false);
       }
     };
 
-    initSession();
+    fetchSession();
+
+    // Listener sinkronisasi perubahan auth di browser
+    const supabase = createClient();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!isMounted) return;
+      if (session?.user) {
+        try {
+          const res = await fetch("/api/me");
+          if (res.ok) {
+            const data = await res.json();
+            if (isMounted) setUser(data.user || null);
+          }
+        } catch {
+          // ignore
+        }
+      } else if (!session) {
+        // Cek apakah cookie sesi server masih aktif
+        try {
+          const res = await fetch("/api/me");
+          const data = await res.json();
+          if (isMounted) setUser(data.user || null);
+        } catch {
+          if (isMounted) setUser(null);
+        }
+      }
+      setIsLoading(false);
+    });
+
     return () => {
       isMounted = false;
+      subscription.unsubscribe();
     };
   }, []);
 
   const loginDemoJuri = async () => {
     setIsLoading(true);
-    setUser(DEMO_JURI_USER);
-    localStorage.setItem("skillbridge_demo_session", JSON.stringify(DEMO_JURI_USER));
-    setIsLoading(false);
-    router.push("/dashboard");
+    try {
+      const res = await fetch("/api/auth/demo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: "juri" }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.user) {
+        throw new Error(data.error || "Gagal masuk ke akun juri demo.");
+      }
+
+      setUser(data.user);
+      setIsLoading(false);
+      router.push("/dashboard");
+    } catch (err) {
+      console.error("[Auth] loginDemoJuri gagal:", err);
+      setIsLoading(false);
+    }
   };
 
   const loginDemoAdmin = async () => {
-    setIsLoading(true);
-    setUser(DEMO_ADMIN_USER);
-    localStorage.setItem("skillbridge_demo_session", JSON.stringify(DEMO_ADMIN_USER));
-    setIsLoading(false);
-    router.push("/admin");
+    // Admin harus memasukkan kata sandi nyata, diarahkan ke form login
+    router.push("/login?admin=1");
   };
 
-  const login = async (email: string) => {
+  const login = async (email: string, pass: string): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
-    try {
-      const supabase = createClient();
-      // Coba autentikasi via Supabase jika konfigurasi live ada
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password: "placeholder-or-live",
-      });
 
-      if (!error && data?.user) {
-        const profile: AuthProfile = {
-          id: data.user.id,
-          email: data.user.email || email,
-          fullName: data.user.user_metadata?.full_name || email.split("@")[0],
-          role: email === "admin@skillbridge.demo" ? "admin" : "user",
-          targetRole: "Data Analyst",
-        };
-        setUser(profile);
-        localStorage.setItem("skillbridge_demo_session", JSON.stringify(profile));
-        setIsLoading(false);
-        return { success: true };
-      }
-    } catch {
-      // Fallback anggun untuk mode demo lokal
+    if (!pass || !pass.trim()) {
+      setIsLoading(false);
+      return { success: false, error: "Kata sandi wajib diisi." };
     }
 
-    // Fallback login
-    const fallbackProfile: AuthProfile =
-      email === "admin@skillbridge.demo"
-        ? DEMO_ADMIN_USER
-        : {
-            id: `usr-${Date.now()}`,
-            email,
-            fullName: email.split("@")[0],
-            role: "user",
-            targetRole: "Data Analyst",
-          };
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: pass }),
+      });
 
-    setUser(fallbackProfile);
-    localStorage.setItem("skillbridge_demo_session", JSON.stringify(fallbackProfile));
-    setIsLoading(false);
-    return { success: true };
+      const data = await res.json();
+      if (!res.ok || !data.user) {
+        setIsLoading(false);
+        return { success: false, error: data.error || "Email atau kata sandi tidak valid." };
+      }
+
+      setUser(data.user);
+      setIsLoading(false);
+      return { success: true };
+    } catch (err: unknown) {
+      const error = err as Error;
+      setIsLoading(false);
+      return { success: false, error: error.message || "Gagal menghubungi layanan autentikasi." };
+    }
   };
 
-  const register = async (email: string, _pass: string, name: string) => {
+  const register = async (email: string, pass: string, name: string): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
-    const newProfile: AuthProfile = {
-      id: `usr-${Date.now()}`,
-      email,
-      fullName: name,
-      role: "user",
-      targetRole: "Data Analyst",
-    };
-    setUser(newProfile);
-    localStorage.setItem("skillbridge_demo_session", JSON.stringify(newProfile));
+    const cleanEmail = email.trim().toLowerCase();
+
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.signUp({
+        email: cleanEmail,
+        password: pass,
+        options: {
+          data: {
+            full_name: name,
+            target_role: "Data Analyst",
+          },
+        },
+      });
+
+      if (error) {
+        setIsLoading(false);
+        return { success: false, error: error.message || "Pendaftaran gagal." };
+      }
+
+      if (data?.user) {
+        // Otomatis login ke sesi cookie server
+        return await login(cleanEmail, pass);
+      }
+    } catch (err: unknown) {
+      const error = err as Error;
+      setIsLoading(false);
+      return { success: false, error: error.message || "Gagal menghubungkan ke server autentikasi." };
+    }
+
     setIsLoading(false);
-    return { success: true };
+    return { success: false, error: "Pendaftaran tidak dapat diselesaikan." };
   };
 
   const logout = async () => {
     setIsLoading(true);
     try {
+      await fetch("/api/auth/logout", { method: "POST" });
       const supabase = createClient();
       await supabase.auth.signOut();
     } catch {
       // offline fallback
     }
     setUser(null);
-    localStorage.removeItem("skillbridge_demo_session");
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("skillbridge_demo_session");
+    }
     setIsLoading(false);
     router.push("/login");
+  };
+
+  const resetDemoState = async () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("skillbridge_demo_session");
+      // Hapus data tracker lokal demo
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith("skillbridge_job_tracker") || key.startsWith("skillbridge_demo"))) {
+          localStorage.removeItem(key);
+        }
+      }
+    }
+    await loginDemoJuri();
+  };
+
+  const updateUserTargetRole = (newRole: "Data Analyst" | "BI Analyst") => {
+    if (user) {
+      const updated: AuthProfile = { ...user, targetRole: newRole };
+      setUser(updated);
+    }
   };
 
   const isAuthenticated = !!user;
@@ -184,6 +259,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loginDemoAdmin,
         register,
         logout,
+        resetDemoState,
+        updateUserTargetRole,
       }}
     >
       {children}

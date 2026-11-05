@@ -15,7 +15,7 @@ export function ProtectedRoute({
   children: React.ReactNode;
   requireAdmin?: boolean;
 }) {
-  const { user, isLoading, isAuthenticated, isAdmin, loginDemoAdmin, loginDemoJuri } = useAuth();
+  const { user, isLoading, isAuthenticated, isAdmin, loginDemoJuri } = useAuth();
 
   if (isLoading) {
     return (
@@ -35,9 +35,9 @@ export function ProtectedRoute({
             <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mx-auto mb-2">
               <Lock className="w-6 h-6" />
             </div>
-            <CardTitle>Halaman Terproteksi</CardTitle>
+            <CardTitle>Masuk Dulu</CardTitle>
             <CardDescription>
-              Anda perlu masuk terlebih dahulu untuk mengakses halaman ini.
+              Masuk dulu untuk melihat halaman ini.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -48,7 +48,7 @@ export function ProtectedRoute({
               onClick={loginDemoJuri}
               leftIcon={<UserCheck className="w-4 h-4" />}
             >
-              Masuk sebagai Juri / Akun Demo (1-Klik)
+              Coba dengan akun demo
             </Button>
             <Link href="/login" className="block">
               <Button variant="outline" size="md" className="w-full justify-center">
@@ -76,9 +76,9 @@ export function ProtectedRoute({
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="p-3.5 rounded-lg bg-red-50 border border-red-200 text-xs text-red-900 space-y-1">
+            <div className="p-3.5 rounded-lg bg-red-50 border border-red-200 text-xs text-red-900 space-y-1" suppressHydrationWarning>
               <p>
-                <strong>Status Pengguna Anda:</strong> {user.fullName} ({user.email})
+                <strong>Status Akunmu:</strong> {user.fullName} ({user.email})
               </p>
               <p>
                 <strong>Peran Akun:</strong> <span className="font-mono uppercase font-bold text-red-700">{user.role}</span> (Non-Admin diblokir oleh RLS & route guard).
@@ -86,15 +86,16 @@ export function ProtectedRoute({
             </div>
 
             <div className="space-y-2 pt-1">
-              <Button
-                variant="primary"
-                size="md"
-                className="w-full justify-center"
-                onClick={loginDemoAdmin}
-                leftIcon={<UserCheck className="w-4 h-4" />}
-              >
-                Ganti ke Akun Demo Admin (admin@skillbridge.demo)
-              </Button>
+              <Link href="/login" className="block">
+                <Button
+                  variant="primary"
+                  size="md"
+                  className="w-full justify-center"
+                  leftIcon={<Lock className="w-4 h-4" />}
+                >
+                  Masuk dengan Kredensial Admin
+                </Button>
+              </Link>
 
               <Link href="/dashboard" className="block">
                 <Button variant="outline" size="md" className="w-full justify-center">

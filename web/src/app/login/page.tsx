@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Sparkles, Mail, Lock, UserCheck } from "lucide-react";
+import { Mail, Lock, UserCheck, Zap } from "lucide-react";
 import { SkillBridgeLogo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 import { TextInput } from "@/components/ui/input";
@@ -13,23 +13,39 @@ import { useAuth } from "@/lib/supabase/auth-context";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { loginDemoJuri, login } = useAuth();
+  const { user, loginDemoJuri, login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [demoNotice, setDemoNotice] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const isDemoMode =
+    process.env.NEXT_PUBLIC_DEMO_MODE === "true" ||
+    process.env.NODE_ENV !== "production";
 
   const handleDemoLogin = async () => {
     setIsLoading(true);
     setDemoNotice(true);
+    setErrorMessage(null);
     await loginDemoJuri();
   };
 
   const handleRegularLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    await login(email, password);
-    router.push("/dashboard");
+    setErrorMessage(null);
+    const res = await login(email, password);
+    setIsLoading(false);
+    if (!res.success) {
+      setErrorMessage(res.error || "Gagal masuk. Periksa kembali email dan kata sandimu.");
+      return;
+    }
+    if (email.toLowerCase().includes("admin")) {
+      router.push("/admin");
+    } else {
+      router.push("/dashboard");
+    }
   };
 
   return (
@@ -48,41 +64,73 @@ export default function LoginPage() {
         {demoNotice && (
           <AlertBanner
             type="success"
-            title="Kredensial Demo Terpasang"
-            message="Masuk sebagai Budi Pratama (Juri Lomba) (juri@skillbridge.demo). Mengalihkan ke Dashboard..."
+            title="Autentikasi Berhasil"
+            message="Masuk sebagai Budi Pratama. Mengalihkan ke Dashboard..."
           />
         )}
 
-        <Card className="border-slate-200 shadow-md">
-          <CardHeader className="space-y-1">
-            <CardTitle>Masuk</CardTitle>
-            <CardDescription>
-              Silakan masukkan email dan kata sandi Anda, atau gunakan akses instan demo untuk juri lomba.
-            </CardDescription>
-          </CardHeader>
+        {errorMessage && (
+          <AlertBanner
+            type="error"
+            title="Autentikasi Gagal"
+            message={errorMessage}
+          />
+        )}
 
-          <CardContent className="space-y-4">
-            {/* Tombol Demo 1-Klik untuk Juri Lomba */}
-            <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50 to-emerald-50 border border-blue-200/90 space-y-2 text-center">
-              <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-blue-900">
-                <Sparkles className="w-4 h-4 text-emerald-600" />
-                Akses Cepat Juri INVOFEST 2026
-              </div>
-              <p className="text-[11px] text-slate-600 leading-normal">
-                Akun demo sudah terisi CV contoh dan analisis lowongan siap uji.
-              </p>
-              <Button
-                type="button"
-                variant="success"
-                size="md"
-                className="w-full justify-center shadow-xs"
-                isLoading={isLoading}
-                leftIcon={<UserCheck className="w-4 h-4" />}
-                onClick={handleDemoLogin}
-              >
-                Masuk sebagai Juri / Akun Demo (1-Klik)
-              </Button>
+        {user ? (
+          <Card className="border-blue-200 shadow-md bg-blue-50/40 text-center p-6 space-y-4">
+            <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mx-auto">
+              <UserCheck className="w-6 h-6" />
             </div>
+            <div className="space-y-1">
+              <h3 className="text-base font-bold text-slate-900">
+                Kamu Sudah Masuk
+              </h3>
+              <p className="text-xs text-slate-600">
+                Terhubung sebagai <strong>{user.fullName}</strong> ({user.email}).
+              </p>
+            </div>
+            <div className="pt-2">
+              <Link href="/dashboard" className="block">
+                <Button variant="primary" size="md" className="w-full justify-center">
+                  Buka Dashboard
+                </Button>
+              </Link>
+            </div>
+          </Card>
+        ) : (
+          <Card className="border-slate-200 shadow-md">
+            <CardHeader className="space-y-1">
+              <CardTitle>Masuk</CardTitle>
+              <CardDescription>
+                Silakan masukkan email dan kata sandi, atau gunakan akses instan dengan akun demo.
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              {/* Tombol Akses Instan Akun Demo (Hanya aktif jika NEXT_PUBLIC_DEMO_MODE=true) */}
+              {isDemoMode && (
+                <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50 to-emerald-50 border border-blue-200/90 space-y-2 text-center">
+                  <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-blue-900">
+                    <Zap className="w-4 h-4 text-emerald-600" />
+                    Akses Demo Siap Uji
+                  </div>
+                  <p className="text-[11px] text-slate-600 leading-normal">
+                    Gunakan profil siap pakai dengan CV terstruktur dan analisis lowongan lengkap.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="success"
+                    size="md"
+                    className="w-full justify-center shadow-xs"
+                    isLoading={isLoading}
+                    leftIcon={<UserCheck className="w-4 h-4" />}
+                    onClick={handleDemoLogin}
+                  >
+                    Coba dengan akun demo
+                  </Button>
+                </div>
+              )}
 
             <div className="relative flex py-1 items-center">
               <div className="flex-grow border-t border-slate-200" />
@@ -131,6 +179,7 @@ export default function LoginPage() {
             </Link>
           </CardFooter>
         </Card>
+        )}
       </div>
     </div>
   );

@@ -67,6 +67,16 @@ def extract_job_details_rule_based(title: str, text: str) -> ExtractedJobDetails
     for skill in KNOWN_SKILLS:
         pattern = r"\b" + re.escape(skill.lower()) + r"\b"
         if re.search(pattern, lower_text):
+            # Khusus 'Statistics': Pastikan bukan sekadar nama jurusan dalam syarat pendidikan
+            if skill == "Statistics":
+                has_tech_context = bool(
+                    re.search(r"statistic(?:s|al)?\s+(?:analysis|modeling|methods?|techniques?|inference|tests?|knowledge|skills?|experiment)", lower_text)
+                    or re.search(r"(?:knowledge|grasp|understanding|proficien\w+|experience|skills?)\s+(?:in|of|with)?\s*(?:[a-z\s,]+)?statistic", lower_text)
+                    or re.search(r"(?:experiment\s+design|hypothesis\s+testing|a\/b\s+testing)\s+(?:and|with|in)?\s*statistic", lower_text)
+                )
+                only_degree = bool(re.search(r"(?:degree|sarjana|s1|s2|bachelor|master|jurusan|lulusan|discipline|major|background|field\s+of\s+study)\s+(?:in|of)?\s*[^.\n;]*\bstatistic", lower_text))
+                if only_degree and not has_tech_context:
+                    continue
             found_skills.append(skill)
 
     # Pisahkan required vs preferred berdasarkan kemunculan di section

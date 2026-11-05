@@ -1,18 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { getAuthenticatedUser } from "@/lib/supabase/server";
 import { calculateJobMatch } from "@/lib/matching";
-
-function getServiceSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-  return createClient(url, serviceKey);
-}
 
 export async function POST(req: NextRequest) {
   try {
+    const { user, supabase, error: authError } = await getAuthenticatedUser(req);
+    if (!user || authError) {
+      return NextResponse.json(
+        { error: "Sesi autentikasi tidak ditemukan. Silakan login terlebih dahulu untuk menyimpan CV." },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json();
     const {
-      userId,
+      targetRole,
       filename,
       fileUrl,
       r2Key,
@@ -20,13 +22,22 @@ export async function POST(req: NextRequest) {
       experienceYears,
       summary,
       skills,
+      manualSkills = [],
     } = body;
 
-    const effectiveUserId = userId || "00000000-0000-0000-0000-000000000001"; // Fallback to demo juri user
+    const effectiveUserId = user.id;
 
-    const supabase = getServiceSupabase();
+    // 0. Update target_role di tabel `profiles` (FR-01)
+    if (targetRole) {
+      await supabase
+        .from("profiles")
+        .update({ target_role: targetRole })
+        .eq("id", effectiveUserId);
+    }
 
-    // 1. Simpan atau perbarui resume di tabel `resumes`
+    // 1. Simpan atau perbarui resume di tabel `resumes` (FR-02 & NFR-02)
+    const persistentFileUrl = fileUrl || (r2Key ? `r2://${r2Key}` : null);
+
     const { data: existingResume } = await supabase
       .from("resumes")
       .select("id")
@@ -42,7 +53,7 @@ export async function POST(req: NextRequest) {
         .from("resumes")
         .update({
           filename: filename || "CV_Terunggah.pdf",
-          file_url: fileUrl || null,
+          file_url: persistentFileUrl,
           parsed_text: summary || "Ringkasan profil kompetensi",
           education: education || "Sarjana (S1)",
           experience_years: Number(experienceYears) || 0,
@@ -55,7 +66,7 @@ export async function POST(req: NextRequest) {
         .insert({
           user_id: effectiveUserId,
           filename: filename || "CV_Terunggah.pdf",
-          file_url: fileUrl || null,
+          file_url: persistentFileUrl,
           parsed_text: summary || "Ringkasan profil kompetensi",
           education: education || "Sarjana (S1)",
           experience_years: Number(experienceYears) || 0,
@@ -71,11 +82,9 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Hubungkan skill pengguna ke tabel `resume_skills`
-    // Hapus skill lama untuk resume ini
     await supabase.from("resume_skills").delete().eq("resume_id", resumeId);
 
     for (const skillName of skills || []) {
-      // Pastikan skill ada di master skills
       let skillId: string | null = null;
       const { data: foundSkill } = await supabase
         .from("skills")
@@ -88,18 +97,21 @@ export async function POST(req: NextRequest) {
       } else {
         const { data: createdSkill } = await supabase
           .from("skills")
-          .insert({ name: skillName.trim(), category: "Data & Analytics" })
+          .insert({ name: skillName.trim(), category: "Umum & Terkait" })
           .select("id")
           .single();
         if (createdSkill) skillId = createdSkill.id;
       }
 
       if (skillId) {
+        const isManual = Array.isArray(manualSkills) && manualSkills.includes(skillName);
         await supabase.from("resume_skills").upsert({
           resume_id: resumeId,
           skill_id: skillId,
-          is_claimed_by_user: true,
-          evidence: "Hasil ekstraksi dokumen CV yang dikonfirmasi oleh pengguna.",
+          is_claimed_by_user: isManual,
+          evidence: isManual
+            ? "Ditambahkan secara mandiri oleh pelamar pada form koreksi."
+            : "Hasil ekstraksi dokumen CV yang dikonfirmasi oleh pengguna.",
         }, { onConflict: "resume_id,skill_id" });
       }
     }
@@ -125,11 +137,15 @@ export async function POST(req: NextRequest) {
         }
 
         const matchResult = calculateJobMatch(
-          skills || [],
-          Number(experienceYears) || 0,
-          education || "S1",
+          {
+            skills: skills || [],
+            experienceYears: Number(experienceYears) || 0,
+            education: education || "Sarjana (S1)",
+            targetRole: targetRole || "Umum",
+          },
           {
             title: job.title,
+            canonicalTitle: job.canonical_title,
             requiredSkills: reqSkills,
             preferredSkills: prefSkills,
             experienceYearsMin: job.experience_years_min,
@@ -177,14 +193,18 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const userId = searchParams.get("userId") || "00000000-0000-0000-0000-000000000001";
-    const supabase = getServiceSupabase();
+    const { user, supabase, error: authError } = await getAuthenticatedUser(req);
+    if (!user || authError) {
+      return NextResponse.json(
+        { error: "Sesi autentikasi tidak ditemukan. Silakan login terlebih dahulu." },
+        { status: 401 }
+      );
+    }
 
     const { data: resumes, error } = await supabase
       .from("resumes")
       .select("id, filename, file_url, education, experience_years, parsed_text, resume_skills(skills(name))")
-      .eq("user_id", userId)
+      .eq("user_id", user.id)
       .eq("is_active", true)
       .limit(1);
 
@@ -201,17 +221,23 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({
-      resume: {
-        id: r.id,
-        filename: r.filename,
-        fileUrl: r.file_url,
-        education: r.education,
-        experienceYears: r.experience_years,
-        summary: r.parsed_text,
-        skills,
+    const headers = new Headers();
+    headers.set("Cache-Control", "private, no-store, must-revalidate");
+
+    return NextResponse.json(
+      {
+        resume: {
+          id: r.id,
+          filename: r.filename,
+          fileUrl: r.file_url,
+          education: r.education,
+          experienceYears: r.experience_years,
+          summary: r.parsed_text,
+          skills,
+        },
       },
-    });
+      { headers }
+    );
   } catch (error: unknown) {
     const err = error as Error;
     return NextResponse.json({ error: err.message }, { status: 500 });

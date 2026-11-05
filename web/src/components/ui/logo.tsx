@@ -68,9 +68,6 @@ export function SkillBridgeLogo({
       {showText && (
         <span className={cn("font-extrabold text-slate-900 tracking-tight flex items-center", textSizes[size])}>
           Skill<span className="text-blue-600">Bridge</span>
-          <span className="ml-1.5 hidden sm:inline-flex text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
-            MVP
-          </span>
         </span>
       )}
     </div>

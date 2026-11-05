@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plus, Sparkles, CheckCircle2, MinusCircle, HelpCircle, Check } from "lucide-react";
+import { Plus, Target, CheckCircle2, MinusCircle, HelpCircle, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FilterBar, FilterState } from "@/components/ui/filter";
 import { MarketSkillBarChart } from "@/components/ui/chart";
@@ -10,7 +10,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { AlertBanner } from "@/components/ui/error";
 import { SkeletonCard } from "@/components/ui/loading";
 import { EmptyState } from "@/components/ui/empty-state";
-import { useAuth } from "@/lib/supabase/auth-context";
+import { fetchDeduped, clearDedupedCache } from "@/lib/fetcher";
 
 interface TopSkillInsight {
   skillName: string;
@@ -31,9 +31,8 @@ interface LearningRec {
 }
 
 export default function InsightsPage() {
-  const { user } = useAuth();
   const [filters, setFilters] = useState<FilterState>({
-    role: "Data Analyst",
+    role: "all",
     workType: "all",
     seniority: "all",
   });
@@ -52,17 +51,22 @@ export default function InsightsPage() {
     const fetchInsights = async () => {
       try {
         const queryParams = new URLSearchParams();
-        if (filters.role !== "all") queryParams.append("role", filters.role);
-        if (filters.workType !== "all") queryParams.append("workType", filters.workType);
-        if (filters.seniority !== "all") queryParams.append("seniority", filters.seniority);
-        if (user?.id) queryParams.append("userId", user.id);
+        queryParams.append("role", filters.role);
+        if (filters.workType && filters.workType !== "all") queryParams.append("workType", filters.workType);
+        if (filters.seniority && filters.seniority !== "all") queryParams.append("seniority", filters.seniority);
+        if (filters.location && filters.location !== "all") queryParams.append("location", filters.location);
+        if (filters.postedDate && filters.postedDate !== "all") queryParams.append("postedDate", filters.postedDate);
 
-        const res = await fetch(`/api/insights?${queryParams.toString()}`);
-        const data = await res.json();
+        const data = await fetchDeduped<{
+          error?: string;
+          sampleSizeN?: number;
+          lastUpdated?: string;
+          topSkills?: TopSkillInsight[];
+          learningRecommendations?: LearningRec[];
+        }>(`/api/insights?${queryParams.toString()}`);
 
         if (isMounted) {
-          if (!res.ok) throw new Error(data.error || "Gagal memuat insight pasar");
-          setSampleSizeN(data.sampleSizeN || 1);
+          setSampleSizeN(typeof data.sampleSizeN === "number" ? data.sampleSizeN : 0);
           setLastUpdatedDate(data.lastUpdated || "4 November 2026");
           setTopSkills(data.topSkills || []);
           setLearningRecs(data.learningRecommendations || []);
@@ -82,26 +86,21 @@ export default function InsightsPage() {
     return () => {
       isMounted = false;
     };
-  }, [filters.role, filters.workType, filters.seniority, user, refreshTrigger]);
+  }, [filters.role, filters.workType, filters.seniority, filters.location, filters.postedDate, refreshTrigger]);
 
   const handleAddLearning = async (skillName: string, reason?: string, priority: string = "Tinggi") => {
     try {
-      const res = await fetch("/api/learning-items", {
+      await fetchDeduped("/api/learning-items", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: user?.id,
           skillName,
           reason: reason || `Kebutuhan skill ${skillName} tinggi di pasar (${filters.role}) namun belum ditemukan di CV.`,
           priority,
         }),
       });
 
-      if (res.ok) {
-        setAddedSkillNotice(`Skill '${skillName}' berhasil ditambahkan ke daftar target belajar di My Progress!`);
-      } else {
-        setAddedSkillNotice(`Skill '${skillName}' sudah ada di target belajar Anda.`);
-      }
+      setAddedSkillNotice(`Skill '${skillName}' berhasil ditambahkan ke daftar target belajar di My Progress!`);
     } catch {
       setAddedSkillNotice(`Skill '${skillName}' disimpan ke target belajar.`);
     }
@@ -110,21 +109,16 @@ export default function InsightsPage() {
 
   const handleClaimSkill = async (skillName: string) => {
     try {
-      const res = await fetch("/api/insights", {
+      clearDedupedCache("/api/insights");
+      const data = await fetchDeduped<{ message?: string; error?: string }>("/api/insights", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: user?.id,
           skillName,
         }),
       });
-      const data = await res.json();
-      if (res.ok) {
-        setAddedSkillNotice(data.message || `Skill '${skillName}' ditandai dikuasai (status: Perlu verifikasi).`);
-        setRefreshTrigger((prev) => prev + 1);
-      } else {
-        setAddedSkillNotice(data.error || `Gagal menandai skill.`);
-      }
+      setAddedSkillNotice(data.message || `Skill '${skillName}' ditandai dikuasai (status: Perlu verifikasi).`);
+      setRefreshTrigger((prev) => prev + 1);
     } catch {
       setAddedSkillNotice(`Gagal menandai skill.`);
     }
@@ -137,21 +131,21 @@ export default function InsightsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Market Skill Insights (Top Skills & Gap Pasar)
+            Skill yang Paling Dicari
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Menganalisis frekuensi kebutuhan skill dari sampel lowongan nyata di basis data Supabase (AC-03 & AC-04).
+            Menganalisis frekuensi kebutuhan skill dari sampel lowongan nyata.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Link href="/progress">
             <Button variant="outline" size="sm">
-              Buka My Progress
+              Rencana Belajar
             </Button>
           </Link>
           <Link href="/cv">
             <Button variant="primary" size="sm">
-              Koreksi Skill CV Saya
+              Koreksi CV
             </Button>
           </Link>
         </div>
@@ -173,7 +167,7 @@ export default function InsightsPage() {
         />
       )}
 
-      {/* Filter Bar (AC-03: N dan ranking berubah saat filter role / kriteria berubah) */}
+      {/* Filter Bar */}
       <div className="space-y-4">
         <FilterBar
           filters={filters}
@@ -193,27 +187,22 @@ export default function InsightsPage() {
             title="Tidak Ada Data Skill untuk Filter Ini"
             description="Coba sesuaikan filter role atau tipe kerja untuk melihat frekuensi keahlian di pasar kerja."
             actionLabel="Reset Filter"
-            onAction={() => setFilters({ role: "Data Analyst", workType: "all", seniority: "all" })}
+            onAction={() => setFilters({ role: "all", workType: "all", seniority: "all" })}
           />
         </div>
       ) : (
         <div className="space-y-8">
-          {/* Visual Bar Chart Pasar (AC-03) */}
+          {/* Visual Bar Chart Pasar */}
           <Card>
             <CardHeader>
               <div className="space-y-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <CardTitle>Top Skills Paling Dicari Industri</CardTitle>
-                  <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-800 border border-blue-200">
-                    Sampel N = {sampleSizeN} posting unik
-                  </span>
-                  <span className="text-[11px] text-slate-400 font-mono">
-                    Pembaruan: {lastUpdatedDate}
-                  </span>
-                </div>
-                <CardDescription>
-                  Frekuensi kemunculan skill dihitung per posting lowongan unik (AC-03). Angka ini merupakan indikasi dari sampel lowongan nyata yang tersaring, bukan seluruh pasar kerja.
-                </CardDescription>
+                <CardTitle>Skill yang Paling Dicari</CardTitle>
+                <p className="text-xs sm:text-sm text-slate-500">
+                  Berdasarkan {sampleSizeN} lowongan aktif · diperbarui {lastUpdatedDate}
+                </p>
+                <p className="text-xs text-slate-400 pt-0.5">
+                  Dihitung dari lowongan yang kami kumpulkan, bukan seluruh pasar kerja.
+                </p>
               </div>
             </CardHeader>
             <CardContent>
@@ -232,10 +221,10 @@ export default function InsightsPage() {
             </CardContent>
           </Card>
 
-          {/* Detailed Skill Checklist & Comparison (AC-04) */}
+          {/* Detailed Skill Checklist & Comparison */}
           <Card>
             <CardHeader>
-              <CardTitle>Perbandingan Skill Pasar vs CV Anda (AC-04)</CardTitle>
+              <CardTitle>Perbandingan Skill Pasar vs CV-mu</CardTitle>
               <CardDescription>
                 Status kompetensi dinyatakan secara eksplisit dengan teks: <strong>Tercantum di CV</strong>, <strong>Perlu verifikasi</strong>, atau <strong>Belum ditemukan di CV</strong>.
               </CardDescription>
@@ -257,8 +246,8 @@ export default function InsightsPage() {
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
                         <strong className="text-sm text-slate-900">{item.skillName}</strong>
-                        <span className="text-[11px] text-slate-500 font-mono">
-                          {item.frequencyCount} dari {sampleSizeN} lowongan ({item.percentage}%)
+                        <span className="text-[11px] text-slate-500">
+                          Diminta di {item.frequencyCount} dari {sampleSizeN} lowongan ({item.percentage}%)
                         </span>
                         <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
                           {item.category}
@@ -290,7 +279,7 @@ export default function InsightsPage() {
                           size="sm"
                           onClick={() => handleClaimSkill(item.skillName)}
                           className="text-xs"
-                          title="Tandai skill yang Anda kuasai namun belum tertulis di dokumen CV"
+                          title="Tandai skill yang kamu kuasai namun belum tertulis di dokumen CV"
                         >
                           <Check className="w-3.5 h-3.5 mr-1 text-slate-600" />
                           Saya Kuasai
@@ -324,17 +313,17 @@ export default function InsightsPage() {
             </CardContent>
           </Card>
 
-          {/* Learning Priority Recommendations (FR-09) */}
+          {/* Learning Priority Recommendations */}
           {learningRecs.length > 0 && (
             <div className="p-5 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 space-y-4">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-blue-600" />
+                <Target className="w-5 h-5 text-blue-600" />
                 <h3 className="text-base font-bold text-blue-950">
                   Rekomendasi Prioritas Belajar (Berdasarkan Frekuensi Pasar & Gap CV)
                 </h3>
               </div>
               <p className="text-xs text-blue-800 leading-relaxed">
-                Skill berikut memiliki frekuensi permintaan tertinggi di sampel lowongan ({filters.role === "all" ? "pasar" : filters.role}) namun belum ditemukan di CV Anda:
+                Skill berikut memiliki frekuensi permintaan tertinggi di sampel lowongan ({filters.role === "all" ? "pasar" : filters.role}) namun belum ditemukan di CV-mu:
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
                 {learningRecs.map((rec) => (
@@ -356,7 +345,7 @@ export default function InsightsPage() {
                         className="w-full text-xs text-blue-700 hover:bg-blue-50 border-blue-200"
                       >
                         <Plus className="w-3.5 h-3.5 mr-1" />
-                        Tambah ke My Progress
+                        Tambah ke Target Belajar
                       </Button>
                     </div>
                   </div>

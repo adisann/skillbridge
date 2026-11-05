@@ -45,6 +45,48 @@ export const DEFAULT_MATCHING_THRESHOLDS: MatchingThresholds = {
 };
 
 /**
+ * Pemetaan alias kanonikal skill untuk memastikan normalisasi (misal: "Microsoft Excel" == "Excel", "PowerBI" == "Power BI")
+ */
+export const SKILL_CANONICAL_MAP: Record<string, string> = {
+  "microsoft excel": "excel",
+  "ms excel": "excel",
+  "excel": "excel",
+  "microsoft power bi": "power bi",
+  "powerbi": "power bi",
+  "power bi": "power bi",
+  "postgresql": "postgresql",
+  "postgres": "postgresql",
+  "reactjs": "react",
+  "react.js": "react",
+  "react": "react",
+  "nodejs": "node.js",
+  "node": "node.js",
+  "typescript": "typescript",
+  "ts": "typescript",
+  "javascript": "javascript",
+  "js": "javascript",
+  "golang": "go",
+  "google looker studio": "looker",
+  "google data studio": "looker",
+  "looker studio": "looker",
+  "looker": "looker",
+  "data visualization": "data visualization",
+  "visualisasi data": "data visualization",
+  "machine learning": "machine learning",
+  "pembelajaran mesin": "machine learning",
+  "a/b testing": "a/b testing",
+  "ab testing": "a/b testing",
+  "statistics": "statistics",
+  "statistika": "statistics",
+};
+
+export function getCanonicalSkill(name: string): string {
+  if (!name) return "";
+  const clean = name.trim().toLowerCase();
+  return SKILL_CANONICAL_MAP[clean] || clean;
+}
+
+/**
  * Pemetaan skill serumpun untuk mendeteksi status "Belum cukup bukti" (AC-02)
  * Ketika kandidat memiliki skill dalam domain yang sama namun belum mencantumkan alat spesifik tersebut.
  */

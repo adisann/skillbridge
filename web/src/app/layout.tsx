@@ -2,9 +2,9 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/layout/navbar";
-import { Footer } from "@/components/layout/footer";
+import { RootShell } from "@/components/layout/root-shell";
 import { AuthProvider } from "@/lib/supabase/auth-context";
+import { AsyncTaskProvider } from "@/context/async-task-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,15 +30,19 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased scroll-smooth`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-slate-50/50 text-slate-900 font-sans">
+      <body
+        className="min-h-full bg-slate-50/50 text-slate-900 font-sans"
+        suppressHydrationWarning
+      >
         <AuthProvider>
-          <Suspense fallback={<header className="h-16 border-b border-slate-200 bg-white" />}>
-            <Navbar />
-          </Suspense>
-          <main className="flex-1">{children}</main>
-          <Footer />
+          <AsyncTaskProvider>
+            <Suspense fallback={<div className="min-h-screen bg-slate-50" />}>
+              <RootShell>{children}</RootShell>
+            </Suspense>
+          </AsyncTaskProvider>
         </AuthProvider>
       </body>
     </html>

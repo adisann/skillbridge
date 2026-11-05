@@ -3,38 +3,40 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  TrendingUp,
   ArrowRight,
   ShieldCheck,
   CheckCircle2,
-  Sparkles,
+  BookmarkCheck,
+  Layers,
+  ChevronRight,
+  BarChart3,
+  SlidersHorizontal,
+  Check,
+  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { useAuth } from "@/lib/supabase/auth-context";
 
 export default function HomePage() {
-  const [totalJobs, setTotalJobs] = useState<number>(42);
-  const [topSkills, setTopSkills] = useState<Array<{ skillName: string; percentage: number; count: number }>>([
-    { skillName: "Microsoft Excel", percentage: 38, count: 16 },
-    { skillName: "SQL", percentage: 36, count: 15 },
-    { skillName: "Power BI", percentage: 31, count: 13 },
+  const { user, isAuthenticated } = useAuth();
+  const [marketSkills, setMarketSkills] = useState<Array<{ name: string; percentage: number; count: number }>>([
+    { name: "SQL", percentage: 78, count: 33 },
+    { name: "Microsoft Excel", percentage: 71, count: 30 },
+    { name: "Power BI", percentage: 55, count: 23 },
+    { name: "Python", percentage: 48, count: 20 },
+    { name: "Tableau", percentage: 38, count: 16 },
   ]);
 
   useEffect(() => {
     const fetchLandingData = async () => {
       try {
-        const [jobsRes, insightsRes] = await Promise.all([
-          fetch("/api/jobs"),
-          fetch("/api/insights?role=Data Analyst"),
-        ]);
-        const jData = await jobsRes.json();
+        const insightsRes = await fetch("/api/insights?role=all");
         const iData = await insightsRes.json();
 
-        if (jData.total) setTotalJobs(jData.total);
         if (iData.topSkills && iData.topSkills.length > 0) {
-          setTopSkills(
-            iData.topSkills.slice(0, 3).map((s: { skillName: string; percentage: number; frequencyCount: number }) => ({
-              skillName: s.skillName,
+          setMarketSkills(
+            iData.topSkills.slice(0, 5).map((s: { skillName: string; percentage: number; frequencyCount: number }) => ({
+              name: s.skillName,
               percentage: s.percentage,
               count: s.frequencyCount,
             }))
@@ -49,156 +51,378 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="space-y-16 pb-20">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-blue-50/70 via-white to-slate-50/40 pt-12 pb-16 sm:pt-20 sm:pb-24 border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-800 text-xs font-semibold border border-emerald-200 shadow-2xs">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-            INVOFEST 2026 — Subtema: Digital Economy & Sociopreneurship (SDG 8 & 10)
+    <div className="w-full space-y-24 pb-24 overflow-hidden">
+      {/* 1. Hero Section */}
+      <section className="relative pt-16 sm:pt-24 lg:pt-32 pb-16">
+        {/* Subtle grid background */}
+        <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-40" />
+
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
+          {/* Eyebrow Pill */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 text-slate-100 text-xs font-medium shadow-xs">
+            <span>Pencocokan CV dengan lowongan nyata</span>
+            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
           </div>
 
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight max-w-4xl mx-auto leading-[1.15]">
-            Jembatani CV Anda ke <span className="text-blue-600">Peluang Nyata</span> Pasar Kerja
+          {/* Main Headline */}
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold text-slate-950 tracking-tight leading-[1.12] max-w-4xl mx-auto text-balance">
+            Lihat seberapa siap CV-mu untuk lowongan yang benar-benar dibuka
           </h1>
 
-          <p className="text-sm sm:text-base lg:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            Ketahui lowongan yang relevan dengan CV Anda, temukan keahlian yang belum terdeteksi, dan pahami tren keterampilan paling dicari untuk peran <strong>Data Analyst</strong> & <strong>BI Analyst</strong>.
+          {/* Subheading */}
+          <p className="text-base sm:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed font-normal">
+            Unggah CV, dan kami bandingkan dengan lowongan aktif di berbagai bidang. Kamu langsung tahu skill mana yang kurang.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-            <Link href="/cv" className="w-full sm:w-auto">
-              <Button size="lg" variant="primary" className="w-full sm:w-auto text-sm sm:text-base shadow-sm">
-                Analisis CV Saya Sekarang <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
+          {/* Action CTAs */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-4">
+            {isAuthenticated && user ? (
+              <Link href="/dashboard" className="w-full sm:w-auto">
+                <Button
+                  size="lg"
+                  variant="primary"
+                  className="w-full sm:w-auto px-7 py-3.5 rounded-full text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-150"
+                  rightIcon={<ArrowRight className="w-4 h-4 ml-1" />}
+                >
+                  Buka Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/login" className="w-full sm:w-auto">
+                <Button
+                  size="lg"
+                  variant="primary"
+                  className="w-full sm:w-auto px-6 py-3 rounded-full text-sm font-semibold bg-slate-900 hover:bg-slate-800 text-white shadow-md hover:shadow-lg transition-[background-color,box-shadow] duration-150"
+                  rightIcon={<ArrowRight className="w-4 h-4 ml-1" />}
+                >
+                  Coba dengan akun demo
+                </Button>
+              </Link>
+            )}
+
             <Link href="/jobs" className="w-full sm:w-auto">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto text-sm sm:text-base">
-                Jelajahi {totalJobs} Lowongan Aktif
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full sm:w-auto px-6 py-3 rounded-full text-sm font-medium border-slate-300 hover:bg-slate-100 text-slate-700 transition-colors duration-150"
+              >
+                Cari Lowongan
+              </Button>
+            </Link>
+
+            <Link href="#cara-kerja" className="w-full sm:w-auto">
+              <Button
+                size="lg"
+                variant="ghost"
+                className="w-full sm:w-auto px-5 py-3 rounded-full text-sm font-medium text-slate-600 hover:text-slate-950"
+              >
+                Pelajari Cara Kerja
               </Button>
             </Link>
           </div>
 
-          <div className="pt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-500 font-medium">
+          {/* Value Highlights */}
+          <div className="pt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs text-slate-500 font-medium">
             <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              {totalJobs} Lowongan Nyata Terkoneksi
+              <CheckCircle2 className="w-4 h-4 text-slate-700" />
+              Lowongan Terverifikasi
             </span>
             <span className="flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-blue-600" />
-              Penyimpanan CV Privat (Cloudflare R2)
+              <ShieldCheck className="w-4 h-4 text-slate-700" />
+              Privasi Dokumen Terjamin
             </span>
             <span className="flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-purple-600" />
-              Akun 1-Klik Khusus Juri Demo
+              <SlidersHorizontal className="w-4 h-4 text-slate-700" />
+              Penilaian 5 Komponen Transparan
             </span>
           </div>
         </div>
       </section>
 
-      {/* 3 Steps Cara Kerja */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Cara Kerja SkillBridge
+      {/* 2. Section Fitur */}
+      <section id="fitur" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 scroll-mt-24">
+        <div className="text-center max-w-2xl mx-auto space-y-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+            Inteligensi Berbasis Bukti
+          </p>
+          <h2 className="text-2xl sm:text-4xl font-bold text-slate-950 tracking-tight">
+            Setiap skor bisa kamu telusuri asalnya
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 max-w-xl mx-auto">
-            Hanya butuh tiga langkah terstruktur untuk mendapatkan peta kesesuaian karier dan rencana peningkatan kompetensi Anda.
+          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+            Setiap kesimpulan kecocokan, kesenjangan keahlian, dan perbandingan pasar didasarkan pada teks kebutuhan riil dari rekruter.
           </p>
         </div>
 
+        {/* Bento Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="p-6 space-y-4 hover:shadow-md transition-shadow">
-            <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg">
-              1
-            </div>
-            <h3 className="text-lg font-bold text-slate-900">Unggah & Tinjau CV (AC-01)</h3>
-            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              Unggah dokumen CV PDF atau DOCX Anda. Sistem mengekstrak skill dan memberi kebebasan mengoreksi hasil ekstraksi sebelum analisis dimulai.
-            </p>
-          </Card>
-
-          <Card className="p-6 space-y-4 hover:shadow-md transition-shadow">
-            <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-lg">
-              2
-            </div>
-            <h3 className="text-lg font-bold text-slate-900">Eksplorasi Kesesuaian (Job Explorer)</h3>
-            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              Tinjau estimasi skor kecocokan, pisahkan kualifikasi yang cocok vs belum ditemukan, dan pahami alasan di balik setiap penilaian.
-            </p>
-          </Card>
-
-          <Card className="p-6 space-y-4 hover:shadow-md transition-shadow">
-            <div className="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-lg">
-              3
-            </div>
-            <h3 className="text-lg font-bold text-slate-900">Analisis Kebutuhan Pasar (Insights)</h3>
-            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              Lihat top skill paling sering diminta untuk role Data Analyst / BI Analyst, tandai gap di CV Anda, dan simpan rencana belajar terarah.
-            </p>
-          </Card>
-        </div>
-      </section>
-
-      {/* Live Market Insights Preview */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="p-6 sm:p-10 rounded-3xl bg-slate-900 text-white shadow-xl space-y-8">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-emerald-400 text-xs font-semibold">
-                <TrendingUp className="w-4 h-4" />
-                Tren Permintaan Keterampilan Terkini
+          {/* Card 1: 5-Component Transparent Matching */}
+          <div className="md:col-span-2 group p-6 sm:p-8 rounded-2xl bg-white border border-slate-200/90 hover:border-slate-400 transition-[border-color,box-shadow] duration-200 shadow-2xs hover:shadow-xs flex flex-col justify-between">
+            <div className="space-y-4">
+              <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center">
+                <SlidersHorizontal className="w-5 h-5" />
               </div>
-              <h3 className="text-xl sm:text-2xl font-bold tracking-tight">
-                Preview Market Insights (Role: Data Analyst)
+              <h3 className="text-xl font-bold text-slate-900 tracking-tight">
+                Penilaian Kualifikasi Berbasis 5 Komponen
               </h3>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-xl">
+                Bukan kotak hitam. Skor kecocokan dihitung transparan dari keahlian wajib (35%), keahlian tambahan (20%), pengalaman kerja (15%), pendidikan (10%), dan kesesuaian semantik (20%).
+              </p>
+
+              {/* Visual Breakdown */}
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-4">
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-center">
+                  <div className="text-lg font-bold text-slate-900">35%</div>
+                  <div className="text-[10px] text-slate-500 font-medium">Keahlian Wajib</div>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-center">
+                  <div className="text-lg font-bold text-slate-900">20%</div>
+                  <div className="text-[10px] text-slate-500 font-medium">Keahlian Tambahan</div>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-center">
+                  <div className="text-lg font-bold text-slate-900">15%</div>
+                  <div className="text-[10px] text-slate-500 font-medium">Pengalaman</div>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-center">
+                  <div className="text-lg font-bold text-slate-900">10%</div>
+                  <div className="text-[10px] text-slate-500 font-medium">Pendidikan</div>
+                </div>
+                <div className="col-span-2 sm:col-span-1 p-3 rounded-xl bg-slate-100 border border-slate-300 text-center">
+                  <div className="text-lg font-bold text-slate-900">20%</div>
+                  <div className="text-[10px] text-slate-600 font-medium">Semantik</div>
+                </div>
+              </div>
             </div>
-            <Link href="/insights">
-              <Button variant="outline" size="sm" className="bg-transparent text-white border-slate-700 hover:bg-slate-800 text-xs">
-                Lihat Analisis Lengkap <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
-              </Button>
-            </Link>
+
+            <div className="pt-6 flex items-center text-xs font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
+              <span>Pelajari mekanisme evaluasi</span>
+              <ArrowRight className="w-3.5 h-3.5 ml-1.5 transition-transform group-hover:translate-x-1" />
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {topSkills.map((s, idx) => (
-              <div key={s.skillName} className="p-5 rounded-2xl bg-slate-800/80 border border-slate-700/80 space-y-3">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-mono text-slate-400">Peringkat #{idx + 1}</span>
-                  <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold text-[11px]">
-                    {s.percentage}% Lowongan
-                  </span>
-                </div>
-                <div className="text-lg font-extrabold text-white">{s.skillName}</div>
-                <div className="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
-                  <div
-                    className="bg-emerald-400 h-full rounded-full"
-                    style={{ width: `${s.percentage}%` }}
-                  />
-                </div>
-                <p className="text-[11px] text-slate-400">
-                  Disebut pada {s.count} lowongan dari total sampel aktif di basis data.
-                </p>
+          {/* Card 2: Market Demand */}
+          <div className="group p-6 sm:p-8 rounded-2xl bg-white border border-slate-200/90 hover:border-slate-400 transition-[border-color,box-shadow] duration-200 shadow-2xs hover:shadow-xs flex flex-col justify-between">
+            <div className="space-y-4">
+              <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center">
+                <BarChart3 className="w-5 h-5" />
               </div>
-            ))}
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+                Peta Kebutuhan Pasar Nyata
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Agregasi frekuensi keahlian dari lowongan aktif. Pahami apa yang paling dicari rekruter saat ini.
+              </p>
+
+              {/* Progress bars */}
+              <div className="space-y-2.5 pt-2">
+                {marketSkills.slice(0, 3).map((item) => (
+                  <div key={item.name} className="space-y-1">
+                    <div className="flex justify-between text-[11px] font-semibold text-slate-700">
+                      <span>{item.name}</span>
+                      <span>{item.percentage}%</span>
+                    </div>
+                    <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-slate-900 transition-all duration-500"
+                        style={{ width: `${item.percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-6">
+              <Link
+                href="/insights"
+                className="inline-flex items-center text-xs font-semibold text-slate-900 group-hover:text-blue-600 transition-colors"
+              >
+                <span>Lihat tren skill pasar</span>
+                <ArrowRight className="w-3.5 h-3.5 ml-1.5 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Card 3: Job Application Tracker */}
+          <div className="group p-6 sm:p-8 rounded-2xl bg-white border border-slate-200/90 hover:border-slate-400 transition-[border-color,box-shadow] duration-200 shadow-2xs hover:shadow-xs flex flex-col justify-between">
+            <div className="space-y-4">
+              <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center">
+                <BookmarkCheck className="w-5 h-5" />
+              </div>
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+                Pelacakan Lamaran Terstruktur
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Kelola tahapan aplikasi kerja dalam 7 status seleksi, atur prioritas 1–5 bintang, dan bandingkan pilihan kariermu.
+              </p>
+
+              <div className="flex flex-wrap gap-1.5 pt-2">
+                <span className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-medium">Tersimpan</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-medium">Siapkan Berkas</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-medium">Sudah Melamar</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-medium">Wawancara</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-medium">Diterima</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-medium">Ditolak</span>
+              </div>
+            </div>
+
+            <div className="pt-6">
+              <Link
+                href="/tracker"
+                className="inline-flex items-center text-xs font-semibold text-slate-900 group-hover:text-blue-600 transition-colors"
+              >
+                <span>Buka pelacakan lamaran</span>
+                <ArrowRight className="w-3.5 h-3.5 ml-1.5 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Card 4: Actionable Learning Roadmap */}
+          <div className="md:col-span-2 group p-6 sm:p-8 rounded-2xl bg-white border border-slate-200/90 hover:border-slate-400 transition-[border-color,box-shadow] duration-200 shadow-2xs hover:shadow-xs flex flex-col justify-between">
+            <div className="space-y-4">
+              <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center">
+                <Layers className="w-5 h-5" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 tracking-tight">
+                Rencana Belajar dari Kesenjangan Keahlian
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-xl">
+                SkillBridge mendeteksi persyaratan yang belum tercantum di CV-mu dan menghitung prioritas peningkatan berdasarkan frekuensi permintaan di industri.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center shrink-0 mt-0.5">
+                    <Check className="w-3 h-3" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-900">Kualifikasi Terpenuhi</div>
+                    <div className="text-[11px] text-slate-500">Terbukti dari isi dokumen CV atau konfirmasimu.</div>
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center shrink-0 mt-0.5">
+                    <Search className="w-3 h-3" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-900">Kebutuhan Peningkatan</div>
+                    <div className="text-[11px] text-slate-500">Keahlian bernilai tinggi yang belum ada di CV-mu.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-6">
+              <Link
+                href="/progress"
+                className="inline-flex items-center text-xs font-semibold text-slate-900 group-hover:text-blue-600 transition-colors"
+              >
+                <span>Lihat modul target belajar</span>
+                <ArrowRight className="w-3.5 h-3.5 ml-1.5 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Demo Juri CTA */}
-      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
-        <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
-          Siap untuk Evaluasi Presentasi INVOFEST 2026?
-        </h2>
-        <p className="text-xs sm:text-sm text-slate-500 max-w-lg mx-auto">
-          Gunakan fitur login 1-klik khusus juri untuk langsung mengevaluasi sistem dengan data CV dan katalog lowongan yang sudah terpasang.
-        </p>
-        <div className="pt-2">
-          <Link href="/login">
-            <Button size="md" variant="primary">
-              Masuk via Akun Demo Juri (1-Klik)
-            </Button>
-          </Link>
+      {/* 3. Section Cara Kerja */}
+      <section id="cara-kerja" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 scroll-mt-24">
+        <div className="text-center max-w-2xl mx-auto space-y-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+            Alur Penggunaan
+          </p>
+          <h2 className="text-2xl sm:text-4xl font-bold text-slate-950 tracking-tight">
+            Tiga Langkah Menemukan Peluang Terbaik
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Step 1 */}
+          <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-4">
+            <div className="w-8 h-8 rounded-full bg-slate-900 text-white text-xs font-bold flex items-center justify-center">
+              01
+            </div>
+            <h3 className="text-base font-bold text-slate-900">
+              Unggah dan Koreksi CV
+            </h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Mendukung file PDF dan DOCX. Kamu dapat meninjau keahlian hasil ekstraksi, pengalaman kerja, dan latar belakang pendidikan sebelum analisis dihitung.
+            </p>
+          </div>
+
+          {/* Step 2 */}
+          <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-4">
+            <div className="w-8 h-8 rounded-full bg-slate-900 text-white text-xs font-bold flex items-center justify-center">
+              02
+            </div>
+            <h3 className="text-base font-bold text-slate-900">
+              Tinjau Kesesuaian Kualifikasi
+            </h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Sistem membandingkan kualifikasimu terhadap lowongan aktif dan mengelompokkannya menjadi <em>Cocok</em>, <em>Belum Ditemukan</em>, atau <em>Belum Cukup Bukti</em>.
+            </p>
+          </div>
+
+          {/* Step 3 */}
+          <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-4">
+            <div className="w-8 h-8 rounded-full bg-slate-900 text-white text-xs font-bold flex items-center justify-center">
+              03
+            </div>
+            <h3 className="text-base font-bold text-slate-900">
+              Tutup Gap dan Pantau Lamaran
+            </h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Fokus pada keahlian bernilai tinggi dan kelola kemajuan aplikasi kerjamu di kanban pelacakan lamaran hingga diterima.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Section CTA */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="rounded-3xl bg-slate-950 text-white p-8 sm:p-14 text-center space-y-6 relative overflow-hidden shadow-2xl border border-slate-800">
+          <div className="relative z-10 max-w-2xl mx-auto space-y-4">
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">
+              Mulai Evaluasi Kesesuaian Kualifikasimu Hari Ini
+            </h2>
+            <p className="text-xs sm:text-base text-slate-300 leading-relaxed font-normal">
+              Daftar akun gratis dan dapatkan wawasan objektif tentang posisi keahlianmu di pasar kerja.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
+              {isAuthenticated && user ? (
+                <Link href="/dashboard" className="w-full sm:w-auto">
+                  <Button
+                    size="lg"
+                    className="w-full sm:w-auto px-8 py-3.5 rounded-full text-sm font-semibold bg-white text-slate-950 hover:bg-slate-100 shadow-md transition-all duration-150"
+                    rightIcon={<ArrowRight className="w-4 h-4 ml-1 text-slate-950" />}
+                  >
+                    Buka Dashboard
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Link href="/login" className="w-full sm:w-auto">
+                    <Button
+                      size="lg"
+                      className="w-full sm:w-auto px-8 py-3.5 rounded-full text-sm font-semibold bg-white text-slate-950 hover:bg-slate-100 shadow-md transition-[background-color,box-shadow] duration-150"
+                      rightIcon={<ArrowRight className="w-4 h-4 ml-1 text-slate-950" />}
+                    >
+                      Coba dengan akun demo
+                    </Button>
+                  </Link>
+                  <Link href="/login" className="w-full sm:w-auto">
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="w-full sm:w-auto px-7 py-3.5 rounded-full text-sm font-medium border-slate-700 bg-slate-900/80 text-white hover:bg-slate-800 transition-colors duration-150"
+                    >
+                      Masuk ke Akun
+                    </Button>
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       </section>
     </div>

@@ -3,7 +3,7 @@
     "id": "33333333-0000-0000-0000-000000000001",
     "source_name": "greenhouse",
     "external_id": "gh-40112",
-    "source_url": "https://boards.greenhouse.io/nusantarafintech/jobs/40112",
+    "source_url": "https://boards.greenhouse.io/cloudflare/jobs/8109620?gh_jid=8109620",
     "title": "Junior Data Analyst",
     "canonical_title": "Data Analyst",
     "company": "PT Nusantara FinTech",
@@ -53,7 +53,7 @@
     "id": "33333333-0000-0000-0000-000000000002",
     "source_name": "linkedin",
     "external_id": "li-412988102",
-    "source_url": "https://www.linkedin.com/jobs/view/412988102",
+    "source_url": "https://www.linkedin.com/jobs/view/4478504092",
     "title": "Business Intelligence (BI) Analyst",
     "canonical_title": "BI Analyst",
     "company": "Karya Logistik Express",
@@ -91,7 +91,7 @@
     "id": "33333333-0000-0000-0000-000000000003",
     "source_name": "lever",
     "external_id": "lev-88a2e1",
-    "source_url": "https://jobs.lever.co/asiaecommerce/88a2e1",
+    "source_url": "https://jobs.eu.lever.co/kwalee/5f40e053-75ed-408c-b3b4-7523e746e8a3",
     "title": "Commercial Data Analyst",
     "canonical_title": "Data Analyst",
     "company": "PT Asia E-Commerce Global",
@@ -1416,5 +1416,361 @@
     "retrieval_method": "jobspy",
     "is_active": true,
     "job_skills": []
+  },
+  {
+    "id": "44444444-0000-0000-0000-000000000001",
+    "source_name": "jobstreet",
+    "external_id": "seed-se-01",
+    "source_url": "https://id.jobstreet.com/id/job/seed-se-01",
+    "title": "Full Stack Software Engineer",
+    "canonical_title": "Software Engineer",
+    "company": "PT Teknologi Nusantara Raya",
+    "location": "Jakarta Selatan, DKI Jakarta (Hybrid)",
+    "employment_type": "Full-time",
+    "seniority": "Mid",
+    "experience_years_min": 2,
+    "education": "Bachelor",
+    "description": "Kami mencari Full Stack Software Engineer untuk mengembangkan platform SaaS e-commerce berskala tinggi. Anda akan merancang REST API yang andal, mengoptimalkan query basis data PostgreSQL, dan membangun UI interaktif dengan Next.js dan TypeScript.",
+    "content_hash": "e7b3f67dde81c70dfe521d4afa7d3c5ebf540157427fb4232321adc628982f78",
+    "retrieval_method": "seed",
+    "is_active": true,
+    "job_skills": [
+      {
+        "skills": {
+          "name": "TypeScript"
+        },
+        "is_mandatory": true
+      },
+      {
+        "skills": {
+          "name": "React"
+        },
+        "is_mandatory": true
+      },
+      {
+        "skills": {
+          "name": "Node.js"
+        },
+        "is_mandatory": true
+      },
+      {
+        "skills": {
+          "name": "PostgreSQL"
+        },
+        "is_mandatory": true
+      },
+      {
+        "skills": {
+          "name": "Docker"
+        },
+        "is_mandatory": false
+      },
+      {
+        "skills": {
+          "name": "Git"
+        },
+        "is_mandatory": true
+      }
+    ]
+  },
+  {
+    "id": "44444444-0000-0000-0000-000000000002",
+    "source_name": "jobstreet",
+    "external_id": "seed-fe-01",
+    "source_url": "https://id.jobstreet.com/id/job/seed-fe-01",
+    "title": "Frontend Developer (React / Next.js)",
+    "canonical_title": "Frontend Developer",
+    "company": "PT Kreatif Digital Solusi",
+    "location": "Bandung, Jawa Barat (Remote)",
+    "employment_type": "Full-time",
+    "seniority": "Mid",
+    "experience_years_min": 2,
+    "education": "Bachelor",
+    "description": "Bertanggung jawab atas antarmuka pengguna responsif, integrasi GraphQL dan REST API, optimasi performa web (Core Web Vitals), serta implementasi design system yang konsisten menggunakan Tailwind CSS.",
+    "content_hash": "6f1fb894827ec9245ffc012c7417b66697cd927647010570f461dc9489e4d0d6",
+    "retrieval_method": "seed",
+    "is_active": true,
+    "job_skills": [
+      {
+        "skills": {
+          "name": "React"
+        },
+        "is_mandatory": true
+      },
+      {
+        "skills": {
+          "name": "Next.js"
+        },
+        "is_mandatory": true
+      },
+      {
+        "skills": {
+          "name": "TypeScript"
+        },
+        "is_mandatory": true
+      },
+      {
+        "skills": {
+          "name": "Tailwind CSS"
+        },
+        "is_mandatory": true
+      },
+      {
+        "skills": {
+          "name": "Git"
+        },
+        "is_mandatory": false
+      }
+    ]
+  },
+  {
+    "id": "44444444-0000-0000-0000-000000000003",
+    "source_name": "jobstreet",
+    "external_id": "seed-pm-01",
+    "source_url": "https://id.jobstreet.com/id/job/seed-pm-01",
+    "title": "Associate Product Manager",
+    "canonical_title": "Product Manager",
+    "company": "PT Maju Bersama Ekosistem",
+    "location": "Jakarta Pusat, DKI Jakarta (Onsite)",
+    "employment_type": "Full-time",
+    "seniority": "Junior",
+    "experience_years_min": 1,
+    "education": "Bachelor",
+    "description": "Memimpin perancangan roadmap fitur produk digital, menyusun user stories dan acceptance criteria dalam framework Scrum/Agile, serta berkolaborasi erat dengan tim engineering, UI/UX, dan bisnis.",
+    "content_hash": "269754be1b2cf0192966034549eb5f5e0011ce0c0591a6405527dcb9508e4a1d",
+    "retrieval_method": "seed",
+    "is_active": true,
+    "job_skills": [
+      {
+        "skills": {
+          "name": "Product Management"
+        },
+        "is_mandatory": true
+      },
+      {
+        "skills": {
+          "name": "User Stories"
+        },
+        "is_mandatory": true
+      },
+      {
+        "skills": {
+          "name": "Agile"
+        },
+        "is_mandatory": true
+      },
+      {
+        "skills": {
+          "name": "Scrum"
+        },
+        "is_mandatory": true
+      },
+      {
+        "skills": {
+          "name": "Data Analytics"
+        },
+        "is_mandatory": false
+      }
+    ]
+  },
+  {
+    "id": "44444444-0000-0000-0000-000000000004",
+    "source_name": "jobstreet",
+    "external_id": "seed-ux-01",
+    "source_url": "https://id.jobstreet.com/id/job/seed-ux-01",
+    "title": "UI/UX Designer",
+    "canonical_title": "UI/UX Designer",
+    "company": "PT Inovasi Desain Visual",
+    "location": "Yogyakarta (Hybrid)",
+    "employment_type": "Full-time",
+    "seniority": "Mid",
+    "experience_years_min": 2,
+    "education": "Bachelor",
+    "description": "Mendesain user journey, wireframe, dan high-fidelity prototype menggunakan Figma. Melakukan user research dan usability testing untuk menghasilkan produk yang intuitif dan mudah digunakan.",
+    "content_hash": "16e9c1f66e18c2fe99c239d4aff0d38ffbfe14338b381c5a7e517782077e7c15",
+    "retrieval_method": "seed",
+    "is_active": true,
+    "job_skills": [
+      {
+        "skills": {
+          "name": "Figma"
+        },
+        "is_mandatory": true
+      },
+      {
+        "skills": {
+          "name": "UI Design"
+        },
+        "is_mandatory": true
+      },
+      {
+        "skills": {
+          "name": "UX Research"
+        },
+        "is_mandatory": true
+      },
+      {
+        "skills": {
+          "name": "Prototyping"
+        },
+        "is_mandatory": true
+      },
+      {
+        "skills": {
+          "name": "Design Systems"
+        },
+        "is_mandatory": false
+      }
+    ]
+  },
+  {
+    "id": "44444444-0000-0000-0000-000000000005",
+    "source_name": "jobstreet",
+    "external_id": "seed-mkt-01",
+    "source_url": "https://id.jobstreet.com/id/job/seed-mkt-01",
+    "title": "Digital Marketing Specialist",
+    "canonical_title": "Digital Marketing",
+    "company": "PT Global Niaga Ekspres",
+    "location": "Jakarta Barat, DKI Jakarta",
+    "employment_type": "Full-time",
+    "seniority": "Mid",
+    "experience_years_min": 2,
+    "education": "Bachelor",
+    "description": "Merencanakan dan mengeksekusi strategi digital marketing terintegrasi meliputi SEO on-page/off-page, SEM, Google Ads, Meta Ads, serta menganalisis conversion rate via Google Analytics.",
+    "content_hash": "c0aee8ce287c6be0a82240aa96cf9d75a3433171d4f590568094c3876bfe4cd4",
+    "retrieval_method": "seed",
+    "is_active": true,
+    "job_skills": [
+      {
+        "skills": {
+          "name": "SEO"
+        },
+        "is_mandatory": true
+      },
+      {
+        "skills": {
+          "name": "Google Ads"
+        },
+        "is_mandatory": true
+      },
+      {
+        "skills": {
+          "name": "Google Analytics"
+        },
+        "is_mandatory": true
+      },
+      {
+        "skills": {
+          "name": "Content Marketing"
+        },
+        "is_mandatory": false
+      },
+      {
+        "skills": {
+          "name": "Social Media Marketing"
+        },
+        "is_mandatory": false
+      }
+    ]
+  },
+  {
+    "id": "44444444-0000-0000-0000-000000000006",
+    "source_name": "jobstreet",
+    "external_id": "seed-sec-01",
+    "source_url": "https://id.jobstreet.com/id/job/seed-sec-01",
+    "title": "Cyber Security Analyst",
+    "canonical_title": "Cyber Security Engineer",
+    "company": "PT Prima Sekuriti Nusantara",
+    "location": "Jakarta Pusat, DKI Jakarta",
+    "employment_type": "Full-time",
+    "seniority": "Mid",
+    "experience_years_min": 2,
+    "education": "Bachelor",
+    "description": "Memantau insiden keamanan sistem informasi 24/7, mengoperasikan sistem SIEM/EDR, menganalisis kerentanan (vulnerability assessment), dan menyusun laporan mitigasi risiko siber.",
+    "content_hash": "c3e7e48d7031d46793d50e4f7c357708fdec9964ab0081d59cad1665f8230d0e",
+    "retrieval_method": "seed",
+    "is_active": true,
+    "job_skills": [
+      {
+        "skills": {
+          "name": "Cybersecurity"
+        },
+        "is_mandatory": true
+      },
+      {
+        "skills": {
+          "name": "Incident Response"
+        },
+        "is_mandatory": true
+      },
+      {
+        "skills": {
+          "name": "SIEM"
+        },
+        "is_mandatory": true
+      },
+      {
+        "skills": {
+          "name": "Network Security"
+        },
+        "is_mandatory": false
+      },
+      {
+        "skills": {
+          "name": "Threat Detection"
+        },
+        "is_mandatory": false
+      }
+    ]
+  },
+  {
+    "id": "44444444-0000-0000-0000-000000000007",
+    "source_name": "jobstreet",
+    "external_id": "seed-fin-01",
+    "source_url": "https://id.jobstreet.com/id/job/seed-fin-01",
+    "title": "Financial Analyst",
+    "canonical_title": "Finance & Accounting",
+    "company": "PT Investasi Dana Mandiri",
+    "location": "Surabaya, Jawa Timur (Hybrid)",
+    "employment_type": "Full-time",
+    "seniority": "Junior",
+    "experience_years_min": 1,
+    "education": "Bachelor",
+    "description": "Menyusun proyeksi arus kas, laporan analisis biaya, evaluasi kelayakan investasi (NPV, IRR), serta pemodelan keuangan berbasis Microsoft Excel tingkat lanjut.",
+    "content_hash": "5004be9212ad0d6001d3a01b967e6081ec6cc2899f5919a62a78164663ce2767",
+    "retrieval_method": "seed",
+    "is_active": true,
+    "job_skills": [
+      {
+        "skills": {
+          "name": "Financial Modeling"
+        },
+        "is_mandatory": true
+      },
+      {
+        "skills": {
+          "name": "Microsoft Excel"
+        },
+        "is_mandatory": true
+      },
+      {
+        "skills": {
+          "name": "Financial Reporting"
+        },
+        "is_mandatory": true
+      },
+      {
+        "skills": {
+          "name": "Budgeting"
+        },
+        "is_mandatory": false
+      },
+      {
+        "skills": {
+          "name": "Forecasting"
+        },
+        "is_mandatory": false
+      }
+    ]
   }
 ]

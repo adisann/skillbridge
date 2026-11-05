@@ -1,63 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-function getServiceSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-  return createClient(url, serviceKey);
-}
+import { getAuthenticatedUser } from "@/lib/supabase/server";
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const userId = searchParams.get("userId") || "00000000-0000-0000-0000-000000000001";
-
-    const supabase = getServiceSupabase();
+    const { user, supabase, error: authError } = await getAuthenticatedUser(req);
+    if (!user || authError) {
+      return NextResponse.json(
+        { error: "Sesi autentikasi tidak ditemukan. Silakan login terlebih dahulu untuk melihat target belajar." },
+        { status: 401 }
+      );
+    }
 
     const { data: items, error } = await supabase
       .from("learning_items")
       .select("*")
-      .eq("user_id", userId)
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
     if (error) throw new Error(error.message);
 
-    // Jika belum ada data untuk pengguna baru / demo, sediakan inisialisasi awal
-    if (!items || items.length === 0) {
-      const defaultItems = [
-        {
-          user_id: userId,
-          skill_name: "Power BI & DAX Formulas",
-          reason: "Kebutuhan utama visualisasi data dan laporan analitik bisnis.",
-          resource_suggestion: "Microsoft Learn: Power BI Data Analyst Associate (PL-300).",
-          is_done: false,
-          priority: "Tinggi",
-        },
-        {
-          user_id: userId,
-          skill_name: "dbt (Data Build Tool)",
-          reason: "Kualifikasi transformasi data modern stack berbasis SQL.",
-          resource_suggestion: "dbt Fundamentals Course (Official dbt Labs Free Certification).",
-          is_done: false,
-          priority: "Menengah",
-        },
-        {
-          user_id: userId,
-          skill_name: "Statistik A/B Testing",
-          reason: "Sering disyaratkan untuk evaluasi produk dan eksperimen metrik bisnis.",
-          resource_suggestion: "Praktik inferensi statistik dan uji hipotesis data transaksi.",
-          is_done: true,
-          priority: "Tinggi",
-        },
-      ];
+    const headers = new Headers();
+    headers.set("Cache-Control", "private, no-store, must-revalidate");
 
-      const { data: inserted } = await supabase
-        .from("learning_items")
-        .insert(defaultItems)
-        .select("*");
-
-      return NextResponse.json({
-        learningItems: (inserted || []).map((it) => ({
+    return NextResponse.json(
+      {
+        learningItems: (items || []).map((it) => ({
           id: it.id,
           skillName: it.skill_name,
           reason: it.reason,
@@ -66,20 +33,9 @@ export async function GET(req: NextRequest) {
           priority: it.priority,
           createdAt: it.created_at,
         })),
-      });
-    }
-
-    return NextResponse.json({
-      learningItems: items.map((it) => ({
-        id: it.id,
-        skillName: it.skill_name,
-        reason: it.reason,
-        resourceSuggestion: it.resource_suggestion,
-        isDone: it.is_done,
-        priority: it.priority,
-        createdAt: it.created_at,
-      })),
-    });
+      },
+      { headers }
+    );
   } catch (error: unknown) {
     const err = error as Error;
     return NextResponse.json(
@@ -91,20 +47,25 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const { user, supabase, error: authError } = await getAuthenticatedUser(req);
+    if (!user || authError) {
+      return NextResponse.json(
+        { error: "Sesi autentikasi tidak ditemukan. Silakan login terlebih dahulu untuk menambah target belajar." },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json();
-    const { userId, skillName, reason, priority, resourceSuggestion } = body;
+    const { skillName, reason, priority, resourceSuggestion } = body;
 
     if (!skillName || !skillName.trim()) {
       return NextResponse.json({ error: "Nama skill wajib diisi" }, { status: 400 });
     }
 
-    const effectiveUserId = userId || "00000000-0000-0000-0000-000000000001";
-    const supabase = getServiceSupabase();
-
     const { data: newItem, error } = await supabase
       .from("learning_items")
       .insert({
-        user_id: effectiveUserId,
+        user_id: user.id,
         skill_name: skillName.trim(),
         reason: reason || "Ditambahkan berdasarkan analisis gap kebutuhan pasar kerja.",
         priority: priority || "Tinggi",
@@ -140,6 +101,14 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
+    const { user, supabase, error: authError } = await getAuthenticatedUser(req);
+    if (!user || authError) {
+      return NextResponse.json(
+        { error: "Sesi autentikasi tidak ditemukan. Silakan login terlebih dahulu untuk mengubah target belajar." },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json();
     const { id, isDone, priority } = body;
 
@@ -147,7 +116,6 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "ID target belajar wajib disertakan" }, { status: 400 });
     }
 
-    const supabase = getServiceSupabase();
     const updateData: Record<string, unknown> = {};
     if (typeof isDone === "boolean") updateData.is_done = isDone;
     if (priority) updateData.priority = priority;
@@ -156,6 +124,7 @@ export async function PATCH(req: NextRequest) {
       .from("learning_items")
       .update(updateData)
       .eq("id", id)
+      .eq("user_id", user.id)
       .select("*")
       .single();
 
@@ -184,6 +153,14 @@ export async function PATCH(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    const { user, supabase, error: authError } = await getAuthenticatedUser(req);
+    if (!user || authError) {
+      return NextResponse.json(
+        { error: "Sesi autentikasi tidak ditemukan. Silakan login terlebih dahulu untuk menghapus target belajar." },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
 
@@ -191,8 +168,11 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "ID target belajar wajib disertakan" }, { status: 400 });
     }
 
-    const supabase = getServiceSupabase();
-    const { error } = await supabase.from("learning_items").delete().eq("id", id);
+    const { error } = await supabase
+      .from("learning_items")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", user.id);
 
     if (error) throw new Error(error.message);
 

@@ -10,7 +10,9 @@ import {
   Plus,
   BookOpen,
   Bookmark,
-  Sparkles,
+  Check,
+  BarChart2,
+  ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -20,6 +22,7 @@ import { AlertBanner } from "@/components/ui/error";
 import { SkeletonCard } from "@/components/ui/loading";
 import { ProtectedRoute } from "@/components/layout/protected-route";
 import { useAuth } from "@/lib/supabase/auth-context";
+import { fetchDeduped } from "@/lib/fetcher";
 
 interface LearningItem {
   id: string;
@@ -64,21 +67,14 @@ function ProgressContent() {
     let isMounted = true;
     const loadProgress = async () => {
       try {
-        const queryParams = new URLSearchParams();
-        if (user?.id) queryParams.append("userId", user.id);
+        const [jData, lData] = await Promise.all([
+          fetchDeduped<{ savedJobs?: SavedJobItem[] }>("/api/saved-jobs").catch(() => ({ savedJobs: [] as SavedJobItem[] })),
+          fetchDeduped<{ learningItems?: LearningItem[] }>("/api/learning-items").catch(() => ({ learningItems: [] as LearningItem[] })),
+        ]);
 
-        // 1. Ambil data lowongan tersimpan dari tabel saved_jobs
-        const resJobs = await fetch(`/api/saved-jobs?${queryParams.toString()}`);
-        if (resJobs.ok && isMounted) {
-          const jData = await resJobs.json();
-          setSavedJobs(jData.savedJobs || []);
-        }
-
-        // 2. Ambil data target belajar dari tabel learning_items
-        const resLearning = await fetch(`/api/learning-items?${queryParams.toString()}`);
-        if (resLearning.ok && isMounted) {
-          const lData = await resLearning.json();
-          setLearningList(lData.learningItems || []);
+        if (isMounted) {
+          if (jData.savedJobs) setSavedJobs(jData.savedJobs);
+          if (lData.learningItems) setLearningList(lData.learningItems);
         }
       } catch (err) {
         console.error("Gagal memuat data progress:", err);
@@ -103,7 +99,7 @@ function ProgressContent() {
     );
 
     try {
-      await fetch("/api/learning-items", {
+      await fetchDeduped("/api/learning-items", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, isDone: nextStatus }),
@@ -122,11 +118,10 @@ function ProgressContent() {
     if (!newTitle.trim()) return;
 
     try {
-      const res = await fetch("/api/learning-items", {
+      const data = await fetchDeduped<{ item?: LearningItem }>("/api/learning-items", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: user?.id,
           skillName: newTitle.trim(),
           reason: "Ditambahkan mandiri oleh pengguna berdasarkan analisis kebutuhan lowongan pasar.",
           priority: newPriority,
@@ -134,8 +129,7 @@ function ProgressContent() {
         }),
       });
 
-      const data = await res.json();
-      if (res.ok && data.item) {
+      if (data.item) {
         setLearningList([data.item, ...learningList]);
         setNewTitle("");
         setNotification(`'${data.item.skillName}' berhasil ditambahkan ke daftar target belajar.`);
@@ -148,7 +142,7 @@ function ProgressContent() {
 
   const handleRemoveItem = async (id: string) => {
     try {
-      await fetch(`/api/learning-items?id=${id}`, { method: "DELETE" });
+      await fetchDeduped(`/api/learning-items?id=${id}`, { method: "DELETE" });
       setLearningList((prev) => prev.filter((item) => item.id !== id));
       setNotification("Target belajar berhasil dihapus.");
     } catch {
@@ -159,10 +153,10 @@ function ProgressContent() {
 
   const handleUnsaveJob = async (jobId: string) => {
     try {
-      await fetch("/api/saved-jobs", {
+      await fetchDeduped("/api/saved-jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user?.id, jobId }),
+        body: JSON.stringify({ jobId }),
       });
       setSavedJobs((prev) => prev.filter((j) => j.id !== jobId));
       setNotification("Lowongan dihapus dari daftar simpanan.");
@@ -181,16 +175,16 @@ function ProgressContent() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            My Progress (Target Belajar & Lowongan Tersimpan)
+            Rencana Belajar & Simpanan Lowongan
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Pantau progres penutupan skill gap dan kelola lowongan prioritas untuk persiapan melamar kerja (FR-09 & FR-10).
+            Pantau progres peningkatan keahlian dan kelola lowongan yang kamu simpan.
           </p>
         </div>
         <Link href="/insights">
           <Button variant="outline" size="sm">
-            <Sparkles className="w-4 h-4 mr-1 text-emerald-600" />
-            Cek Gap di Market Insights
+            <BarChart2 className="w-4 h-4 mr-1 text-emerald-600" />
+            Cek Kebutuhan Pasar
           </Button>
         </Link>
       </div>
@@ -214,7 +208,7 @@ function ProgressContent() {
               {doneCount} dari {learningList.length} Kompetensi Dikuasai
             </h2>
             <p className="text-xs text-blue-200 mt-0.5">
-              Tingkatkan daya saing CV Anda dengan menyelesaikan target skill yang sering diminta pasar.
+              Tingkatkan daya saing CV-mu dengan menyelesaikan target skill yang sering diminta pasar.
             </p>
           </div>
           <div className="text-3xl sm:text-4xl font-extrabold text-emerald-400 font-mono">
@@ -253,7 +247,7 @@ function ProgressContent() {
                     Target Peningkatan Skill
                   </CardTitle>
                   <CardDescription className="text-xs">
-                    Centang target yang telah Anda pelajari untuk memperbarui estimasi kesiapan kerja.
+                    Centang target yang telah kamu pelajari untuk memperbarui estimasi kesiapan kerja.
                   </CardDescription>
                 </div>
               </CardHeader>
@@ -296,7 +290,7 @@ function ProgressContent() {
                     {learningList.map((item) => (
                       <div
                         key={item.id}
-                        className={`p-4 rounded-xl border transition-all flex items-start justify-between gap-3 ${
+                        className={`p-4 rounded-xl border transition-colors duration-150 flex items-start justify-between gap-3 ${
                           item.isDone
                             ? "bg-slate-50/70 border-slate-200 opacity-75"
                             : "bg-white border-slate-200 hover:border-slate-300 shadow-2xs"
@@ -372,7 +366,7 @@ function ProgressContent() {
                     Lowongan Tersimpan ({savedJobs.length})
                   </CardTitle>
                   <CardDescription className="text-xs">
-                    Lowongan yang Anda tandai di Job Explorer.
+                    Lowongan yang kamu simpan dari Cari Lowongan.
                   </CardDescription>
                 </div>
                 <Link href="/jobs" className="text-xs font-semibold text-blue-600 hover:underline">
@@ -380,6 +374,20 @@ function ProgressContent() {
                 </Link>
               </CardHeader>
               <CardContent className="space-y-3">
+                {/* Tracker CTA Callout */}
+                <div className="p-3 bg-gradient-to-r from-amber-50 to-blue-50 border border-amber-200/80 rounded-xl flex items-center justify-between gap-2">
+                  <div className="space-y-0.5">
+                    <p className="text-xs font-bold text-slate-900">Pelacakan Lamaran Kerja</p>
+                    <p className="text-[11px] text-slate-600">Atur prioritas 1–5 bintang dan pantau tahapan seleksi.</p>
+                  </div>
+                  <Link href="/tracker">
+                    <Button variant="primary" size="sm" className="text-xs shrink-0 flex items-center gap-1">
+                      <span>Buka Pelacakan</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Button>
+                  </Link>
+                </div>
+
                 {savedJobs.length === 0 ? (
                   <div className="py-8 text-center text-xs text-slate-500 border border-dashed rounded-xl border-slate-200">
                     Belum ada lowongan yang disimpan. Buka{" "}
@@ -392,7 +400,7 @@ function ProgressContent() {
                   savedJobs.map((j) => (
                     <div
                       key={j.id}
-                      className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-white hover:border-slate-300 transition-all space-y-2"
+                      className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-white hover:border-slate-300 transition-colors duration-150 space-y-2"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="space-y-0.5">
@@ -407,8 +415,9 @@ function ProgressContent() {
                       <div className="space-y-1 text-xs">
                         <div className="flex flex-wrap gap-1">
                           {j.matchedSkills.slice(0, 3).map((s) => (
-                            <span key={s} className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-semibold">
-                              ✓ {s}
+                            <span key={s} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-semibold">
+                              <Check className="w-2.5 h-2.5 text-emerald-600" />
+                              {s}
                             </span>
                           ))}
                         </div>
@@ -430,14 +439,23 @@ function ProgressContent() {
                           onClick={() => handleUnsaveJob(j.id)}
                           className="text-slate-400 hover:text-rose-600 text-[11px] hover:underline"
                         >
-                          Hapus Simpanan
+                          Hapus
                         </button>
-                        <Link
-                          href={`/jobs/${j.id}`}
-                          className="text-blue-600 font-semibold hover:underline inline-flex items-center gap-1 text-[11px]"
-                        >
-                          Detail Gap <ExternalLink className="w-3 h-3" />
-                        </Link>
+                        <div className="flex items-center gap-2">
+                          <Link
+                            href={`/tracker`}
+                            className="text-amber-700 font-semibold hover:underline text-[11px]"
+                          >
+                            Atur Pipeline
+                          </Link>
+                          <span className="text-slate-300">•</span>
+                          <Link
+                            href={`/jobs/${j.id}`}
+                            className="text-blue-600 font-semibold hover:underline inline-flex items-center gap-1 text-[11px]"
+                          >
+                            Detail Gap <ExternalLink className="w-3 h-3" />
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   ))

@@ -11,8 +11,10 @@ import {
   CheckCircle2,
   MinusCircle,
   HelpCircle,
-  Info,
-  Calendar,
+  CalendarClock,
+  Briefcase,
+  Layers,
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -20,6 +22,8 @@ import { MatchBadge } from "@/components/ui/badge";
 import { SkeletonCard } from "@/components/ui/loading";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useAuth } from "@/lib/supabase/auth-context";
+import { JobChatAssistant } from "@/components/jobs/job-chat-assistant";
+import { fetchDeduped } from "@/lib/fetcher";
 
 export interface RequirementEvaluation {
   id: string;
@@ -41,11 +45,13 @@ interface JobDetailData {
   sourceName: string;
   sourceUrl: string;
   retrievalMethod: string;
-  retrievedAt: string;
+  retrievedAt?: string;
+  expiresAt?: string;
+  deadline?: string;
   description: string;
   requiredSkills: string[];
   preferredSkills: string[];
-  matchScore: number;
+  matchScore: number | null;
   matchStatus: "match" | "underqualified" | "potentially_overqualified" | "insufficient_evidence";
   matchedSkills: string[];
   missingSkills: string[];
@@ -54,6 +60,31 @@ interface JobDetailData {
   factorsLimiting: string[];
   scoreBreakdown: Array<{ label: string; score: number; weight: number }>;
   requirementsEvaluation?: RequirementEvaluation[];
+}
+
+function formatDeadlineDate(deadlineStr?: string, fallbackFrom?: string): string {
+  if (deadlineStr) {
+    const d = new Date(deadlineStr);
+    if (!isNaN(d.getTime())) {
+      return new Intl.DateTimeFormat("id-ID", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      }).format(d);
+    }
+  }
+  if (fallbackFrom) {
+    const fromDate = new Date(fallbackFrom);
+    if (!isNaN(fromDate.getTime())) {
+      const d = new Date(fromDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+      return new Intl.DateTimeFormat("id-ID", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      }).format(d);
+    }
+  }
+  return "30 Nov 2026";
 }
 
 export default function JobDetailClient({
@@ -67,6 +98,7 @@ export default function JobDetailClient({
   const [job, setJob] = useState<JobDetailData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const jobId = resolvedParams?.id;
 
@@ -74,30 +106,17 @@ export default function JobDetailClient({
     const fetchJob = async () => {
       setIsLoading(true);
       try {
-        const queryParams = new URLSearchParams();
-        if (user?.id) queryParams.append("userId", user.id);
+        const [savedData, detailData] = await Promise.all([
+          fetchDeduped<{ savedJobIds?: string[] }>("/api/saved-jobs").catch(() => ({ savedJobIds: [] as string[] })),
+          fetchDeduped<{ job?: JobDetailData; error?: string }>(`/api/jobs/${jobId}`),
+        ]);
 
-        // Coba ambil langsung dari endpoint detail per ID
-        const resDetail = await fetch(`/api/jobs/${jobId}?${queryParams.toString()}`);
-        if (resDetail.ok) {
-          const detailData = await resDetail.json();
-          if (detailData.job) {
-            setJob(detailData.job);
-            setIsLoading(false);
-            return;
-          }
+        if (jobId && savedData.savedJobIds && savedData.savedJobIds.includes(jobId)) {
+          setIsSaved(true);
         }
 
-        const res = await fetch(`/api/jobs?${queryParams.toString()}`);
-        const data = await res.json();
-
-        if (data.jobs) {
-          const found = data.jobs.find((j: JobDetailData) => j.id === jobId || j.id.toString() === jobId);
-          if (found) {
-            setJob(found);
-          } else if (data.jobs.length > 0) {
-            setJob(data.jobs[0]);
-          }
+        if (detailData.job) {
+          setJob(detailData.job);
         }
       } catch (err) {
         console.error("Gagal memuat detail lowongan:", err);
@@ -107,7 +126,22 @@ export default function JobDetailClient({
     };
 
     fetchJob();
-  }, [jobId, user?.id]);
+  }, [jobId]);
+
+  const handleToggleSave = async () => {
+    const nextSaved = !isSaved;
+    setIsSaved(nextSaved);
+    try {
+      await fetchDeduped("/api/saved-jobs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jobId }),
+      });
+    } catch (e) {
+      console.warn("Gagal update simpanan:", e);
+      setIsSaved(!nextSaved);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -124,7 +158,7 @@ export default function JobDetailClient({
         <EmptyState
           title="Detail Lowongan Tidak Ditemukan"
           description="Lowongan dengan ID tersebut tidak ditemukan pada database."
-          actionLabel="Kembali ke Job Explorer"
+          actionLabel="Kembali ke Cari Lowongan"
           onAction={() => router.push("/jobs")}
         />
       </div>
@@ -156,10 +190,10 @@ export default function JobDetailClient({
                   : "Belum ditemukan di CV",
               evidence:
                 status === "cocok"
-                  ? "Tercantum pada kualifikasi CV pelamar."
+                  ? "Tercantum pada kualifikasi CV-mu."
                   : status === "belum_cukup_bukti"
-                  ? "CV memuat keahlian serumpun, namun belum ada rincian bukti spesifik."
-                  : "Belum ditemukan penyebutan skill ini di CV pelamar.",
+                  ? "CV-mu memuat keahlian serumpun, namun belum ada rincian bukti spesifik."
+                  : "Belum ada di CV-mu",
             };
           }),
           ...(job.preferredSkills || []).map((s, idx) => {
@@ -183,10 +217,10 @@ export default function JobDetailClient({
                   : "Belum ditemukan di CV",
               evidence:
                 status === "cocok"
-                  ? "Tercantum pada kualifikasi CV pelamar."
+                  ? "Tercantum pada kualifikasi CV-mu."
                   : status === "belum_cukup_bukti"
-                  ? "Ditemukan kompetensi pendukung di CV."
-                  : "Belum ditemukan pada dokumen CV.",
+                  ? "Ditemukan kompetensi pendukung di CV-mu."
+                  : "Belum ada di CV-mu",
             };
           }),
         ];
@@ -194,19 +228,15 @@ export default function JobDetailClient({
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Tombol Kembali */}
-      <div className="flex items-center justify-between">
+      <div>
         <button
           type="button"
           onClick={() => router.push("/jobs")}
-          className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
-          Kembali ke Job Explorer
+          Kembali ke Cari Lowongan
         </button>
-
-        <span className="text-xs text-slate-400 font-mono">
-          ID: {job.id.slice(0, 8)}...
-        </span>
       </div>
 
       {/* Header Lowongan */}
@@ -214,9 +244,6 @@ export default function JobDetailClient({
         <CardContent className="p-6 sm:p-8 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
             <div className="space-y-2">
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-blue-50 text-blue-800 border border-blue-200">
-                {job.canonicalTitle}
-              </span>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
                 {job.title}
               </h1>
@@ -230,94 +257,133 @@ export default function JobDetailClient({
                   {job.location}
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4 text-slate-500" />
+                  <Briefcase className="w-4 h-4 text-slate-500" />
                   Tipe: {job.employmentType}
+                </span>
+                <span className="flex items-center gap-1.5 text-slate-600 font-medium">
+                  <CalendarClock className="w-4 h-4 text-amber-600" />
+                  Deadline:{" "}
+                  <span className="text-slate-900 font-semibold">
+                    {formatDeadlineDate(job.deadline || job.expiresAt, job.retrievedAt)}
+                  </span>
                 </span>
               </div>
             </div>
 
             {/* Score & Status Badge */}
-            <div className="flex flex-col sm:items-end gap-2 shrink-0">
+            <div className="flex flex-col sm:items-end shrink-0">
               <MatchBadge status={job.matchStatus} score={job.matchScore} />
-              <span className="text-[11px] text-slate-500 text-right">
-                Estimasi transparansi kecocokan
-              </span>
             </div>
           </div>
 
           {/* Action Buttons */}
           <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-slate-200">
-            <a
-              href={job.sourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex"
-            >
-              <Button variant="primary" size="md" rightIcon={<ExternalLink className="w-4 h-4" />}>
-                Lamar di Situs Sumber ({job.sourceName})
-              </Button>
-            </a>
+            {job.sourceUrl && job.sourceUrl.trim() !== "" ? (
+              <a
+                href={job.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={async () => {
+                  if (!isSaved) {
+                    await handleToggleSave();
+                  }
+                }}
+                className="inline-flex"
+              >
+                <Button variant="primary" size="md" rightIcon={<ExternalLink className="w-4 h-4" />}>
+                  Lamar Sekarang
+                </Button>
+              </a>
+            ) : (
+              <div className="inline-flex items-center px-3.5 py-2 rounded-xl bg-slate-100 text-xs font-semibold text-slate-600 border border-slate-200">
+                Kontak lamaran tertera di deskripsi
+              </div>
+            )}
 
             <Button
               variant="outline"
               size="md"
-              onClick={() => setIsSaved(!isSaved)}
+              onClick={handleToggleSave}
               leftIcon={<Bookmark className={`w-4 h-4 ${isSaved ? "fill-blue-600 text-blue-600" : ""}`} />}
             >
-              {isSaved ? "Tersimpan di My Progress" : "Simpan Lowongan"}
+              {isSaved ? "Tersimpan di Pelacakan" : "Simpan Lowongan"}
+            </Button>
+
+            {isSaved && (
+              <button
+                type="button"
+                onClick={() => router.push("/tracker")}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-amber-900 bg-amber-50 border border-amber-200 hover:bg-amber-100 transition-colors shadow-2xs cursor-pointer"
+              >
+                <Layers className="w-4 h-4 text-amber-600" />
+                Atur Pipeline di Tracker
+              </button>
+            )}
+
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={() => setIsChatOpen(true)}
+              leftIcon={<MessageSquare className="w-4 h-4 text-blue-600" />}
+            >
+              Tanya Asisten AI
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Rincian Komponen Skor (AC-06 & FR-05) */}
+      {/* Rincian Komponen Skor */}
       <Card>
         <CardHeader>
-          <CardTitle>Rincian Transparan Skor Kecocokan (AC-06)</CardTitle>
+          <CardTitle>Rincian Transparan Skor Kecocokan</CardTitle>
           <CardDescription>
-            Skor dihitung berdasarkan bobot kualifikasi: skill wajib, skill tambahan, pengalaman, dan kesesuaian semantik.
+            Skor dihitung berdasarkan 5 komponen kualifikasi: skill wajib (35%), skill tambahan (20%), pengalaman kerja (15%), pendidikan & level (10%), dan kesesuaian semantik (20%).
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            {(job.scoreBreakdown && job.scoreBreakdown.length > 0
-              ? job.scoreBreakdown
-              : [
-                  { label: "Skill Wajib", score: 85, weight: 35 },
-                  { label: "Skill Tambahan", score: 70, weight: 20 },
-                  { label: "Pengalaman Kerja", score: 90, weight: 15 },
-                  { label: "Kesesuaian Semantik", score: 80, weight: 20 },
-                ]
-            ).map((item, idx) => (
-              <div key={idx} className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-1.5">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-slate-700">{item.label}</span>
-                  <span className="text-slate-400 font-mono text-[11px]">Bobot {item.weight}%</span>
+          {job.scoreBreakdown && job.scoreBreakdown.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+              {job.scoreBreakdown.map((item, idx) => (
+                <div key={idx} className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-slate-700 truncate mr-1">{item.label}</span>
+                    <span className="text-slate-400 font-mono text-[11px] shrink-0">Bobot {item.weight}%</span>
+                  </div>
+                  <div className="text-xl font-extrabold text-slate-900">{item.score}%</div>
+                  <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                    <div
+                      className="bg-blue-600 h-full rounded-full transition-all"
+                      style={{ width: `${item.score}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="text-xl font-extrabold text-slate-900">{item.score}%</div>
-                <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                  <div
-                    className="bg-blue-600 h-full rounded-full transition-all"
-                    style={{ width: `${item.score}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-6 rounded-xl border border-dashed border-slate-200 text-center space-y-2 bg-slate-50/50">
+              <p className="text-xs text-slate-600 font-medium">
+                Belum ada skor kecocokan karena CV belum diunggah.
+              </p>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => router.push("/cv")}
+              >
+                Unggah CV Sekarang
+              </Button>
+            </div>
+          )}
 
-          <div className="p-3 rounded-lg bg-blue-50/70 border border-blue-200/80 flex items-start gap-2 text-xs text-blue-900">
-            <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-            <span>
-              <strong>Aturan Transparansi:</strong> Skor adalah indikasi kecocokan data kualifikasi CV terhadap lowongan, bukan probabilitas diterima kerja.
-            </span>
-          </div>
+          <p className="text-xs text-slate-500 pt-1">
+            Skor menunjukkan kecocokan CV dengan persyaratan, bukan peluang diterima.
+          </p>
         </CardContent>
       </Card>
 
-      {/* Kualifikasi & Persyaratan (AC-02) */}
+      {/* Kualifikasi & Persyaratan */}
       <Card>
         <CardHeader>
-          <CardTitle>Status Kualifikasi & Persyaratan (AC-02)</CardTitle>
+          <CardTitle>Status Kualifikasi & Persyaratan</CardTitle>
           <CardDescription>
             Membedakan kualifikasi secara transparan menjadi <strong>Cocok</strong>, <strong>Belum Ditemukan</strong>, dan <strong>Belum Cukup Bukti</strong> di CV.
           </CardDescription>
@@ -349,16 +415,19 @@ export default function JobDetailClient({
 
               <div className="sm:self-center shrink-0 pl-6.5 sm:pl-0">
                 {req.status === "cocok" ? (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md font-semibold bg-emerald-50 text-emerald-800 border border-emerald-300">
-                    ✓ Cocok di CV
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-semibold bg-emerald-50 text-emerald-800 border border-emerald-300">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    Cocok di CV
                   </span>
                 ) : req.status === "belum_cukup_bukti" ? (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md font-semibold bg-amber-50 text-amber-800 border border-amber-300">
-                    ? Belum cukup bukti
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-semibold bg-amber-50 text-amber-800 border border-amber-300">
+                    <HelpCircle className="w-3.5 h-3.5 text-amber-600" />
+                    Belum cukup bukti
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md font-semibold bg-slate-50 text-slate-700 border border-slate-300">
-                    ✗ Belum ditemukan di CV
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-semibold bg-slate-50 text-slate-700 border border-slate-300">
+                    <MinusCircle className="w-3.5 h-3.5 text-slate-500" />
+                    Belum ditemukan di CV
                   </span>
                 )}
               </div>
@@ -415,7 +484,7 @@ export default function JobDetailClient({
         <CardHeader>
           <CardTitle>Deskripsi Pekerjaan Asli</CardTitle>
           <CardDescription>
-            Sumber: <strong className="text-slate-800">{job.sourceName}</strong> ({job.retrievalMethod})
+            Kualifikasi dan tanggung jawab posisi yang dipublikasikan oleh pihak rekruter.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -424,6 +493,17 @@ export default function JobDetailClient({
           </div>
         </CardContent>
       </Card>
+
+      {/* Floating AI Job Assistant (YOLO / Ultralytics Style Floating Modal & Trigger) */}
+      <JobChatAssistant
+        key={`${job.id}-${user?.id || "anon"}`}
+        jobId={job.id}
+        jobTitle={job.title}
+        company={job.company}
+        userId={user?.id}
+        isOpen={isChatOpen}
+        onOpenChange={setIsChatOpen}
+      />
     </div>
   );
 }

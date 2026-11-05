@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { uploadToR2 } from "@/lib/r2";
+import { getAuthenticatedUser } from "@/lib/supabase/server";
 
 const ALLOWED_MIME_TYPES = [
   "application/pdf",
@@ -32,6 +33,14 @@ const PRESET_RESUMES = {
 
 export async function POST(req: NextRequest) {
   try {
+    const { user, error: authError } = await getAuthenticatedUser(req);
+    if (!user || authError) {
+      return NextResponse.json(
+        { error: "Sesi autentikasi tidak ditemukan. Silakan login terlebih dahulu untuk mengunggah CV." },
+        { status: 401 }
+      );
+    }
+
     const formData = await req.formData();
     const preset = formData.get("preset") as string | null;
 
@@ -101,8 +110,31 @@ export async function POST(req: NextRequest) {
       } catch {
         extractedText = buffer.toString("utf-8", 0, Math.min(buffer.length, 65536));
       }
+    } else if (
+      fileName.endsWith(".docx") ||
+      file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    ) {
+      try {
+        const mammoth = await import("mammoth");
+        const mammothResult = await mammoth.extractRawText({ buffer });
+        extractedText = mammothResult.value || "";
+      } catch (docErr) {
+        console.warn("[Upload] Gagal mengekstrak DOCX via mammoth:", docErr);
+        extractedText = buffer.toString("utf-8", 0, Math.min(buffer.length, 65536));
+      }
     } else {
       extractedText = buffer.toString("utf-8", 0, Math.min(buffer.length, 65536));
+    }
+
+    // Validasi NFR-04: Dokumen kosong atau tidak memuat teks
+    if (!extractedText || extractedText.trim().length === 0) {
+      return NextResponse.json(
+        {
+          error:
+            "Dokumen CV kosong atau tidak memuat lapisan teks yang dapat diekstrak (contoh: berkas scan gambar murni tanpa teks). Silakan gunakan dokumen PDF atau DOCX berbasis teks.",
+        },
+        { status: 422 }
+      );
     }
 
     const lowerText = extractedText.toLowerCase();
@@ -149,7 +181,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const finalSkills = detectedSkills.length > 0 ? detectedSkills : ["SQL", "Excel", "Analisis Data"];
+    // NFR-03 & E04: Tidak menyuntikkan skill default palsu bila teks tidak memuat skill
+    const finalSkills = detectedSkills;
 
     // Ekstraksi nama kandidat dari baris awal teks
     const lines = extractedText.split("\n").map((l) => l.trim()).filter(Boolean);
@@ -172,10 +205,18 @@ export async function POST(req: NextRequest) {
       education = "SMK Rekayasa Perangkat Lunak / Mahasiswa";
     } else if (lowerText.includes("informatika") || lowerText.includes("computer science")) {
       education = "S1 Teknik Informatika";
+    } else if (lowerText.includes("sistem informasi") || lowerText.includes("information systems")) {
+      education = "S1 Sistem Informasi";
+    } else if (lowerText.includes("magister") || lowerText.includes("master") || lowerText.includes("s2")) {
+      education = "Magister (S2)";
+    } else if (lowerText.includes("diploma") || lowerText.includes("d3") || lowerText.includes("d4")) {
+      education = "Diploma (D3/D4)";
+    } else {
+      education = "Belum teridentifikasi (silakan sesuaikan)";
     }
 
     // Ekstraksi pengalaman
-    let experienceYears = 1;
+    let experienceYears = 0;
     const expMatch = lowerText.match(/(\d+)\+?\s*(?:tahun|thn|years?|yrs?)\b/);
     if (expMatch) {
       experienceYears = parseInt(expMatch[1], 10);
@@ -187,8 +228,8 @@ export async function POST(req: NextRequest) {
 
     const summary =
       detectedSkills.length > 0
-        ? `Kandidat berfokus pada keahlian ${detectedSkills.slice(0, 4).join(", ")}. Hasil ekstraksi siap dikoreksi pengguna (AC-01).`
-        : "Dokumen CV berhasil diparsing dan siap dikoreksi sebelum kalkulasi kecocokan.";
+        ? `Kandidat berfokus pada keahlian ${detectedSkills.slice(0, 4).join(", ")}. Hasil ekstraksi siap dikoreksi pengguna.`
+        : "Dokumen CV berhasil dibaca. Tidak ada skill yang langsung terdeteksi; silakan tambahkan skill-mu secara manual pada form koreksi sebelum submit.";
 
     return NextResponse.json({
       success: true,

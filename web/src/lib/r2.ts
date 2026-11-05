@@ -61,9 +61,9 @@ export async function uploadToR2(
     }
   }
 
-  // Fallback storage signed URL
-  const mockUrl = `https://r2.skillbridge.id/resumes/secure/${encodeURIComponent(key)}?token=sig_${Date.now()}`;
-  return { key, presignedUrl: mockUrl };
+  // Fallback storage signed URL bila R2 belum dikonfigurasi
+  // NFR-03 & Kejujuran Data: Jangan mengembalikan URL R2 fiktif
+  return { key, presignedUrl: "" };
 }
 
 /**

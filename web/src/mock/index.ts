@@ -52,6 +52,8 @@ export interface MockJob {
   sourceUrl: string;
   retrievalMethod: "public_api" | "jobspy" | "admin_import" | "seed";
   retrievedAt: string;
+  expiresAt?: string;
+  deadline?: string;
   description: string;
   responsibilities: string[];
   requiredSkills: string[];
@@ -106,9 +108,9 @@ export interface WorkerRun {
 // -----------------------------------------------------------------------------
 export const mockCurrentUser: MockUser = {
   id: "user-juri-01",
-  name: "Budi Pratama (Akun Demo Juri)",
+  name: "Budi Pratama",
   email: "juri@skillbridge.demo",
-  role: "Pelamar / Reviewer Lomba",
+  role: "Pelamar Data Analyst",
   targetRole: "Data Analyst",
   activeResumeId: "resume-match-01",
 };
@@ -166,7 +168,7 @@ export const mockJobs: MockJob[] = [
     role: "Data Analyst",
     workType: "Hybrid",
     sourceName: "Greenhouse",
-    sourceUrl: "https://boards.greenhouse.io/nusantarafintech/jobs/40112",
+    sourceUrl: "https://boards.greenhouse.io/cloudflare/jobs/8109620?gh_jid=8109620",
     retrievalMethod: "public_api",
     retrievedAt: "2026-11-03 18:00:00 WIB",
     description:
@@ -219,7 +221,7 @@ export const mockJobs: MockJob[] = [
     role: "BI Analyst",
     workType: "Onsite",
     sourceName: "LinkedIn",
-    sourceUrl: "https://www.linkedin.com/jobs/view/412988102",
+    sourceUrl: "https://www.linkedin.com/jobs/view/4478504092",
     retrievalMethod: "jobspy",
     retrievedAt: "2026-11-03 19:15:00 WIB",
     description:
@@ -270,7 +272,7 @@ export const mockJobs: MockJob[] = [
     role: "Data Analyst",
     workType: "Remote",
     sourceName: "Lever",
-    sourceUrl: "https://jobs.lever.co/asiaecommerce/88a2e1",
+    sourceUrl: "https://jobs.eu.lever.co/kwalee/5f40e053-75ed-408c-b3b4-7523e746e8a3",
     retrievalMethod: "public_api",
     retrievedAt: "2026-11-03 16:45:00 WIB",
     description:
@@ -585,7 +587,7 @@ export const mockLearningItems: LearningItem[] = [
   {
     id: "learn-01",
     skillName: "Power BI & DAX",
-    reason: "Diminta oleh 89% lowongan BI Analyst dan 69% lowongan Data Analyst. Belum ditemukan di CV aktif Anda.",
+    reason: "Diminta oleh 89% lowongan BI Analyst dan 69% lowongan Data Analyst. Belum ditemukan di CV aktifmu.",
     resourceSuggestion: "Modul Praktis Power BI Desktop & DAX: Visualisasi Data Rantai Pasok",
     isDone: false,
     priority: "Tinggi",

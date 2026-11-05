@@ -1,5 +1,5 @@
 import React from "react";
-import { Check, HelpCircle, MinusCircle, Sparkles } from "lucide-react";
+import { Check, HelpCircle, MinusCircle, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // -----------------------------------------------------------------------------
@@ -47,7 +47,7 @@ export function Badge({
 }
 
 // -----------------------------------------------------------------------------
-// Match Status Badge (FR-05 & AC-05)
+// Match Status Badge
 // -----------------------------------------------------------------------------
 export type MatchStatus =
   | "match"
@@ -57,7 +57,7 @@ export type MatchStatus =
 
 export interface MatchBadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   status: MatchStatus;
-  score?: number; // e.g. 85 -> 85%
+  score?: number | null; // e.g. 85 -> 85%
 }
 
 export function MatchBadge({ status, score, className, ...props }: MatchBadgeProps) {
@@ -70,24 +70,24 @@ export function MatchBadge({ status, score, className, ...props }: MatchBadgePro
       bg: "bg-emerald-50",
       text: "text-emerald-800",
       border: "border-emerald-300",
-      icon: <Sparkles className="w-3.5 h-3.5 text-emerald-600" />,
+      icon: <Check className="w-3.5 h-3.5 text-emerald-600" strokeWidth={2} />,
     },
     underqualified: {
       label: "Underqualified",
       bg: "bg-amber-50",
       text: "text-amber-800",
       border: "border-amber-300",
-      icon: <MinusCircle className="w-3.5 h-3.5 text-amber-600" />,
+      icon: <MinusCircle className="w-3.5 h-3.5 text-amber-600" strokeWidth={1.5} />,
     },
     potentially_overqualified: {
       label: "Potentially Overqualified",
       bg: "bg-indigo-50",
       text: "text-indigo-800",
       border: "border-indigo-300",
-      icon: <Sparkles className="w-3.5 h-3.5 text-indigo-600" />,
+      icon: <ArrowUpRight className="w-3.5 h-3.5 text-indigo-600" strokeWidth={1.5} />,
     },
     insufficient_evidence: {
-      label: "Insufficient Evidence",
+      label: "Belum ada skor",
       bg: "bg-slate-100",
       text: "text-slate-700",
       border: "border-slate-300",
@@ -96,11 +96,12 @@ export function MatchBadge({ status, score, className, ...props }: MatchBadgePro
   };
 
   const current = config[status];
+  const shouldShowScore = score != null && status !== "insufficient_evidence";
 
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full border shadow-xs select-none",
+        "inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-semibold rounded-full border shadow-2xs select-none whitespace-nowrap shrink-0",
         current.bg,
         current.text,
         current.border,
@@ -110,8 +111,8 @@ export function MatchBadge({ status, score, className, ...props }: MatchBadgePro
     >
       {current.icon}
       <span>{current.label}</span>
-      {score !== undefined && (
-        <span className="ml-1 pl-1.5 border-l border-current/30 font-bold">
+      {shouldShowScore && (
+        <span className="ml-1 pl-1.5 border-l border-current/30 font-bold font-mono">
           {score}%
         </span>
       )}
@@ -120,7 +121,7 @@ export function MatchBadge({ status, score, className, ...props }: MatchBadgePro
 }
 
 // -----------------------------------------------------------------------------
-// Skill Status Badge (FR-06, FR-08, AC-04)
+// Skill Status Badge
 // Status nonwarna: wajib teks eksplisit "tercantum di CV" / "belum ditemukan"
 // -----------------------------------------------------------------------------
 export type CVSkillStatus = "found" | "missing" | "needs_verification";
@@ -164,7 +165,7 @@ export function CVSkillBadge({
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg border transition-all",
+        "inline-flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg border transition-colors duration-150",
         curr.cls,
         className
       )}
