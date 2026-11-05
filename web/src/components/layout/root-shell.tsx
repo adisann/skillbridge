@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
 import { Navbar } from "./navbar";
@@ -12,13 +12,23 @@ export function RootShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // Halaman publik & autentikasi dasar memakai Navbar horizontal & Footer standar
+  useEffect(() => {
+    // Tandai bahwa client JS siap untuk animasi reveal aman tanpa layar kosong
+    document.documentElement.classList.add("js-ready");
+  }, []);
+
+  // Halaman publik & autentikasi dasar memakai Navbar horizontal & Footer standar (tanpa sidebar)
   const isPublicPage =
-    pathname === "/" || pathname === "/login" || pathname === "/register";
+    pathname === "/" ||
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname === "/lowongan" ||
+    pathname.startsWith("/lowongan/") ||
+    pathname === "/tren-skill";
 
   if (isPublicPage) {
     return (
-      <div className="min-h-screen flex flex-col bg-slate-50/50 text-slate-900 font-sans">
+      <div className="min-h-screen flex flex-col font-sans">
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />
@@ -26,10 +36,9 @@ export function RootShell({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Halaman Aplikasi (Dashboard, Tracker, Jobs, CV, Insights, Progress, Admin):
-  // Navbar horizontal dihilangkan, digantikan sepenuhnya oleh Sidebar vertikal di sisi kiri
+  // Halaman Aplikasi (Dashboard, Tracker, Jobs, CV, Insights, Progress, Profile, Admin):
   return (
-    <div className="min-h-screen flex bg-slate-50/50 text-slate-900 font-sans">
+    <div className="min-h-screen flex font-sans">
       {/* Sidebar Desktop & Mobile Drawer */}
       <DashboardSidebar
         isMobileOpen={isMobileSidebarOpen}
@@ -39,11 +48,11 @@ export function RootShell({ children }: { children: React.ReactNode }) {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mobile Header with Hamburger Menu button */}
-        <header className="md:hidden h-14 px-4 bg-white/95 backdrop-blur-md border-b border-slate-200 flex items-center justify-between sticky top-0 z-30 shrink-0">
+        <header className="md:hidden h-14 px-4 bg-white border-b border-sb-border shadow-2xs flex items-center justify-between sticky top-0 z-30 shrink-0">
           <button
             type="button"
             onClick={() => setIsMobileSidebarOpen(true)}
-            className="p-2 -ml-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+            className="p-2 -ml-2 rounded-xl text-sb-text-2 hover:text-sb-navy hover:bg-white/70 transition-colors cursor-pointer"
             aria-label="Buka menu navigasi"
           >
             <Menu className="w-5 h-5" />
@@ -63,4 +72,3 @@ export function RootShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-

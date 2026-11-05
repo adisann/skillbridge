@@ -1,6 +1,7 @@
 import React from "react";
 import { Check, Plus, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatPercent } from "@/lib/copy";
 import { CVSkillStatus } from "./badge";
 
 export interface MarketSkillItem {
@@ -20,75 +21,77 @@ export interface MarketSkillBarChartProps {
   onAddLearning?: (skillName: string) => void;
   onToggleUserClaimed?: (skillName: string) => void;
   className?: string;
+  isLoggedIn?: boolean;
 }
 
 export function MarketSkillBarChart({
   skills,
   totalSampleN,
   dataDate = "November 2026",
-  roleFilterLabel = "Semua Role",
+  roleFilterLabel = "Semua Bidang",
   onAddLearning,
   className,
+  isLoggedIn = true,
 }: MarketSkillBarChartProps) {
   return (
     <div
       className={cn(
-        "p-5 rounded-xl border border-slate-200 bg-white shadow-xs space-y-4",
+        "glass-panel rounded-2xl p-5 sm:p-6 space-y-4",
         className
       )}
     >
-      {/* Header Info */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+      {/* Metadata bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-sb-border text-xs text-sb-text-2">
         <div>
-          <h4 className="text-sm font-bold text-slate-900 tracking-tight">
-            Frekuensi Kebutuhan Skill di Pasar
-          </h4>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Filter: <span className="font-semibold text-slate-700">{roleFilterLabel}</span> · Diperbarui: {dataDate}
-          </p>
+          Bidang: <span className="font-semibold text-sb-navy">{roleFilterLabel}</span>
+        </div>
+        <div>
+          Diperbarui: <span className="font-semibold text-sb-navy">{dataDate}</span>
         </div>
       </div>
 
       {/* Bar Chart Rows */}
-      <div className="space-y-3.5 pt-1">
+      <div className="space-y-3 pt-1">
         {skills.map((item, idx) => {
-          const isFoundInCV = item.status === "found";
+          const isFoundInCV = Boolean(isLoggedIn && item.status === "found");
           const isMissing = item.status === "missing";
 
           return (
             <div
               key={item.skillName}
-              className="group p-3 rounded-lg border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 transition-all space-y-2"
+              className="group p-3.5 rounded-xl border border-sb-border bg-white/70 hover:bg-white hover:border-sb-blue/30 hover:shadow-2xs transition-all space-y-2.5"
             >
               {/* Row Header: Rank, Name, Badges & Actions */}
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-5 text-xs font-bold text-slate-400 font-mono">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+                  <span className="w-5 text-xs font-bold text-sb-text-2 font-mono-metric">
                     #{idx + 1}
                   </span>
-                  <span className="text-sm font-bold text-slate-900">
+                  <span className="text-sm font-bold text-sb-navy">
                     {item.skillName}
                   </span>
 
-                  {/* Status Teks Non-Warna */}
-                  {isFoundInCV ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                      <Check className="w-3 h-3 text-emerald-600 stroke-[2.5]" />
-                      Tercantum di CV
-                    </span>
-                  ) : item.status === "needs_verification" ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-800 border border-blue-200">
-                      <AlertCircle className="w-3 h-3 text-blue-600" />
-                      Perlu verifikasi
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                      Belum ditemukan di CV
-                    </span>
+                  {/* Status Teks Non-Warna hanya jika sudah login */}
+                  {isLoggedIn && (
+                    isFoundInCV ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-sb-good/10 text-sb-good border border-sb-good/30">
+                        <Check className="w-3 h-3 text-sb-good stroke-[2.5]" />
+                        Tercantum di CV
+                      </span>
+                    ) : item.status === "needs_verification" ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-sb-warning/15 text-sb-warning border border-sb-warning/30">
+                        <AlertCircle className="w-3 h-3 text-sb-warning" />
+                        Perlu verifikasi
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-sb-mist-soft text-sb-navy border border-sb-border">
+                        Belum ditemukan di CV
+                      </span>
+                    )
                   )}
 
-                  {item.isCustomLearned && (
-                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
+                  {isLoggedIn && item.isCustomLearned && (
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-sb-warning/10 text-sb-warning border border-sb-warning/20">
                       Diklaim mandiri
                     </span>
                   )}
@@ -96,23 +99,23 @@ export function MarketSkillBarChart({
 
                 <div className="flex items-center gap-3">
                   <div className="text-right flex items-baseline gap-1.5">
-                    <span className="text-xs font-medium text-slate-600">
-                      Diminta di <strong className="text-slate-900 font-semibold">{item.count}</strong> dari {totalSampleN} lowongan
+                    <span className="text-xs font-medium text-sb-text-2">
+                      Diminta di <strong className="text-sb-navy font-semibold font-mono-metric">{item.count}</strong> dari {totalSampleN} lowongan
                     </span>
-                    <span className="text-[11px] font-semibold text-slate-400">
-                      ({item.percentage}%)
+                    <span className="text-[11px] font-semibold text-sb-blue font-mono-metric">
+                      ({formatPercent(item.percentage)}%)
                     </span>
                   </div>
 
                   {/* Quick Action: Tambah ke daftar belajar jika belum ada di CV */}
-                  {isMissing && onAddLearning && (
+                  {isLoggedIn && isMissing && onAddLearning && (
                     <button
                       type="button"
                       onClick={() => onAddLearning(item.skillName)}
-                      className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition-colors"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-sb-mist-soft text-sb-navy hover:bg-sb-mist border border-sb-border transition-colors cursor-pointer"
                       title="Tambahkan skill ini ke rencana belajar"
                     >
-                      <Plus className="w-3.5 h-3.5" />
+                      <Plus className="w-3.5 h-3.5 text-sb-blue" />
                       Belajar
                     </button>
                   )}
@@ -120,21 +123,19 @@ export function MarketSkillBarChart({
               </div>
 
               {/* Progress Bar Visual (CSS Bar) */}
-              <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden relative">
+              <div className="w-full h-2 rounded-full bg-sb-mist-soft overflow-hidden relative">
                 <div
                   className={cn(
                     "h-full rounded-full transition-all duration-500",
-                    isFoundInCV
-                      ? "bg-gradient-to-r from-emerald-500 to-emerald-600"
-                      : "bg-gradient-to-r from-blue-500 to-blue-600"
+                    isFoundInCV ? "bg-sb-good" : "bg-sb-sky"
                   )}
-                  style={{ width: `${Math.min(item.percentage, 100)}%` }}
+                  style={{ width: `${formatPercent(item.percentage)}%` }}
                 />
               </div>
 
-              {/* Contoh Persyaratan dari Lowongan Nyata */}
+              {/* Contoh Persyaratan dari Lowongan */}
               {item.exampleRequirement && (
-                <p className="text-[11px] text-slate-500 italic pl-1 border-l-2 border-slate-200 line-clamp-1">
+                <p className="text-[11px] text-sb-text-2 italic pl-2 border-l-2 border-sb-mist line-clamp-1">
                   Contoh: &ldquo;{item.exampleRequirement}&rdquo;
                 </p>
               )}

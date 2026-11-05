@@ -6,7 +6,7 @@ Acuan untuk AI agent yang mengerjakan proyek ini. Target: **MVP siap demo sebelu
 
 SkillBridge membantu pencari kerja mengetahui lowongan yang relevan dengan CV mereka, skill yang belum ditemukan di CV, dan skill yang paling sering diminta untuk suatu role.
 
-Role MVP: **Data Analyst** dan **BI Analyst**.
+Cakupan bidang MVP: **Multi-Bidang** (Data & Analitik, Bisnis & Strategi, Produk & Desain, Software Engineering, Keamanan Siber & Jaringan, Pemasaran Digital, Keuangan & Akuntansi, Operasional & Supply Chain, serta posisi umum lainnya). Akun demo juri difokuskan pada Data & Analitik.
 
 Alur pengguna & demo (sesuai Flowchart Sistem):
 

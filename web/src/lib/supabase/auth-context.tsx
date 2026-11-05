@@ -3,13 +3,14 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "./client";
+import { clearDedupedCache } from "@/lib/fetcher";
 
 export interface AuthProfile {
   id: string;
   email: string;
   fullName: string;
   role: "user" | "admin";
-  targetRole: "Data Analyst" | "BI Analyst";
+  targetRole: string;
 }
 
 interface AuthContextType {
@@ -23,7 +24,7 @@ interface AuthContextType {
   register: (email: string, pass: string, name: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   resetDemoState: () => Promise<void>;
-  updateUserTargetRole: (newRole: "Data Analyst" | "BI Analyst") => void;
+  updateUserTargetRole: (newRole: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -125,6 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error(data.error || "Gagal masuk ke akun juri demo.");
       }
 
+      clearDedupedCache();
       setUser(data.user);
       setIsLoading(false);
       router.push("/dashboard");
@@ -160,6 +162,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, error: data.error || "Email atau kata sandi tidak valid." };
       }
 
+      clearDedupedCache();
       setUser(data.user);
       setIsLoading(false);
       return { success: true };
@@ -208,6 +211,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     setIsLoading(true);
+    clearDedupedCache();
     try {
       await fetch("/api/auth/logout", { method: "POST" });
       const supabase = createClient();
@@ -224,6 +228,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const resetDemoState = async () => {
+    clearDedupedCache();
+    try {
+      await fetch("/api/auth/demo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "reset" }),
+      });
+    } catch (e) {
+      console.error("Gagal reset akun demo di server:", e);
+    }
     if (typeof window !== "undefined") {
       localStorage.removeItem("skillbridge_demo_session");
       // Hapus data tracker lokal demo
@@ -237,10 +251,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await loginDemoJuri();
   };
 
-  const updateUserTargetRole = (newRole: "Data Analyst" | "BI Analyst") => {
+  const updateUserTargetRole = (newRole: string) => {
     if (user) {
       const updated: AuthProfile = { ...user, targetRole: newRole };
       setUser(updated);
+      clearDedupedCache();
+      // Simpan perubahan ke database profile bila bukan offline
+      const supabase = createClient();
+      Promise.resolve(
+        supabase
+          .from("profiles")
+          .update({ target_role: newRole })
+          .eq("id", user.id)
+      ).catch(() => {});
     }
   };
 

@@ -3,19 +3,19 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  Mail,
   Briefcase,
-  GraduationCap,
+  Mail,
+  ShieldCheck,
+  CheckCircle2,
   FileText,
+  RotateCcw,
+  Sparkles,
+  GraduationCap,
   BookOpen,
   Bookmark,
   ClipboardList,
-  ShieldCheck,
-  RotateCcw,
-  LogOut,
   ArrowRight,
-  CheckCircle2,
-  Sparkles,
+  LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -24,6 +24,8 @@ import { AlertBanner } from "@/components/ui/error";
 import { SkeletonCard } from "@/components/ui/loading";
 import { useAuth } from "@/lib/supabase/auth-context";
 import { fetchDeduped } from "@/lib/fetcher";
+import { JOB_CATEGORIES } from "@/lib/job-categories";
+import { cn } from "@/lib/utils";
 
 interface ResumeSummary {
   filename?: string;
@@ -49,6 +51,7 @@ function ProfileContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [notification, setNotification] = useState<string | null>(null);
   const [isResetting, setIsResetting] = useState(false);
+  const [specificPosition, setSpecificPosition] = useState("");
 
   useEffect(() => {
     let isMounted = true;
@@ -87,10 +90,17 @@ function ProfileContent() {
     };
   }, [user]);
 
-  const handleRoleChange = (role: "Data Analyst" | "BI Analyst") => {
-    if (user?.targetRole === role) return;
-    updateUserTargetRole(role);
-    setNotification(`Target peran berhasil diperbarui menjadi ${role}.`);
+  const handleFieldChange = (fieldLabel: string) => {
+    updateUserTargetRole(fieldLabel);
+    setNotification(`Target bidang kerja berhasil diperbarui menjadi ${fieldLabel}.`);
+    setTimeout(() => setNotification(null), 3000);
+  };
+
+  const handleSpecificPositionSave = () => {
+    if (!specificPosition.trim()) return;
+    updateUserTargetRole(specificPosition.trim());
+    setNotification(`Target posisi berhasil disimpan: ${specificPosition.trim()}`);
+    setSpecificPosition("");
     setTimeout(() => setNotification(null), 3000);
   };
 
@@ -117,18 +127,54 @@ function ProfileContent() {
   };
 
   const isDemoAccount =
-    user?.email?.includes("demo") || user?.email === "juri@skillbridge.demo";
+    user?.email?.includes("demo") ||
+    user?.email?.includes("juri") ||
+    user?.email === "juri@skillbridge.demo" ||
+    user?.email === "juri@skillbridge.id";
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-          Profil Saya
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-500 mt-1">
-          Kelola data akun, preferensi peran kerja impian, dan status berkas CV aktifmu.
-        </p>
+      {/* Page Banner (Replaces dark hero) */}
+      <div className="page-banner rounded-3xl p-6 sm:p-8 relative overflow-hidden">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-sb-mist text-sb-navy font-extrabold text-xl flex items-center justify-center shadow-sm ring-1 ring-white/50 shrink-0">
+              {getUserInitials(user?.fullName)}
+            </div>
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-sb-navy">
+                  {user?.fullName || "Pengguna SkillBridge"}
+                </h1>
+                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-sb-mist-soft text-sb-blue border border-sb-border">
+                  {isAdmin ? "Administrator" : "Pelamar"}
+                </span>
+                {isDemoAccount && (
+                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-sb-good border border-emerald-200 flex items-center gap-1">
+                    <ShieldCheck className="w-3 h-3 text-sb-good" />
+                    Akun Demo Juri
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-sb-text-2">
+                <Mail className="w-3.5 h-3.5 text-sb-blue" />
+                <span className="font-mono-metric">{user?.email}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={logout}
+              leftIcon={<LogOut className="w-3.5 h-3.5 text-sb-critical" />}
+              className="text-xs"
+            >
+              Keluar Sesi
+            </Button>
+          </div>
+        </div>
       </div>
 
       {notification && (
@@ -146,123 +192,91 @@ function ProfileContent() {
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Card 1: Identitas Akun */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-extrabold text-xl flex items-center justify-center shadow-md shrink-0">
-                    {getUserInitials(user?.fullName)}
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="text-lg sm:text-xl font-bold text-slate-900">
-                        {user?.fullName || "Pengguna SkillBridge"}
-                      </h2>
-                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                        {isAdmin ? "Administrator" : "Pelamar"}
-                      </span>
-                      {isDemoAccount && (
-                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
-                          <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                          Akun Demo Juri
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                      <Mail className="w-3.5 h-3.5" />
-                      <span className="font-mono">{user?.email}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={logout}
-                    leftIcon={<LogOut className="w-3.5 h-3.5 text-rose-500" />}
-                    className="text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200"
-                  >
-                    Keluar Sesi
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Card 2: Preferensi Target Role (FR-01) */}
+          {/* Card: Target Bidang & Posisi Kerja */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
-                <Briefcase className="w-4 h-4 text-blue-600" />
-                Target Peran Kerja Utama
+                <Briefcase className="w-4 h-4 text-sb-blue" />
+                Target Bidang & Posisi Kerja
               </CardTitle>
               <CardDescription className="text-xs">
-                Pencocokan kualifikasi lowongan dan analisis tren skill pasar akan diselaraskan dengan target peran ini.
+                Pilih bidang kerja utama dan ketik posisi spesifik untuk rekomendasi lowongan yang relevan.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Opsi Data Analyst */}
-                <button
-                  type="button"
-                  onClick={() => handleRoleChange("Data Analyst")}
-                  className={`p-4 rounded-xl border-2 text-left transition-all ${
-                    user?.targetRole === "Data Analyst"
-                      ? "border-blue-600 bg-blue-50/50 shadow-xs"
-                      : "border-slate-200 hover:border-slate-300 bg-white"
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="font-bold text-sm text-slate-900">Data Analyst</span>
-                    {user?.targetRole === "Data Analyst" ? (
-                      <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                    ) : (
-                      <div className="w-4 h-4 rounded-full border border-slate-300" />
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Fokus pada ekstraksi data, SQL queries, analisis statistik, visualisasi data, dan pemecahan masalah bisnis berbasis data.
-                  </p>
-                </button>
+            <CardContent className="space-y-4">
+              {/* Field Selection Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {JOB_CATEGORIES.slice(0, 8).map((cat) => {
+                  const isSelected =
+                    (user?.targetRole || "").toLowerCase().includes(cat.label.toLowerCase()) ||
+                    (user?.targetRole || "").toLowerCase().includes(cat.slug);
 
-                {/* Opsi BI Analyst */}
-                <button
-                  type="button"
-                  onClick={() => handleRoleChange("BI Analyst")}
-                  className={`p-4 rounded-xl border-2 text-left transition-all ${
-                    user?.targetRole === "BI Analyst"
-                      ? "border-blue-600 bg-blue-50/50 shadow-xs"
-                      : "border-slate-200 hover:border-slate-300 bg-white"
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="font-bold text-sm text-slate-900">BI Analyst</span>
-                    {user?.targetRole === "BI Analyst" ? (
-                      <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                    ) : (
-                      <div className="w-4 h-4 rounded-full border border-slate-300" />
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Fokus pada data modeling, arsitektur dashboard, KPI monitoring, Power BI / Tableau, dan pelaporan strategis manajemen.
-                  </p>
-                </button>
+                  return (
+                    <button
+                      key={cat.slug}
+                      type="button"
+                      onClick={() => handleFieldChange(cat.label)}
+                      className={cn(
+                        "p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between",
+                        isSelected
+                          ? "border-sb-sky bg-sb-mist-soft shadow-2xs font-bold"
+                          : "border-sb-border hover:border-sb-blue/40 bg-white/70"
+                      )}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-bold text-sb-navy">{cat.label}</span>
+                        {isSelected ? (
+                          <CheckCircle2 className="w-3.5 h-3.5 text-sb-blue shrink-0" />
+                        ) : (
+                          <div className="w-3 h-3 rounded-full border border-sb-border" />
+                        )}
+                      </div>
+                      <p className="text-[11px] text-sb-text-2 line-clamp-1">{cat.examples}</p>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Specific Position Input */}
+              <div className="pt-2 border-t border-sb-border">
+                <label className="block text-xs font-bold text-sb-navy mb-1.5">
+                  Posisi Spesifik (Opsional)
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={specificPosition}
+                    onChange={(e) => setSpecificPosition(e.target.value)}
+                    placeholder={`cth. ${user?.targetRole || "UX Researcher, Data Scientist, Frontend Developer"}`}
+                    className="flex-1 h-10 px-3.5 rounded-xl border border-sb-border bg-white/80 text-xs font-semibold text-sb-navy focus:outline-none focus:ring-2 focus:ring-sb-blue"
+                  />
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={handleSpecificPositionSave}
+                    disabled={!specificPosition.trim()}
+                    className="text-xs"
+                  >
+                    Simpan Posisi
+                  </Button>
+                </div>
+                <p className="text-[11px] text-sb-text-2 mt-1.5">
+                  Target saat ini: <strong className="text-sb-navy font-semibold">{user?.targetRole || "Data & Analitik"}</strong>
+                </p>
               </div>
             </CardContent>
           </Card>
 
-          {/* Card 3: Status Berkas CV Aktif */}
+          {/* Card: Status Berkas CV Aktif */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <div>
                 <CardTitle className="text-base flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-blue-600" />
+                  <FileText className="w-4 h-4 text-sb-blue" />
                   Status Berkas CV Aktif
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  Ringkasan kualifikasi CV yang digunakan untuk menghitung skor kecocokan lowongan.
+                  Ringkasan kualifikasi CV yang digunakan untuk menghitung skor lowongan.
                 </CardDescription>
               </div>
               <Link href="/cv">
@@ -275,32 +289,33 @@ function ProfileContent() {
               {resume ? (
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Berkas Terunggah</span>
-                      <p className="text-xs font-bold text-slate-800 truncate mt-0.5">
-                        {resume.filename || "CV_Terverifikasi.pdf"}
+                    <div className="p-3 bg-white/70 border border-sb-border rounded-xl">
+                      <span className="text-xs font-bold uppercase tracking-wider text-sb-text-2">Berkas Terunggah</span>
+                      <p className="text-xs font-bold text-sb-navy truncate mt-0.5 flex items-center gap-1.5">
+                        <FileText className="w-3.5 h-3.5 text-sb-blue shrink-0" />
+                        <span className="truncate">{resume.filename || "CV_Aktif.pdf"}</span>
                       </p>
                     </div>
-                    <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Pendidikan Terakhir</span>
-                      <p className="text-xs font-bold text-slate-800 truncate mt-0.5 flex items-center gap-1.5">
-                        <GraduationCap className="w-3.5 h-3.5 text-blue-600" />
+                    <div className="p-3 bg-white/70 border border-sb-border rounded-xl">
+                      <span className="text-xs font-bold uppercase tracking-wider text-sb-text-2">Pendidikan Terakhir</span>
+                      <p className="text-xs font-bold text-sb-navy truncate mt-0.5 flex items-center gap-1.5">
+                        <GraduationCap className="w-3.5 h-3.5 text-sb-blue" />
                         {resume.education || "S1 Komputer / Terkait"}
                       </p>
                     </div>
-                    <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Keahlian Ditemukan</span>
-                      <p className="text-xs font-bold text-emerald-700 truncate mt-0.5 flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                    <div className="p-3 bg-white/70 border border-sb-border rounded-xl">
+                      <span className="text-xs font-bold uppercase tracking-wider text-sb-text-2">Total Keahlian Ditemukan</span>
+                      <p className="text-xs font-bold text-sb-good truncate mt-0.5 flex items-center gap-1.5 font-mono-metric">
+                        <Sparkles className="w-3.5 h-3.5 text-sb-good" />
                         {resume.skills?.length || 0} skill terdaftar
                       </p>
                     </div>
                   </div>
 
                   {resume.summary && (
-                    <div className="p-3 bg-blue-50/50 border border-blue-100 rounded-xl">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700">Ringkasan Profil CV</span>
-                      <p className="text-xs text-slate-700 mt-1 leading-relaxed">
+                    <div className="p-3 bg-sb-mist-soft border border-sb-border rounded-xl">
+                      <span className="text-xs font-bold uppercase tracking-wider text-sb-blue">Ringkasan Profil CV</span>
+                      <p className="text-xs text-sb-navy mt-1 leading-relaxed">
                         {resume.summary}
                       </p>
                     </div>
@@ -308,20 +323,20 @@ function ProfileContent() {
 
                   {resume.skills && resume.skills.length > 0 && (
                     <div>
-                      <span className="text-xs font-semibold text-slate-700 block mb-2">
+                      <span className="text-xs font-semibold text-sb-navy block mb-2">
                         Keahlian Inti yang Teridentifikasi:
                       </span>
                       <div className="flex flex-wrap gap-1.5">
                         {resume.skills.slice(0, 14).map((s) => (
                           <span
                             key={s}
-                            className="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200"
+                            className="px-2.5 py-1 rounded-full text-xs font-medium bg-white border border-sb-border text-sb-navy shadow-2xs"
                           >
                             {s}
                           </span>
                         ))}
                         {resume.skills.length > 14 && (
-                          <span className="px-2.5 py-1 rounded-lg text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-sb-mist-soft text-sb-blue border border-sb-border font-mono-metric">
                             +{resume.skills.length - 14} lainnya
                           </span>
                         )}
@@ -330,7 +345,7 @@ function ProfileContent() {
                   )}
                 </div>
               ) : (
-                <div className="py-6 text-center text-xs text-slate-500 border border-dashed rounded-xl border-slate-200 space-y-2">
+                <div className="py-8 text-center text-xs text-sb-text-2 border border-dashed rounded-2xl border-sb-border space-y-2 bg-white/40">
                   <p>Belum ada berkas CV yang dianalisis.</p>
                   <Link href="/cv">
                     <Button variant="primary" size="sm" className="text-xs">
@@ -342,79 +357,79 @@ function ProfileContent() {
             </CardContent>
           </Card>
 
-          {/* Card 4: Ringkasan Aktivitas & Tautan Cepat */}
+          {/* Card: Ringkasan Aktivitas & Tautan Cepat */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Link href="/progress" className="block group">
-              <Card className="h-full group-hover:border-blue-300 transition-colors">
+              <Card className="h-full group-hover:border-sb-blue/40 transition-all">
                 <CardContent className="p-4 flex items-center justify-between">
                   <div className="space-y-1">
-                    <span className="text-xs text-slate-500 flex items-center gap-1.5">
-                      <BookOpen className="w-3.5 h-3.5 text-blue-600" />
+                    <span className="text-xs text-sb-text-2 flex items-center gap-1.5">
+                      <BookOpen className="w-3.5 h-3.5 text-sb-blue" />
                       Rencana Belajar
                     </span>
-                    <p className="text-xl font-bold text-slate-900">{learningCount} Target</p>
+                    <p className="text-xl font-bold text-sb-navy font-mono-metric">{learningCount} Target</p>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
+                  <ArrowRight className="w-4 h-4 text-sb-text-2 group-hover:text-sb-blue group-hover:translate-x-1 transition-all" />
                 </CardContent>
               </Card>
             </Link>
 
             <Link href="/progress" className="block group">
-              <Card className="h-full group-hover:border-blue-300 transition-colors">
+              <Card className="h-full group-hover:border-sb-blue/40 transition-all">
                 <CardContent className="p-4 flex items-center justify-between">
                   <div className="space-y-1">
-                    <span className="text-xs text-slate-500 flex items-center gap-1.5">
-                      <Bookmark className="w-3.5 h-3.5 text-blue-600" />
+                    <span className="text-xs text-sb-text-2 flex items-center gap-1.5">
+                      <Bookmark className="w-3.5 h-3.5 text-sb-blue" />
                       Lowongan Tersimpan
                     </span>
-                    <p className="text-xl font-bold text-slate-900">{savedJobsCount} Lowongan</p>
+                    <p className="text-xl font-bold text-sb-navy font-mono-metric">{savedJobsCount} Lowongan</p>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
+                  <ArrowRight className="w-4 h-4 text-sb-text-2 group-hover:text-sb-blue group-hover:translate-x-1 transition-all" />
                 </CardContent>
               </Card>
             </Link>
 
             <Link href="/tracker" className="block group">
-              <Card className="h-full group-hover:border-blue-300 transition-colors">
+              <Card className="h-full group-hover:border-sb-blue/40 transition-all">
                 <CardContent className="p-4 flex items-center justify-between">
                   <div className="space-y-1">
-                    <span className="text-xs text-slate-500 flex items-center gap-1.5">
-                      <ClipboardList className="w-3.5 h-3.5 text-blue-600" />
-                      Pelacakan Lamaran
+                    <span className="text-xs text-sb-text-2 flex items-center gap-1.5">
+                      <ClipboardList className="w-3.5 h-3.5 text-sb-blue" />
+                      Lamaran Saya
                     </span>
-                    <p className="text-xs font-semibold text-blue-600 mt-1">Buka Pipeline</p>
+                    <p className="text-xs font-semibold text-sb-blue mt-1">Buka Pipeline</p>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
+                  <ArrowRight className="w-4 h-4 text-sb-text-2 group-hover:text-sb-blue group-hover:translate-x-1 transition-all" />
                 </CardContent>
               </Card>
             </Link>
           </div>
 
-          {/* Card 5: Opsi Khusus Akun Demo */}
+          {/* Card: Opsi Khusus Akun Demo */}
           {isDemoAccount && (
-            <Card className="border-amber-200 bg-amber-50/40">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-amber-900 flex items-center gap-2">
-                  <RotateCcw className="w-4 h-4 text-amber-700" />
+            <div className="glass-panel p-5 rounded-2xl border border-sb-warning/40 space-y-3">
+              <div className="space-y-1">
+                <h3 className="text-sm font-bold text-sb-navy flex items-center gap-2">
+                  <RotateCcw className="w-4 h-4 text-sb-warning" />
                   Mode Demo Juri Presentasi
-                </CardTitle>
-                <CardDescription className="text-xs text-amber-700">
+                </h3>
+                <p className="text-xs text-sb-text-2">
                   Kamu sedang menggunakan akun demo juri. Jika perlu mengatur ulang target belajar atau riwayat interaksi kembali ke keadaan bersih awal, gunakan tombol di bawah ini.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-2">
+                </p>
+              </div>
+              <div className="pt-1">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleResetDemo}
                   disabled={isResetting}
-                  className="text-xs border-amber-300 text-amber-900 hover:bg-amber-100/70"
+                  className="text-xs border-sb-warning/40 text-sb-navy hover:bg-sb-warning/10"
                 >
                   <RotateCcw className={`w-3.5 h-3.5 mr-1.5 ${isResetting ? "animate-spin" : ""}`} />
-                  {isResetting ? "Mereset data demo..." : "Reset Data Demo ke Awal"}
+                  {isResetting ? "Mereset akun demo..." : "Reset akun demo"}
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )}
         </div>
       )}

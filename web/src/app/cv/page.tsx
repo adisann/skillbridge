@@ -146,7 +146,7 @@ export default function CVPage() {
         setHasUnsavedDraft(true);
         setNotification({
           type: "info",
-          message: `CV Contoh '${data.candidateName}' (${preset === "match" ? "Kandidat Cocok" : "Kandidat Kurang Cocok"}) berhasil dimuat. Klik 'Simpan CV & Hitung Kecocokan' untuk menghitung skor kecocokan.`,
+          message: `CV Contoh '${data.candidateName}' (${preset === "match" ? "Kandidat Cocok" : "Kandidat Kurang Cocok"}) berhasil dimuat. Klik 'Simpan CV & Hitung Kecocokan' untuk memperbarui skor.`,
         });
       }
     } catch {
@@ -255,7 +255,7 @@ export default function CVPage() {
     runTask({
       type: "cv_save_match",
       title: "Sinkronisasi CV & Pencocokan Lowongan",
-      description: `Menyimpan ${skills.length} keahlian & menghitung skor kecocokan 42 lowongan...`,
+      description: `Menyimpan ${skills.length} keahlian & menghitung skor kecocokan lowongan...`,
       promise: async () => {
         setIsSaving(true);
         try {
@@ -269,7 +269,7 @@ export default function CVPage() {
           setHasUnsavedDraft(false);
           setNotification({
             type: "success",
-            message: `Berhasil disubmit! ${data.message} Seluruh transaksi basis data dan kalkulasi kecocokan 42 lowongan selesai diproses.`,
+            message: `Berhasil disubmit! ${data.message} Seluruh data profil dan kalkulasi kecocokan selesai diproses.`,
           });
           return data;
         } finally {
@@ -330,14 +330,30 @@ export default function CVPage() {
   return (
     <ProtectedRoute>
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            CV Saya
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Unggah berkas CV-mu atau pilih profil contoh untuk membandingkan kecocokan dengan lowongan target.
-          </p>
+        {/* Dark Hero Banner */}
+        <div className="page-banner rounded-3xl p-6 sm:p-8 text-sb-navy relative overflow-hidden">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="space-y-2 max-w-2xl">
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-sb-navy">
+                CV & Profil Keahlian
+              </h1>
+              <p className="text-sb-text-2 text-sm leading-relaxed">
+                Unggah berkas CV atau gunakan profil contoh untuk mengekstrak dan memverifikasi keterampilan kerjamu sebelum dianalisis kecocokannya.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="px-3.5 py-2 rounded-2xl bg-white/70 border border-sb-border text-xs text-sb-navy">
+                <span className="text-sb-text-2">Status CV: </span>
+                <strong className="text-sb-blue font-semibold">{currentResume.filename}</strong>
+              </div>
+              <Link href="/jobs">
+                <Button variant="secondary" size="sm" className="">
+                  Lihat Lowongan
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
 
         {notification && (
@@ -349,10 +365,10 @@ export default function CVPage() {
         )}
 
         {/* Skenario Contoh CV */}
-        <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/80 space-y-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-blue-900">
-            <FileCheck className="w-4 h-4 text-blue-600" />
-            Pilihan Profil Contoh untuk Perbandingan:
+        <div className="glass-panel p-5 rounded-2xl border border-sb-border space-y-3">
+          <div className="flex items-center gap-2 text-xs font-bold text-sb-blue">
+            <FileCheck className="w-4 h-4 text-sb-blue" />
+            <span>Pilihan Profil Contoh untuk Perbandingan Demo Juri:</span>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <Button
@@ -369,7 +385,7 @@ export default function CVPage() {
               onClick={() => handlePresetSelect("underqualified")}
               disabled={isLoading || isSaving}
             >
-              Kasus 2: Kandidat Underqualified (Rina — Fresh Graduate Excel Dasar)
+              Kasus 2: Kandidat Underqualified (Rina — Fresh Grad Excel Dasar)
             </Button>
           </div>
         </div>
@@ -379,24 +395,24 @@ export default function CVPage() {
           <CardHeader>
             <CardTitle>1. Unggah Dokumen CV Baru (PDF / DOCX)</CardTitle>
             <CardDescription>
-              Dokumen disimpan secara aman dan privat. Ukuran maksimal 5 MB.
+              Dokumen disimpan secara aman dan privat di cloud storage. Ukuran maksimal 5 MB.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Consent Checkbox */}
-            <label className="flex items-start gap-2.5 p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-700 cursor-pointer">
+            <label className="flex items-start gap-2.5 p-3.5 rounded-xl bg-sb-mist-soft border border-sb-border text-xs text-sb-navy cursor-pointer hover:bg-sb-mist-soft/80 transition-colors">
               <input
                 type="checkbox"
                 checked={consentGiven}
                 onChange={(e) => setConsentGiven(e.target.checked)}
-                className="mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                className="mt-0.5 rounded border-sb-border text-sb-blue focus:ring-sb-blue"
               />
               <span>
                 <strong>Persetujuan Privasi:</strong> Saya menyetujui dokumen CV ini diproses secara aman untuk ekstraksi keterampilan kerja dan pencocokan lowongan. Dokumen dapat dihapus permanen kapan saja.
               </span>
             </label>
 
-            <div className="border-2 border-dashed border-slate-300 hover:border-blue-400 rounded-xl p-6 text-center transition-colors">
+            <div className="border-2 border-dashed border-sb-border hover:border-sb-blue rounded-2xl p-6 sm:p-8 text-center transition-colors bg-white/40">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -412,13 +428,13 @@ export default function CVPage() {
                   !consentGiven ? "opacity-50 cursor-not-allowed" : ""
                 }`}
               >
-                <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mb-2">
+                <div className="w-12 h-12 rounded-full bg-sb-mist-soft text-sb-blue flex items-center justify-center mb-2.5 shadow-2xs border border-sb-border">
                   <UploadCloud className="w-6 h-6" />
                 </div>
-                <span className="text-sm font-bold text-slate-900">
+                <span className="text-sm font-bold text-sb-navy">
                   {isLoading ? "Sedang Mengunggah & Memproses Dokumen..." : "Klik untuk Memilih Dokumen CV"}
                 </span>
-                <span className="text-xs text-slate-500 mt-1">
+                <span className="text-xs text-sb-text-2 mt-1">
                   Format yang didukung: .PDF, .DOCX (Maksimal 5 MB)
                 </span>
               </label>
@@ -460,15 +476,15 @@ export default function CVPage() {
             <CardHeader>
               <CardTitle>Profil Hasil Ekstraksi (Pendidikan & Pengalaman)</CardTitle>
               <CardDescription>
-                File: <strong className="text-slate-800">{currentResume.filename}</strong> — Kamu dapat mengoreksi kualifikasi sebelum disimpan.
+                File: <strong className="text-sb-navy">{currentResume.filename}</strong> — Kamu dapat mengoreksi kualifikasi sebelum disimpan.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
                 {/* Editor Pendidikan */}
-                <div className="p-3.5 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-1.5">
-                  <label className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-                    <GraduationCap className="w-4 h-4 text-blue-600" />
+                <div className="p-3.5 rounded-xl border border-sb-border bg-white/70 shadow-2xs space-y-1.5">
+                  <label className="flex items-center gap-1.5 text-xs font-bold text-sb-navy">
+                    <GraduationCap className="w-4 h-4 text-sb-blue" />
                     Pendidikan Terakhir
                   </label>
                   <input
@@ -479,15 +495,15 @@ export default function CVPage() {
                       setHasUnsavedDraft(true);
                     }}
                     placeholder="cth. S1 Sains Data / Sarjana Komputer"
-                    className="w-full text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-slate-50/50"
+                    className="w-full text-xs font-semibold px-3 py-1.5 rounded-lg border border-sb-border focus:outline-none focus:ring-1 focus:ring-sb-blue bg-white text-sb-navy"
                   />
-                  <span className="text-[10px] text-slate-400 block">Koreksi jenjang pendidikan formalmu.</span>
+                  <span className="text-xs text-sb-text-2 block">Koreksi jenjang pendidikan formalmu.</span>
                 </div>
 
                 {/* Editor Pengalaman Kerja */}
-                <div className="p-3.5 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-1.5">
-                  <label className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-                    <Briefcase className="w-4 h-4 text-emerald-600" />
+                <div className="p-3.5 rounded-xl border border-sb-border bg-white/70 shadow-2xs space-y-1.5">
+                  <label className="flex items-center gap-1.5 text-xs font-bold text-sb-navy">
+                    <Briefcase className="w-4 h-4 text-sb-good" />
                     Pengalaman Kerja Relevan
                   </label>
                   <div className="flex items-center gap-2">
@@ -501,16 +517,16 @@ export default function CVPage() {
                         setCurrentResume((prev) => ({ ...prev, experienceYears: val }));
                         setHasUnsavedDraft(true);
                       }}
-                      className="w-24 text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-slate-50/50"
+                      className="w-24 text-xs font-semibold px-3 py-1.5 rounded-lg border border-sb-border focus:outline-none focus:ring-1 focus:ring-sb-blue bg-white font-mono-metric text-sb-navy"
                     />
-                    <span className="text-xs text-slate-600 font-semibold">Tahun Relevan</span>
+                    <span className="text-xs text-sb-text-2 font-semibold">Tahun Relevan</span>
                   </div>
-                  <span className="text-[10px] text-slate-400 block">Durasi kumulatif pengalaman di role target.</span>
+                  <span className="text-xs text-sb-text-2 block">Durasi kumulatif pengalaman di role target.</span>
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-500">Ringkasan Profil Dokumen:</label>
+                <label className="text-[11px] font-semibold text-sb-text-2">Ringkasan Profil Dokumen:</label>
                 <input
                   type="text"
                   value={currentResume.summary}
@@ -518,7 +534,7 @@ export default function CVPage() {
                     setCurrentResume((prev) => ({ ...prev, summary: e.target.value }));
                     setHasUnsavedDraft(true);
                   }}
-                  className="w-full text-xs text-slate-700 px-3 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-slate-50/50"
+                  className="w-full text-xs text-sb-navy px-3 py-1.5 rounded-lg border border-sb-border focus:outline-none focus:ring-1 focus:ring-sb-blue bg-white"
                   placeholder="Ringkasan kualifikasi singkat..."
                 />
               </div>
@@ -530,23 +546,23 @@ export default function CVPage() {
         <Card>
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex flex-wrap items-center gap-2">
                 <span>3. Tinjau & Koreksi Daftar Skill</span>
-                <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-100 text-blue-800">
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-sb-mist-soft text-sb-blue border border-sb-border font-mono-metric">
                   {skills.length} Skill Terdaftar
                 </span>
                 {hasUnsavedDraft ? (
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sb-warning/15 text-sb-warning border border-sb-warning/30">
                     Draft Baru (Belum Disubmit)
                   </span>
                 ) : (
-                  <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sb-good/10 text-sb-good border border-sb-good/30">
                     Tersimpan di Database
                   </span>
                 )}
               </CardTitle>
               <CardDescription>
-                Pengguna bebas mengoreksi hasil ekstraksi (menambah atau menghapus) sebelum match dihitung.
+                Pengguna bebas mengoreksi hasil ekstraksi (menambah atau menghapus) sebelum kecocokan dihitung.
               </CardDescription>
             </div>
             <Button
@@ -554,16 +570,16 @@ export default function CVPage() {
               size="sm"
               onClick={handleDeleteResume}
               leftIcon={<Trash2 className="w-3.5 h-3.5" />}
-              className="text-xs text-red-600 hover:bg-red-50 hover:border-red-200"
+              className="text-xs text-sb-critical hover:bg-sb-critical/10 hover:border-sb-critical/30"
             >
               Hapus CV Permanen
             </Button>
           </CardHeader>
           <CardContent className="space-y-5">
             {/* Skill Badges */}
-            <div className="flex flex-wrap items-center gap-2 min-h-12 p-3 rounded-lg border border-slate-200 bg-slate-50/50">
+            <div className="flex flex-wrap items-center gap-2 min-h-12 p-3.5 rounded-xl border border-sb-border bg-white/60">
               {skills.length === 0 ? (
-                <span className="text-xs text-slate-400 italic">
+                <span className="text-xs text-sb-text-2 italic">
                   Belum ada skill yang ditambahkan. Gunakan kolom input di bawah untuk menambahkan.
                 </span>
               ) : (
@@ -573,22 +589,22 @@ export default function CVPage() {
                     <span
                       key={s}
                       className={cn(
-                        "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold shadow-2xs transition-colors duration-150",
+                        "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold shadow-2xs transition-all",
                         isManual
-                          ? "border-amber-200 bg-amber-50/80 text-amber-900"
-                          : "border-slate-200 bg-white text-slate-800 hover:border-slate-300"
+                          ? "border-sb-warning/30 bg-sb-warning/10 text-sb-warning"
+                          : "border-sb-border bg-white/90 text-sb-navy hover:border-sb-blue"
                       )}
                     >
                       <span>{s}</span>
                       {isManual && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-200/80 text-amber-900">
+                        <span className="text-xs font-bold px-1.5 py-0.2 rounded-full bg-sb-warning/20 text-sb-warning">
                           Klaim Mandiri
                         </span>
                       )}
                       <button
                         type="button"
                         onClick={() => handleRemoveSkill(s)}
-                        className="text-slate-400 hover:text-red-600 p-0.5 rounded transition-colors"
+                        className="text-sb-text-2 hover:text-sb-critical p-0.5 rounded transition-colors"
                         title={`Hapus skill ${s}`}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -614,16 +630,16 @@ export default function CVPage() {
             </div>
           </CardContent>
 
-          <CardFooter className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50/80 rounded-b-xl border-t border-slate-200">
-            <span className="text-xs text-slate-500 flex items-center gap-1.5">
+          <CardFooter className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white/50 rounded-b-2xl border-t border-sb-border">
+            <span className="text-xs text-sb-text-2 flex items-center gap-1.5">
               {hasUnsavedDraft ? (
                 <>
-                  <AlertCircle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <AlertCircle className="w-3.5 h-3.5 text-sb-warning shrink-0" />
                   <span>Draft baru: Simpan CV untuk memperbarui kalkulasi kecocokan lowongan.</span>
                 </>
               ) : (
                 <>
-                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <Check className="w-3.5 h-3.5 text-sb-good shrink-0" />
                   <span>Profil dan kecocokan lowongan tersimpan.</span>
                 </>
               )}
@@ -660,3 +676,4 @@ export default function CVPage() {
     </ProtectedRoute>
   );
 }
+

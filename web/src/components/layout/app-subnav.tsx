@@ -48,7 +48,7 @@ export function AppSubnav() {
   const filteredItems = SUBNAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
 
   return (
-    <div className="w-full border-b border-slate-200/80 bg-white/80 backdrop-blur-md sticky top-16 z-30">
+    <div className="w-full border-b border-sb-border glass-header sticky top-18 z-30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-4 overflow-x-auto py-2.5 no-scrollbar">
           {/* Left: Tab items */}
@@ -65,21 +65,21 @@ export function AppSubnav() {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-150 shrink-0 select-none",
+                    "inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs transition-all duration-150 shrink-0 select-none",
                     isActive
-                      ? "bg-slate-900 text-white shadow-xs font-semibold"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
+                      ? "bg-sb-sky text-sb-navy shadow-xs font-bold"
+                      : "text-sb-text-2 hover:text-sb-navy hover:bg-white/70 font-semibold"
                   )}
                 >
                   <Icon
                     className={cn(
                       "w-3.5 h-3.5",
-                      isActive ? "text-slate-100" : "text-slate-400 group-hover:text-slate-700"
+                      isActive ? "text-sb-navy" : "text-sb-text-2"
                     )}
                   />
                   <span>{item.label}</span>
                   {item.badge && (
-                    <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-blue-100 text-blue-800 font-semibold">
+                    <span className="text-xs px-1.5 py-0.2 rounded-full bg-sb-mist-soft text-sb-blue font-bold">
                       {item.badge}
                     </span>
                   )}
@@ -89,10 +89,10 @@ export function AppSubnav() {
           </nav>
 
           {/* Right: Quick Target Role Pill */}
-          <div className="hidden md:flex items-center gap-2 text-xs text-slate-500 shrink-0">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100/90 text-slate-700 font-medium border border-slate-200/60">
-              <Target className="w-3 h-3 text-slate-600" />
-              Target: <strong className="text-slate-900">{user?.targetRole || "Semua Bidang"}</strong>
+          <div className="hidden md:flex items-center gap-2 text-xs text-sb-text-2 shrink-0">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/70 text-sb-navy font-semibold border border-sb-border">
+              <Target className="w-3.5 h-3.5 text-sb-blue" />
+              Target: <strong className="text-sb-blue">{user?.targetRole || "Semua Bidang"}</strong>
             </span>
           </div>
         </div>

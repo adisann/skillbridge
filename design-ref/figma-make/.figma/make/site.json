@@ -1,0 +1,10 @@
+{
+  "description": "A polished, easy-to-navigate website designed to help people of all ages find information and complete tasks with confidence.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

@@ -47,19 +47,19 @@ function EditJobModalForm({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-      <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+      <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-sb-border">
+        <div className="flex items-center justify-between border-b border-sb-border pb-3">
           <div>
-            <h3 className="text-base font-bold text-slate-900">Perbarui Detail Pelacakan</h3>
-            <p className="text-xs text-slate-500">
+            <h3 className="text-base font-bold text-sb-navy">Perbarui Detail Pelacakan</h3>
+            <p className="text-xs text-sb-text-2">
               {formData.title} • {formData.company}
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-1 rounded-md cursor-pointer"
+            className="text-sb-text-2 hover:text-sb-navy p-1 rounded-md cursor-pointer"
             aria-label="Tutup"
           >
             <X className="w-4 h-4" />
@@ -69,11 +69,11 @@ function EditJobModalForm({
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           {/* Stage */}
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">Tahapan Lamaran</label>
+            <label className="block font-semibold text-sb-navy mb-1">Tahapan Lamaran</label>
             <select
               value={formData.stage}
               onChange={(e) => setFormData({ ...formData, stage: e.target.value as JobStage })}
-              className="w-full py-2 px-3 rounded-xl border border-slate-300 text-xs font-bold text-slate-800 focus:outline-hidden"
+              className="w-full py-2 px-3 rounded-xl border border-sb-border text-xs font-bold text-sb-navy focus:outline-hidden"
             >
               <option value="bookmarked">Tersimpan (Wishlist)</option>
               <option value="applying">Sedang Menyiapkan Berkas</option>
@@ -87,7 +87,7 @@ function EditJobModalForm({
 
           {/* Priority */}
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">
+            <label className="block font-semibold text-sb-navy mb-1">
               Prioritas (1–5 bintang)
             </label>
             <div className="flex items-center gap-3">
@@ -96,7 +96,7 @@ function EditJobModalForm({
                 onChange={(val) => setFormData({ ...formData, priority: val })}
                 size="lg"
               />
-              <span className="text-xs font-bold text-slate-700">
+              <span className="text-xs font-bold text-sb-navy">
                 {formData.priority === 5
                   ? "Pilihan utama (5 bintang)"
                   : formData.priority === 4
@@ -142,7 +142,7 @@ function EditJobModalForm({
             placeholder="Catatan persiapan wawancara, nama recruiter, poin keunggulan CV-mu..."
           />
 
-          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-200">
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-sb-border">
             <Button variant="outline" size="sm" type="button" onClick={onClose}>
               Batal
             </Button>
@@ -219,14 +219,14 @@ export function AddJobModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-      <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-          <h3 className="text-base font-bold text-slate-900">Tambah Lowongan Target</h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+      <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-sb-border">
+        <div className="flex items-center justify-between border-b border-sb-border pb-3">
+          <h3 className="text-base font-bold text-sb-navy">Tambah Lowongan Target</h3>
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-1 rounded-md cursor-pointer"
+            className="text-sb-text-2 hover:text-sb-navy p-1 rounded-md cursor-pointer"
             aria-label="Tutup"
           >
             <X className="w-4 h-4" />
@@ -255,11 +255,11 @@ export function AddJobModal({
           {!selectedCatalogJobId && (
             <>
               <div className="relative flex py-1 items-center">
-                <div className="flex-grow border-t border-slate-200" />
-                <span className="shrink-0 px-2 text-[10px] text-slate-400 font-medium">
+                <div className="flex-grow border-t border-sb-border" />
+                <span className="shrink-0 px-2 text-xs text-sb-text-2 font-medium">
                   atau isi manual
                 </span>
-                <div className="flex-grow border-t border-slate-200" />
+                <div className="flex-grow border-t border-sb-border" />
               </div>
 
               <TextInput
@@ -287,11 +287,11 @@ export function AddJobModal({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Tahapan awal</label>
+              <label className="block font-semibold text-sb-navy mb-1">Tahapan awal</label>
               <select
                 value={manualStage}
                 onChange={(e) => setManualStage(e.target.value as JobStage)}
-                className="w-full py-2 px-3 rounded-xl border border-slate-300 text-xs font-semibold text-slate-800 focus:outline-hidden"
+                className="w-full py-2 px-3 rounded-xl border border-sb-border text-xs font-semibold text-sb-navy focus:outline-hidden"
               >
                 <option value="bookmarked">Tersimpan</option>
                 <option value="applying">Siapkan Berkas</option>
@@ -301,7 +301,7 @@ export function AddJobModal({
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Prioritas</label>
+              <label className="block font-semibold text-sb-navy mb-1">Prioritas</label>
               <div className="pt-1.5">
                 <PriorityStars
                   value={manualPriority}
@@ -319,7 +319,7 @@ export function AddJobModal({
             placeholder="Contoh: Rp 12 juta – Rp 16 juta"
           />
 
-          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-200">
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-sb-border">
             <Button variant="outline" size="sm" type="button" onClick={onClose}>
               Batal
             </Button>

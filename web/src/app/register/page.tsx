@@ -43,10 +43,10 @@ export default function RegisterPage() {
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
           <SkillBridgeLogo size="lg" />
-          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight pt-2">
+          <h2 className="text-2xl font-extrabold text-sb-navy tracking-tight pt-2">
             Daftar Akun Baru
           </h2>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-sb-text-2">
             Buat akun untuk menyimpan CV dan menganalisis kesesuaian pasar kerja
           </p>
         </div>
@@ -59,7 +59,7 @@ export default function RegisterPage() {
           />
         )}
 
-        <Card className="border-slate-200 shadow-md">
+        <Card className="border-sb-border shadow-md">
           <CardHeader>
             <CardTitle>Registrasi Pelamar</CardTitle>
             <CardDescription>
@@ -117,9 +117,9 @@ export default function RegisterPage() {
             </form>
           </CardContent>
 
-          <CardFooter className="justify-center text-xs text-slate-500">
+          <CardFooter className="justify-center text-xs text-sb-text-2">
             Sudah memiliki akun?{" "}
-            <Link href="/login" className="ml-1 font-semibold text-blue-600 hover:underline">
+            <Link href="/login" className="ml-1 font-semibold text-sb-blue hover:underline">
               Masuk
             </Link>
           </CardFooter>

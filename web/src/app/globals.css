@@ -1,15 +1,61 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  /* Palet utama */
+  --sb-navy:  #1B365D;  /* judul & teks utama, ikon kuat — BUKAN latar */
+  --sb-blue:  #005A9C;  /* aksen teks, link, ikon, status aktif, ring fokus — BUKAN latar */
+  --sb-sky:   #60C1E5;  /* latar tombol primary, bar grafik, cincin skor, kotak piksel */
+  --sb-mist:  #A0E0EF;  /* chip, border aktif, orb latar, track grafik */
+
+  /* Turunan (boleh sebagai latar) */
+  --sb-sky-hover:  #7FCDEA;                     /* hover tombol primary */
+  --sb-mist-soft:  rgba(160, 224, 239, 0.28);  /* latar section, chip lembut */
+  --sb-mist-faint: rgba(160, 224, 239, 0.14);  /* latar halaman di atas putih */
+  --sb-border:     rgba(0, 90, 156, 0.14);     /* border kartu & divider */
+
+  /* Teks */
+  --sb-text:   var(--sb-navy);                 /* teks utama */
+  --sb-text-2: rgba(27, 54, 93, 0.72);         /* teks sekunder: navy transparan, kontras ~5:1, BUKAN abu */
+
+  --sb-white: #FFFFFF;
+  --sb-black: #0A0A0A;                          /* opsional, sangat jarang */
+
+  /* Kaca */
+  --sb-glass-bg:        rgba(255, 255, 255, 0.66);
+  --sb-glass-bg-strong: rgba(255, 255, 255, 0.86);
+  --sb-glass-border:    var(--sb-border);
+  --sb-glass-shadow:    0 1px 2px rgba(27, 54, 93, 0.05), 0 18px 48px -16px rgba(0, 90, 156, 0.18);
+  --sb-glass-blur:      18px;
+
+  /* Status */
+  --sb-good:     #15803D;
+  --sb-warning:  #B45309;
+  --sb-critical: #B91C1C;
+
+  --background: #FFFFFF;
+  --foreground: var(--sb-text);
 }
 
 @theme inline {
+  --color-sb-navy: var(--sb-navy);
+  --color-sb-blue: var(--sb-blue);
+  --color-sb-sky: var(--sb-sky);
+  --color-sb-mist: var(--sb-mist);
+  --color-sb-sky-hover: var(--sb-sky-hover);
+  --color-sb-mist-soft: var(--sb-mist-soft);
+  --color-sb-mist-faint: var(--sb-mist-faint);
+  --color-sb-border: var(--sb-border);
+  --color-sb-text: var(--sb-text);
+  --color-sb-text-2: var(--sb-text-2);
+  --color-sb-white: var(--sb-white);
+  --color-sb-black: var(--sb-black);
+  --color-sb-good: var(--sb-good);
+  --color-sb-warning: var(--sb-warning);
+  --color-sb-critical: var(--sb-critical);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
 }
 
 html {
@@ -17,19 +63,143 @@ html {
 }
 
 body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  background-color: #FFFFFF;
+  color: var(--sb-text);
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Professional Animations & Transitions                                      */
-/* -------------------------------------------------------------------------- */
+/* Background Radial Orbs for Real Glass Depth */
+.bg-radial-orbs {
+  background-color: #FFFFFF;
+  background-image:
+    radial-gradient(circle at 10% 8%, rgba(160, 224, 239, 0.45), transparent 32rem),
+    radial-gradient(circle at 92% 16%, rgba(96, 193, 229, 0.30), transparent 36rem),
+    radial-gradient(circle at 45% 88%, rgba(160, 224, 239, 0.40), transparent 30rem),
+    linear-gradient(180deg, #FFFFFF 0%, var(--sb-mist-faint) 45%, #FFFFFF 100%);
+  background-attachment: fixed;
+}
 
-@keyframes fadeInUp {
+/* Typography & Metric Monospace */
+.font-mono-metric {
+  font-family: var(--font-mono), "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Heading line balance for clean mobile wrapping */
+h1, h2, h3 {
+  text-wrap: balance;
+}
+
+/* Thin Scrollbar for Panels */
+.sb-panel-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--sb-mist) transparent;
+}
+.sb-panel-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.sb-panel-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sb-panel-scroll::-webkit-scrollbar-thumb {
+  background-color: var(--sb-mist);
+  border-radius: 9999px;
+}
+
+/* Glassmorphism Classes */
+.glass,
+.glass-panel {
+  background: var(--sb-glass-bg);
+  border: 1px solid var(--sb-glass-border);
+  box-shadow:
+    var(--sb-glass-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(var(--sb-glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--sb-glass-blur)) saturate(140%);
+  border-radius: 20px;
+}
+
+.glass-header {
+  background: var(--sb-glass-bg-strong);
+  border-color: var(--sb-glass-border);
+  box-shadow: 0 10px 30px -10px rgba(0, 90, 156, 0.10);
+  backdrop-filter: blur(20px) saturate(145%);
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
+}
+
+.glass-soft {
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid var(--sb-border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 16px;
+}
+
+/* Page Banner: Replaces old dark .page-hero */
+.page-banner {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--sb-mist-soft) 0%, var(--sb-mist-faint) 55%, #FFFFFF 100%);
+  border: 1px solid var(--sb-border);
+  box-shadow: 0 10px 30px -10px rgba(0, 90, 156, 0.08);
+  border-radius: 24px;
+}
+
+/* Link with Sky Blue Underline */
+a.sb-link {
+  color: var(--sb-blue);
+  text-decoration: underline;
+  text-decoration-color: var(--sb-sky);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 150ms ease;
+}
+a.sb-link:hover {
+  text-decoration-color: var(--sb-blue);
+}
+
+/* Buttons */
+.gradient-button {
+  color: var(--sb-navy);
+  background-color: var(--sb-sky);
+  box-shadow: 0 4px 14px -2px rgba(0, 90, 156, 0.20);
+  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+  font-weight: 700;
+}
+
+.gradient-button:hover {
+  background-color: var(--sb-sky-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px -2px rgba(0, 90, 156, 0.28);
+}
+
+.gradient-button:active {
+  transform: scale(0.98);
+}
+
+/* Card Hover Micro-interaction */
+.lift-card {
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.lift-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(0, 90, 156, 0.24);
+  box-shadow: 0 20px 45px -10px rgba(0, 90, 156, 0.12);
+}
+
+/* Animations & Transitions */
+.page-transition {
+  animation: page-in 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes page-in {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -37,48 +207,125 @@ body {
   }
 }
 
-@keyframes fadeIn {
+@keyframes fadeInUp {
   from {
     opacity: 0;
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: fadeInUp 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.animate-fade-in {
-  animation: fadeIn 250ms cubic-bezier(0.16, 1, 0.3, 1) both;
+/* Floating cards animation */
+@keyframes sb-float {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(0, var(--float-y, -10px), 0) rotate(var(--float-r, 0.4deg));
+  }
 }
 
-.animate-page-enter {
-  animation: fadeIn 150ms cubic-bezier(0.16, 1, 0.3, 1) both;
+.sb-float {
+  animation: sb-float var(--float-dur, 6s) ease-in-out infinite;
+  animation-delay: var(--float-delay, 0s);
+  will-change: transform;
 }
 
-/* Stagger delays for entrance */
-.stagger-1 { animation-delay: 50ms; }
-.stagger-2 { animation-delay: 100ms; }
-.stagger-3 { animation-delay: 150ms; }
-.stagger-4 { animation-delay: 200ms; }
-.stagger-5 { animation-delay: 250ms; }
-.stagger-6 { animation-delay: 300ms; }
-
-/* Bento card hover micro-interaction */
-.bento-card {
-  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1), border-color 200ms ease;
+/* Rising pixel arrow animation */
+@keyframes sb-rise {
+  0% {
+    transform: translate3d(0, 60px, 0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(0, -140px, 0);
+    opacity: 0;
+  }
 }
 
-.bento-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05);
+.sb-arrow {
+  animation: sb-rise 7s linear infinite;
+  will-change: transform, opacity;
 }
 
-/* Respect prefers-reduced-motion: disable movement, keep simple fade, exclude loading spinners */
+/* Pixel box pulse */
+@keyframes sb-box-pulse {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.sb-box-pulse {
+  animation: sb-box-pulse 2.4s ease-in-out infinite;
+}
+
+/* Paused state when hero off-screen */
+.hero-paused .sb-float,
+.hero-paused .sb-arrow,
+.hero-paused .sb-box-pulse {
+  animation-play-state: paused !important;
+}
+
+/* Small screens reduced motion */
+@media (max-width: 767px) {
+  .sb-float {
+    --float-y: -5px !important;
+  }
+}
+
+/* Form input focus styles */
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--sb-blue) !important;
+  box-shadow: 0 0 0 2px rgba(0, 90, 156, 0.25) !important;
+  outline: none !important;
+}
+
+/* Scroll reveal helper: opacity-0 only active when html has .js-ready */
+html.js-ready .reveal-item {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 350ms cubic-bezier(0.16, 1, 0.3, 1), transform 350ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+html.js-ready .reveal-item.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Fallback for browsers without backdrop-filter support */
+@supports not (backdrop-filter: blur(1px)) {
+  .glass,
+  .glass-panel {
+    background: var(--sb-glass-bg-strong);
+  }
+  .glass-header {
+    background: #FFFFFF;
+  }
+  .glass-soft {
+    background: var(--sb-mist-faint);
+  }
+}
+
+/* Respect prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
-  *:not(.animate-spin),
+  *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
@@ -87,16 +334,20 @@ body {
     scroll-behavior: auto !important;
   }
 
-  .animate-spin {
-    animation: spin 1s linear infinite !important;
-  }
-
-  .animate-fade-in-up {
-    animation: fadeIn 150ms ease both !important;
+  .sb-float,
+  .sb-arrow,
+  .sb-box-pulse {
+    animation: none !important;
     transform: none !important;
   }
 
-  .bento-card:hover {
+  .lift-card:hover,
+  .gradient-button:hover,
+  .gradient-button:active {
+    transform: none !important;
+  }
+
+  .parallax-layer {
     transform: none !important;
   }
 }

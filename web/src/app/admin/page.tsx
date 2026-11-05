@@ -669,13 +669,13 @@ export default function AdminPage() {
     {
       key: "source_name",
       header: "Sumber Data",
-      render: (row) => <span className="font-mono font-bold text-slate-900">{row.source_name}</span>,
+      render: (row) => <span className="font-mono font-bold text-sb-navy">{row.source_name}</span>,
     },
     {
       key: "retrieval_method",
       header: "Metode",
       render: (row) => (
-        <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+        <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-sb-mist-soft text-sb-navy">
           {row.retrieval_method}
         </span>
       ),
@@ -684,8 +684,8 @@ export default function AdminPage() {
       key: "status",
       header: "Status",
       render: (row) => (
-        <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+        <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-sb-good/10 text-sb-good border border-sb-good/30">
+          <CheckCircle2 className="w-3 h-3 text-sb-good" />
           {row.status}
         </span>
       ),
@@ -695,7 +695,7 @@ export default function AdminPage() {
       header: "Hasil (Fetch / Insert / Duplikat)",
       render: (row) => (
         <span className="font-mono text-xs">
-          {row.fetched_count} ambil / <strong className="text-emerald-600">{row.inserted_count} baru</strong> /{" "}
+          {row.fetched_count} ambil / <strong className="text-sb-good">{row.inserted_count} baru</strong> /{" "}
           <span className="text-amber-600">{row.duplicate_count} lewati</span>
         </span>
       ),
@@ -704,7 +704,7 @@ export default function AdminPage() {
       key: "created_at",
       header: "Waktu Eksekusi",
       render: (row) => (
-        <span className="text-slate-500 font-mono text-xs">
+        <span className="text-sb-text-2 font-mono text-xs">
           {new Date(row.created_at).toLocaleString("id-ID")}
         </span>
       ),
@@ -717,10 +717,10 @@ export default function AdminPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-sb-navy tracking-tight">
               Dashboard Admin Import & Monitoring
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            <p className="text-xs sm:text-sm text-sb-text-2 mt-1">
               Kelola katalog lowongan manual, taksonomi normalisasi skill, dan pantau log audit riwayat worker_runs.
             </p>
           </div>
@@ -729,7 +729,7 @@ export default function AdminPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowUrlModal(true)}
-              leftIcon={<Link2 className="w-3.5 h-3.5 text-blue-600" />}
+              leftIcon={<Link2 className="w-3.5 h-3.5 text-sb-blue" />}
             >
               Impor via Tautan (URL)
             </Button>
@@ -737,7 +737,7 @@ export default function AdminPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowOcrModal(true)}
-              leftIcon={<ScanText className="w-3.5 h-3.5 text-emerald-600" />}
+              leftIcon={<ScanText className="w-3.5 h-3.5 text-sb-blue" />}
             >
               Impor via OCR (Flyer)
             </Button>
@@ -757,8 +757,8 @@ export default function AdminPage() {
                 className="hidden"
                 disabled={isSubmitting}
               />
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 shadow-2xs transition-colors">
-                <UploadCloud className="w-3.5 h-3.5 text-slate-500" />
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-sb-border bg-white hover:bg-sb-mist-soft text-xs font-semibold text-sb-navy shadow-2xs transition-colors">
+                <UploadCloud className="w-3.5 h-3.5 text-sb-text-2" />
                 CSV
               </span>
             </label>
@@ -774,14 +774,14 @@ export default function AdminPage() {
         )}
 
         {/* Tab Navigation */}
-        <div className="flex items-center gap-2 border-b border-slate-200">
+        <div className="flex items-center gap-2 border-b border-sb-border">
           <button
             type="button"
             onClick={() => setActiveTab("jobs")}
             className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-colors duration-150 ${
               activeTab === "jobs"
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-slate-500 hover:text-slate-800"
+                ? "border-sb-blue text-sb-blue"
+                : "border-transparent text-sb-text-2 hover:text-sb-navy"
             }`}
           >
             <Database className="w-4 h-4" />
@@ -792,8 +792,8 @@ export default function AdminPage() {
             onClick={() => setActiveTab("skills")}
             className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-colors duration-150 ${
               activeTab === "skills"
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-slate-500 hover:text-slate-800"
+                ? "border-sb-blue text-sb-blue"
+                : "border-transparent text-sb-text-2 hover:text-sb-navy"
             }`}
           >
             <Layers className="w-4 h-4" />
@@ -804,8 +804,8 @@ export default function AdminPage() {
             onClick={() => setActiveTab("runs")}
             className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-colors duration-150 ${
               activeTab === "runs"
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-slate-500 hover:text-slate-800"
+                ? "border-sb-blue text-sb-blue"
+                : "border-transparent text-sb-text-2 hover:text-sb-navy"
             }`}
           >
             <History className="w-4 h-4" />
@@ -828,13 +828,13 @@ export default function AdminPage() {
                       <CardHeader className="pb-2">
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-semibold">
+                            <span className="text-xs font-mono px-2 py-0.5 rounded bg-sb-mist-faint text-sb-navy font-semibold">
                               {job.sourceName}
                             </span>
-                            <CardTitle className="text-base font-bold text-slate-900 mt-1 line-clamp-1">
+                            <CardTitle className="text-base font-bold text-sb-navy mt-1 line-clamp-1">
                               {job.title}
                             </CardTitle>
-                            <CardDescription className="text-xs text-slate-500">
+                            <CardDescription className="text-xs text-sb-text-2">
                               {job.company} • {job.location}
                             </CardDescription>
                           </div>
@@ -843,21 +843,21 @@ export default function AdminPage() {
                       <CardContent className="space-y-3 pb-3">
                         <div className="flex flex-wrap gap-1">
                           {(job.requiredSkills || []).slice(0, 4).map((s) => (
-                            <span key={s} className="px-2 py-0.5 rounded bg-slate-100 text-[10px] text-slate-700 font-medium">
+                            <span key={s} className="px-2 py-0.5 rounded bg-sb-mist-soft text-xs text-sb-navy font-medium">
                               {s}
                             </span>
                           ))}
                         </div>
                       </CardContent>
-                      <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-200/80 flex items-center justify-between text-xs rounded-b-xl">
-                        <span className="text-slate-400 font-mono text-[11px]">{job.canonicalTitle}</span>
+                      <div className="px-4 py-2.5 bg-sb-mist-soft border-t border-sb-border flex items-center justify-between text-xs rounded-b-xl">
+                        <span className="text-sb-text-2 font-mono text-[11px]">{job.canonicalTitle}</span>
                         <div className="flex items-center gap-1">
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleOpenEdit(job)}
                             leftIcon={<Pencil className="w-3.5 h-3.5" />}
-                            className="text-xs text-slate-600 hover:text-blue-600 px-2 py-1 h-auto"
+                            className="text-xs text-sb-text-2 hover:text-sb-blue px-2 py-1 h-auto"
                           >
                             Edit
                           </Button>
@@ -866,7 +866,7 @@ export default function AdminPage() {
                             size="sm"
                             onClick={() => handleDuplicateJob(job)}
                             leftIcon={<Copy className="w-3.5 h-3.5" />}
-                            className="text-xs text-slate-600 hover:text-blue-600 px-2 py-1 h-auto"
+                            className="text-xs text-sb-text-2 hover:text-sb-blue px-2 py-1 h-auto"
                           >
                             Duplikasi
                           </Button>
@@ -966,22 +966,22 @@ export default function AdminPage() {
                     </CardHeader>
                     <CardContent className="max-h-96 overflow-y-auto space-y-2">
                       {skills.map((s) => (
-                        <div key={s.id} className="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-1.5">
+                        <div key={s.id} className="p-3 rounded-xl border border-sb-border bg-sb-mist-soft space-y-1.5">
                           <div className="flex items-center justify-between text-xs">
-                            <strong className="text-slate-900 font-bold">{s.name}</strong>
-                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-600">
+                            <strong className="text-sb-navy font-bold">{s.name}</strong>
+                            <span className="text-xs font-mono px-2 py-0.5 rounded bg-white border border-sb-border text-sb-text-2">
                               {s.category}
                             </span>
                           </div>
                           <div className="flex flex-wrap gap-1">
                             {s.skill_aliases && s.skill_aliases.length > 0 ? (
                               s.skill_aliases.map((a) => (
-                                <span key={a.id} className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                                <span key={a.id} className="text-xs font-mono px-1.5 py-0.5 rounded bg-sb-mist-faint text-sb-navy border border-sb-border">
                                   {a.alias}
                                 </span>
                               ))
                             ) : (
-                              <span className="text-[10px] text-slate-400 italic">Belum ada alias terdaftar</span>
+                              <span className="text-xs text-sb-text-2 italic">Belum ada alias terdaftar</span>
                             )}
                           </div>
                         </div>
@@ -995,12 +995,12 @@ export default function AdminPage() {
                     </CardHeader>
                     <CardContent className="space-y-3">
                       {sources.map((src) => (
-                        <div key={src.id} className="p-3 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-between text-xs">
+                        <div key={src.id} className="p-3 rounded-lg border border-sb-border bg-sb-mist-soft flex items-center justify-between text-xs">
                           <div>
-                            <strong className="font-mono text-slate-900 block">{src.name}</strong>
-                            <span className="text-slate-500 font-mono text-[11px]">{src.base_url}</span>
+                            <strong className="font-mono text-sb-navy block">{src.name}</strong>
+                            <span className="text-sb-text-2 font-mono text-[11px]">{src.base_url}</span>
                           </div>
-                          <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sb-good/10 text-sb-good border border-sb-good/30">
                             Aktif
                           </span>
                         </div>
@@ -1019,7 +1019,7 @@ export default function AdminPage() {
                   <CardHeader>
                     <CardTitle>Pemicu Sinkronisasi Worker (GitHub Actions & Live Crawler)</CardTitle>
                     <CardDescription>
-                      Pipeline otomatis terjadwal via GitHub Actions (<code className="font-mono text-[11px] bg-slate-100 px-1 py-0.5 rounded">.github/workflows/worker.yml</code>) setiap hari pukul 02:00 UTC dan mendukung pemicu manual <code className="font-mono text-[11px] bg-slate-100 px-1 py-0.5 rounded">workflow_dispatch</code>. Kamu juga dapat memicu sinkronisasi langsung di bawah ini untuk pengujian data.
+                      Pipeline otomatis terjadwal via GitHub Actions (<code className="font-mono text-[11px] bg-sb-mist-soft px-1 py-0.5 rounded">.github/workflows/worker.yml</code>) setiap hari pukul 02:00 UTC dan mendukung pemicu manual <code className="font-mono text-[11px] bg-sb-mist-soft px-1 py-0.5 rounded">workflow_dispatch</code>. Kamu juga dapat memicu sinkronisasi langsung di bawah ini untuk pengujian data.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -1069,7 +1069,7 @@ export default function AdminPage() {
                   <CardHeader>
                     <CardTitle>Log Audit Riwayat Eksekusi (worker_runs)</CardTitle>
                     <CardDescription>
-                      Mencatat transparansi data crawler: jumlah fetch, data baru, deduplikasi, dan isolasi error.
+                      Mencatat data riwayat crawler: jumlah fetch, data baru, deduplikasi, dan isolasi error.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -1083,14 +1083,14 @@ export default function AdminPage() {
 
         {/* Modal Tambah Lowongan */}
         {showAddModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
             <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                <h3 className="text-lg font-bold text-slate-900">Tambah Lowongan Manual (Pipeline Processing)</h3>
+              <div className="flex items-center justify-between border-b border-sb-border pb-3">
+                <h3 className="text-lg font-bold text-sb-navy">Tambah Lowongan Manual (Pipeline Processing)</h3>
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="text-slate-400 hover:text-slate-600 p-1 rounded-md"
+                  className="text-sb-text-2 hover:text-sb-navy p-1 rounded-md"
                   aria-label="Tutup"
                 >
                   <X className="w-4 h-4" />
@@ -1185,7 +1185,7 @@ export default function AdminPage() {
                     onChange={(e) => setFormSourceUrl(e.target.value)}
                     placeholder="https://... (Kosongkan jika dari flyer fisik/poster)"
                   />
-                  <p className="mt-1 text-[11px] text-slate-400">
+                  <p className="mt-1 text-[11px] text-sb-text-2">
                     Biarkan kosong jika lowongan berasal dari poster / flyer cetak tanpa tautan web.
                   </p>
                 </div>
@@ -1199,7 +1199,7 @@ export default function AdminPage() {
                   required
                 />
 
-                <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-sb-border">
                   <Button variant="outline" size="sm" type="button" onClick={() => setShowAddModal(false)}>
                     Batal
                   </Button>
@@ -1214,16 +1214,16 @@ export default function AdminPage() {
 
         {/* Modal Impor via Tautan (URL) */}
         {showUrlModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
             <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div className="flex items-center justify-between border-b border-sb-border pb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-lg bg-sb-mist-faint text-sb-blue flex items-center justify-center">
                     <Link2 className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-slate-900">Impor Lowongan via Tautan (URL)</h3>
-                    <p className="text-xs text-slate-500">AI Scraper & Structured Extractor</p>
+                    <h3 className="text-base font-bold text-sb-navy">Impor Lowongan via Tautan (URL)</h3>
+                    <p className="text-xs text-sb-text-2">AI Scraper & Structured Extractor</p>
                   </div>
                 </div>
                 <button
@@ -1232,7 +1232,7 @@ export default function AdminPage() {
                     setShowUrlModal(false);
                     setUrlError(null);
                   }}
-                  className="text-slate-400 hover:text-slate-600 p-1 rounded-md"
+                  className="text-sb-text-2 hover:text-sb-navy p-1 rounded-md"
                   aria-label="Tutup"
                 >
                   <X className="w-4 h-4" />
@@ -1249,7 +1249,7 @@ export default function AdminPage() {
                     required
                     disabled={isExtractingUrl}
                   />
-                  <p className="text-[11px] text-slate-500 mt-1">
+                  <p className="text-[11px] text-sb-text-2 mt-1">
                     Mendukung link dari Greenhouse, Lever, LinkedIn, JobStreet, atau situs karir perusahaan resmi.
                   </p>
                 </div>
@@ -1262,33 +1262,33 @@ export default function AdminPage() {
 
                 {/* Contoh Tautan Siap Uji Demo */}
                 <div className="space-y-1.5 pt-1">
-                  <span className="text-[11px] font-semibold text-slate-600">Contoh Tautan Siap Uji Demo:</span>
+                  <span className="text-[11px] font-semibold text-sb-text-2">Contoh Tautan Siap Uji Demo:</span>
                   <div className="flex flex-col gap-1 text-[11px]">
                     <button
                       type="button"
                       onClick={() => setInputUrl("https://boards.greenhouse.io/cloudflare/jobs/8109620?gh_jid=8109620")}
-                      className="text-left text-blue-600 hover:underline truncate"
+                      className="text-left text-sb-blue hover:underline truncate"
                     >
                       • Greenhouse: Cloudflare - Data Analyst
                     </button>
                     <button
                       type="button"
                       onClick={() => setInputUrl("https://jobs.eu.lever.co/kwalee/5f40e053-75ed-408c-b3b4-7523e746e8a3")}
-                      className="text-left text-blue-600 hover:underline truncate"
+                      className="text-left text-sb-blue hover:underline truncate"
                     >
                       • Lever: Kwalee - Senior Data Analyst
                     </button>
                     <button
                       type="button"
                       onClick={() => setInputUrl("https://id.jobstreet.com/id/job/95044393")}
-                      className="text-left text-blue-600 hover:underline truncate"
+                      className="text-left text-sb-blue hover:underline truncate"
                     >
                       • JobStreet: Sinau Bina Sampoerno - Product Analyst
                     </button>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-sb-border">
                   <Button
                     variant="outline"
                     size="sm"
@@ -1318,16 +1318,16 @@ export default function AdminPage() {
 
         {/* Modal Impor via OCR (Flyer / Poster) */}
         {showOcrModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
             <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div className="flex items-center justify-between border-b border-sb-border pb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-lg bg-sb-mist-faint text-sb-blue flex items-center justify-center">
                     <ScanText className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-slate-900">Impor Lowongan via OCR (Flyer / Poster)</h3>
-                    <p className="text-xs text-slate-500">Multi-Tier OCR (Gemini Vision • Groq Vision • LlamaParse)</p>
+                    <h3 className="text-base font-bold text-sb-navy">Impor Lowongan via OCR (Flyer / Poster)</h3>
+                    <p className="text-xs text-sb-text-2">Multi-Tier OCR (Gemini Vision • Groq Vision • LlamaParse)</p>
                   </div>
                 </div>
                 <button
@@ -1338,15 +1338,15 @@ export default function AdminPage() {
                     setOcrPreview(null);
                     setOcrFile(null);
                   }}
-                  className="text-slate-400 hover:text-slate-600 p-1 rounded-md"
+                  className="text-sb-text-2 hover:text-sb-navy p-1 rounded-md"
                   aria-label="Tutup"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
-              <div className="p-2.5 rounded-lg bg-emerald-50/70 border border-emerald-200/60 text-[11px] text-emerald-800 flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <div className="p-2.5 rounded-lg bg-sb-mist-soft border border-sb-border text-[11px] text-sb-navy flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-sb-good shrink-0" />
                 <span>
                   Didukung multi-layer OCR: <strong>Gemini Vision</strong> &rarr; <strong>Groq Vision (Qwen 3.8-27B)</strong> &rarr; <strong>LlamaParse v2</strong> dengan fallback otomatis saat server padat.
                 </span>
@@ -1354,17 +1354,17 @@ export default function AdminPage() {
 
               <form onSubmit={handleExtractFromOcr} className="space-y-4">
                 <div className="space-y-2">
-                  <label className="block text-xs font-semibold text-slate-700">
+                  <label className="block text-xs font-semibold text-sb-navy">
                     Unggah File Poster / Flyer Lowongan Kerja *
                   </label>
-                  <div className="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:border-emerald-500 transition-colors bg-slate-50/50">
+                  <div className="border-2 border-dashed border-sb-border rounded-xl p-4 text-center hover:border-sb-blue transition-colors bg-sb-mist-faint/50">
                     {ocrPreview ? (
                       <div className="space-y-3">
-                        <div className="relative inline-block max-h-48 rounded-lg overflow-hidden border border-slate-200 shadow-2xs">
+                        <div className="relative inline-block max-h-48 rounded-lg overflow-hidden border border-sb-border shadow-2xs">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={ocrPreview} alt="Pratinjau Flyer" className="max-h-48 object-contain mx-auto" />
                         </div>
-                        <p className="text-xs font-semibold text-slate-800">{ocrFile?.name}</p>
+                        <p className="text-xs font-semibold text-sb-navy">{ocrFile?.name}</p>
                         <label className="inline-block cursor-pointer">
                           <input
                             type="file"
@@ -1373,7 +1373,7 @@ export default function AdminPage() {
                             className="hidden"
                             disabled={isExtractingOcr}
                           />
-                          <span className="text-xs text-emerald-600 hover:underline font-semibold">
+                          <span className="text-xs text-sb-blue hover:underline font-semibold">
                             Ganti Gambar / File
                           </span>
                         </label>
@@ -1387,14 +1387,14 @@ export default function AdminPage() {
                           className="hidden"
                           disabled={isExtractingOcr}
                         />
-                        <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
+                        <div className="w-10 h-10 rounded-full bg-sb-mist-soft text-sb-blue flex items-center justify-center mx-auto">
                           <UploadCloud className="w-5 h-5" />
                         </div>
                         <div>
-                          <span className="text-xs font-bold text-slate-800">Klik untuk memilih flyer/poster</span>
-                          <span className="text-xs text-slate-500"> atau seret file ke sini</span>
+                          <span className="text-xs font-bold text-sb-navy">Klik untuk memilih flyer/poster</span>
+                          <span className="text-xs text-sb-text-2"> atau seret file ke sini</span>
                         </div>
-                        <p className="text-[11px] text-slate-400">
+                        <p className="text-[11px] text-sb-text-2">
                           Mendukung PNG, JPG, WEBP, atau PDF (Maks. 10 MB)
                         </p>
                       </label>
@@ -1408,7 +1408,7 @@ export default function AdminPage() {
                   </div>
                 )}
 
-                <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-sb-border">
                   <Button
                     variant="outline"
                     size="sm"
@@ -1440,14 +1440,14 @@ export default function AdminPage() {
 
         {/* Modal Edit Lowongan */}
         {showEditModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
             <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                <h3 className="text-lg font-bold text-slate-900">Edit Lowongan Pekerjaan</h3>
+              <div className="flex items-center justify-between border-b border-sb-border pb-3">
+                <h3 className="text-lg font-bold text-sb-navy">Edit Lowongan Pekerjaan</h3>
                 <button
                   type="button"
                   onClick={() => setShowEditModal(false)}
-                  className="text-slate-400 hover:text-slate-600 p-1 rounded-md"
+                  className="text-sb-text-2 hover:text-sb-navy p-1 rounded-md"
                   aria-label="Tutup"
                 >
                   <X className="w-4 h-4" />
@@ -1544,7 +1544,7 @@ export default function AdminPage() {
                   required
                 />
 
-                <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-sb-border">
                   <Button variant="outline" size="sm" type="button" onClick={() => setShowEditModal(false)}>
                     Batal
                   </Button>
@@ -1560,3 +1560,4 @@ export default function AdminPage() {
     </ProtectedRoute>
   );
 }
+

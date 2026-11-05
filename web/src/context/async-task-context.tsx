@@ -265,7 +265,7 @@ function AsyncTaskToastItem({
     <div
       className={`pointer-events-auto rounded-2xl border p-4 shadow-xl backdrop-blur-md transition-all duration-300 transform translate-y-0 ${
         isRunning
-          ? "bg-white/95 border-blue-200 shadow-blue-500/10"
+          ? "bg-white/95 border-sb-border shadow-sb-blue/10"
           : isSuccess
           ? "bg-white/95 border-emerald-200 shadow-emerald-500/10"
           : "bg-white/95 border-red-200 shadow-red-500/10"
@@ -275,8 +275,8 @@ function AsyncTaskToastItem({
         {/* Status Icon */}
         <div className="shrink-0 mt-0.5">
           {isRunning && (
-            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center animate-pulse border border-blue-100">
-              <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+            <div className="w-8 h-8 rounded-xl bg-sb-mist-soft text-sb-blue flex items-center justify-center animate-pulse border border-sb-border">
+              <Loader2 className="w-4 h-4 animate-spin text-sb-blue" />
             </div>
           )}
           {isSuccess && (
@@ -297,7 +297,7 @@ function AsyncTaskToastItem({
             <span
               className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
                 isRunning
-                  ? "bg-blue-100 text-blue-700"
+                  ? "bg-sb-mist-soft text-sb-navy"
                   : isSuccess
                   ? "bg-emerald-100 text-emerald-700"
                   : "bg-red-100 text-red-700"
@@ -305,7 +305,7 @@ function AsyncTaskToastItem({
             >
               {isRunning ? "Memproses Latar Belakang" : isSuccess ? "Berhasil Selesai" : "Gagal"}
             </span>
-            <span className="text-[10px] text-slate-400">
+            <span className="text-[10px] text-sb-text-2">
               {new Date(task.startedAt).toLocaleTimeString("id-ID", {
                 hour: "2-digit",
                 minute: "2-digit",
@@ -314,17 +314,17 @@ function AsyncTaskToastItem({
             </span>
           </div>
 
-          <h4 className="text-sm font-bold text-slate-900 leading-snug">{task.title}</h4>
+          <h4 className="text-sm font-bold text-sb-navy leading-snug">{task.title}</h4>
 
           {task.description && (
-            <p className="text-xs text-slate-600 mt-0.5 line-clamp-2 leading-relaxed">
+            <p className="text-xs text-sb-text-2 mt-0.5 line-clamp-2 leading-relaxed">
               {task.description}
             </p>
           )}
 
           {isRunning && (
-            <p className="text-[11px] text-blue-600 font-medium mt-1.5 flex items-center gap-1.5">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping" />
+            <p className="text-[11px] text-sb-text-2 font-medium mt-1.5 flex items-center gap-1.5">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-sb-sky animate-ping" />
               Navigasi tetap aktif • Kamu bebas berpindah halaman
             </p>
           )}
@@ -337,11 +337,11 @@ function AsyncTaskToastItem({
 
           {/* Action Button */}
           {task.action && (isSuccess || !isRunning) && (
-            <div className="mt-3 pt-2 border-t border-slate-100 flex items-center gap-2">
+            <div className="mt-3 pt-2 border-t border-sb-border flex items-center gap-2">
               {task.action.url ? (
                 <a
                   href={task.action.url}
-                  className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline"
+                  className="inline-flex items-center gap-1 text-xs font-bold text-sb-blue hover:underline"
                 >
                   {task.action.label}
                   <ExternalLink className="w-3 h-3" />
@@ -353,7 +353,7 @@ function AsyncTaskToastItem({
                     task.action?.onClick?.(task.data);
                     onDismiss(task.id);
                   }}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-900 text-white hover:bg-slate-800 transition-colors shadow-xs"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-sb-sky text-sb-navy hover:bg-sb-sky-hover transition-colors shadow-xs"
                 >
                   {task.action.label}
                   <ArrowRight className="w-3 h-3" />
@@ -367,7 +367,7 @@ function AsyncTaskToastItem({
         <button
           type="button"
           onClick={() => onDismiss(task.id)}
-          className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors shrink-0"
+          className="text-sb-text-2 hover:text-sb-navy p-1 rounded-lg hover:bg-sb-mist-soft transition-colors shrink-0"
           title="Tutup Notifikasi"
         >
           <X className="w-4 h-4" />

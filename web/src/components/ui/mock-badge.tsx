@@ -14,7 +14,7 @@ export function MockDataDisclaimer({
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold tracking-wider uppercase bg-amber-50 text-amber-800 border border-amber-200 select-none",
+          "inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold tracking-wider uppercase bg-amber-50 text-amber-800 border border-amber-200 select-none",
           className
         )}
       >
@@ -37,7 +37,7 @@ export function MockDataDisclaimer({
           {MOCK_DISCLAIMER}
         </span>
       </div>
-      <span className="shrink-0 text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-amber-200/60 text-amber-900">
+      <span className="shrink-0 text-xs uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-amber-200/60 text-amber-900">
         Sampel
       </span>
     </div>
@@ -52,8 +52,8 @@ export function StateSelector({
   onChange: (s: "loaded" | "loading" | "empty" | "error") => void;
 }) {
   return (
-    <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs select-none">
-      <span className="text-[10px] uppercase font-bold text-slate-500 px-1.5">
+    <div className="flex items-center gap-1 bg-sb-mist-soft p-1 rounded-lg border border-sb-border text-xs select-none">
+      <span className="text-xs uppercase font-bold text-sb-text-2 px-1.5">
         Simulasi UI:
       </span>
       {(["loaded", "loading", "empty", "error"] as const).map((s) => (
@@ -64,8 +64,8 @@ export function StateSelector({
           className={cn(
             "px-2 py-0.5 rounded font-medium capitalize transition-all",
             state === s
-              ? "bg-white text-blue-700 shadow-2xs font-semibold"
-              : "text-slate-600 hover:text-slate-900"
+              ? "bg-white text-sb-blue shadow-2xs font-semibold"
+              : "text-sb-text-2 hover:text-sb-navy"
           )}
         >
           {s === "loaded" ? "Data Normal" : s}
@@ -74,4 +74,3 @@ export function StateSelector({
     </div>
   );
 }
-

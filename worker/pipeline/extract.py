@@ -19,9 +19,11 @@ class ExtractedJobDetails(BaseModel):
 # Heuristik rule-based ekstraksi awal sebagai fallback cepat
 KNOWN_SKILLS = [
     "SQL", "PostgreSQL", "MySQL", "BigQuery", "Snowflake", "Python", "R",
-    "Excel", "Tableau", "Power BI", "Looker", "Metabase", "Pandas", "NumPy",
-    "A/B Testing", "Statistics", "Machine Learning", "DBT", "Airflow", "ETL",
-    "Data Modeling", "Data Warehousing", "Git", "Google Analytics"
+    "Excel", "Microsoft Excel", "Google Sheets", "Tableau", "Power BI", "Looker", "Metabase", "Pandas", "NumPy",
+    "A/B Testing", "Statistics", "Machine Learning", "Deep Learning", "Data Science", "DBT", "Airflow", "ETL",
+    "Data Modeling", "Data Warehousing", "Data Visualization", "Data Cleaning", "Data Analysis", "Data Analytics",
+    "E-Commerce Analytics", "Product Analytics", "Business Analytics", "Git", "Google Analytics", "Web Scraping",
+    "Jira", "Agile", "Scrum", "Business Process Mapping", "Stakeholder Management"
 ]
 
 
@@ -51,9 +53,13 @@ def extract_job_details_rule_based(title: str, text: str) -> ExtractedJobDetails
     elif "mid" in lower_title:
         seniority = "Mid"
 
-    # Tentukan experience_years_min
-    years_match = re.search(r"(\d+)\+?\s*(?:tahun|thn|years?|yrs?)\b", lower_text)
-    exp_years = int(years_match.group(1)) if years_match else None
+    # Tentukan experience_years_min (dukung format rentang 3-5 tahun / 3–5 years -> min 3)
+    range_match = re.search(r"(\d+)\s*(?:[-–—]|to|sampai)\s*(\d+)\+?\s*(?:tahun|thn|years?|yrs?)\b", lower_text)
+    if range_match:
+        exp_years = int(range_match.group(1))
+    else:
+        years_match = re.search(r"(\d+)\+?\s*(?:tahun|thn|years?|yrs?)\b", lower_text)
+        exp_years = int(years_match.group(1)) if years_match else None
 
     # Tentukan education
     education = None
@@ -79,21 +85,37 @@ def extract_job_details_rule_based(title: str, text: str) -> ExtractedJobDetails
                     continue
             found_skills.append(skill)
 
-    # Pisahkan required vs preferred berdasarkan kemunculan di section
+    # Deteksi baris yang mengindikasikan kualifikasi opsional / nilai plus
+    plus_lines = [
+        line for line in lower_text.split("\n")
+        if any(marker in line for marker in ["is a plus", "a plus", "nilai plus", "nilai tambah", "nice to have", "diutamakan", "preferred"])
+    ]
+    plus_text = " ".join(plus_lines)
+
+    # Pisahkan required vs preferred berdasarkan kemunculan di section atau baris plus
     required = []
     preferred = []
-    if "tambahan" in lower_text or "preferred" in lower_text or "nice to have" in lower_text:
-        parts = re.split(r"(?:tambahan|preferred|nice to have|plus)", lower_text, maxsplit=1)
+    if any(k in lower_text for k in ["tambahan", "preferred", "nice to have", "plus", "nilai tambah"]):
+        parts = re.split(r"(?:tambahan|preferred|nice to have|plus|nilai tambah)", lower_text, maxsplit=1)
         req_part = parts[0]
         pref_part = parts[1] if len(parts) > 1 else ""
 
         for s in found_skills:
-            if re.search(r"\b" + re.escape(s.lower()) + r"\b", pref_part) and not re.search(r"\b" + re.escape(s.lower()) + r"\b", req_part):
+            s_pat = r"\b" + re.escape(s.lower()) + r"\b"
+            is_in_plus_line = bool(re.search(s_pat, plus_text))
+            is_in_pref_part = bool(re.search(s_pat, pref_part)) and not bool(re.search(s_pat, req_part))
+
+            if is_in_plus_line or is_in_pref_part:
                 preferred.append(s)
             else:
                 required.append(s)
     else:
-        required = found_skills
+        for s in found_skills:
+            s_pat = r"\b" + re.escape(s.lower()) + r"\b"
+            if re.search(s_pat, plus_text):
+                preferred.append(s)
+            else:
+                required.append(s)
 
     return ExtractedJobDetails(
         canonical_title=canonical,

@@ -54,7 +54,7 @@ export function PriorityStars({
               className={`${starSize} transition-colors ${
                 isFilled
                   ? "fill-amber-400 text-amber-400"
-                  : "fill-transparent text-slate-300 group-hover:text-slate-400"
+                  : "fill-transparent text-sb-border group-hover:text-sb-text-2"
               }`}
             />
           </button>

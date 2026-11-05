@@ -53,10 +53,10 @@ export default function LoginPage() {
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
           <SkillBridgeLogo size="lg" />
-          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight pt-2">
+          <h2 className="text-2xl font-extrabold text-sb-navy tracking-tight pt-2">
             Masuk ke Akun SkillBridge
           </h2>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-sb-text-2">
             Akses dashboard rekomendasi karier dan analisis skill pasar kerja
           </p>
         </div>
@@ -65,7 +65,7 @@ export default function LoginPage() {
           <AlertBanner
             type="success"
             title="Autentikasi Berhasil"
-            message="Masuk sebagai Budi Pratama. Mengalihkan ke Dashboard..."
+            message="Masuk sebagai akun demo. Mengalihkan ke Dashboard..."
           />
         )}
 
@@ -78,15 +78,15 @@ export default function LoginPage() {
         )}
 
         {user ? (
-          <Card className="border-blue-200 shadow-md bg-blue-50/40 text-center p-6 space-y-4">
-            <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mx-auto">
+          <Card className="border-sb-border shadow-md bg-sb-mist-faint text-center p-6 space-y-4">
+            <div className="w-12 h-12 rounded-full bg-sb-mist-soft text-sb-blue flex items-center justify-center mx-auto">
               <UserCheck className="w-6 h-6" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-base font-bold text-slate-900">
+              <h3 className="text-base font-bold text-sb-navy">
                 Kamu Sudah Masuk
               </h3>
-              <p className="text-xs text-slate-600">
+              <p className="text-xs text-sb-text-2">
                 Terhubung sebagai <strong>{user.fullName}</strong> ({user.email}).
               </p>
             </div>
@@ -99,7 +99,7 @@ export default function LoginPage() {
             </div>
           </Card>
         ) : (
-          <Card className="border-slate-200 shadow-md">
+          <Card className="border-sb-border shadow-md">
             <CardHeader className="space-y-1">
               <CardTitle>Masuk</CardTitle>
               <CardDescription>
@@ -110,17 +110,17 @@ export default function LoginPage() {
             <CardContent className="space-y-4">
               {/* Tombol Akses Instan Akun Demo (Hanya aktif jika NEXT_PUBLIC_DEMO_MODE=true) */}
               {isDemoMode && (
-                <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50 to-emerald-50 border border-blue-200/90 space-y-2 text-center">
-                  <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-blue-900">
-                    <Zap className="w-4 h-4 text-emerald-600" />
+                <div className="p-4 rounded-2xl glass-panel bg-sb-mist-faint border border-sb-border space-y-2 text-center">
+                  <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-sb-navy">
+                    <Zap className="w-4 h-4 text-sb-blue" />
                     Akses Demo Siap Uji
                   </div>
-                  <p className="text-[11px] text-slate-600 leading-normal">
+                  <p className="text-[11px] text-sb-text-2 leading-normal">
                     Gunakan profil siap pakai dengan CV terstruktur dan analisis lowongan lengkap.
                   </p>
                   <Button
                     type="button"
-                    variant="success"
+                    variant="primary"
                     size="md"
                     className="w-full justify-center shadow-xs"
                     isLoading={isLoading}
@@ -132,53 +132,53 @@ export default function LoginPage() {
                 </div>
               )}
 
-            <div className="relative flex py-1 items-center">
-              <div className="flex-grow border-t border-slate-200" />
-              <span className="flex-shrink mx-3 text-[11px] uppercase tracking-wider font-semibold text-slate-400">
-                Atau Menggunakan Form
-              </span>
-              <div className="flex-grow border-t border-slate-200" />
-            </div>
+              <div className="relative flex py-1 items-center">
+                <div className="flex-grow border-t border-sb-border" />
+                <span className="flex-shrink mx-3 text-[11px] uppercase tracking-wider font-semibold text-sb-text-2">
+                  Atau Menggunakan Form
+                </span>
+                <div className="flex-grow border-t border-sb-border" />
+              </div>
 
-            <form onSubmit={handleRegularLogin} className="space-y-3.5">
-              <TextInput
-                label="Email"
-                type="email"
-                placeholder="juri@skillbridge.demo"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                leftIcon={<Mail className="w-4 h-4" />}
-                required
-              />
+              <form onSubmit={handleRegularLogin} className="space-y-3.5">
+                <TextInput
+                  label="Email"
+                  type="email"
+                  placeholder="juri@skillbridge.demo"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  leftIcon={<Mail className="w-4 h-4" />}
+                  required
+                />
 
-              <TextInput
-                label="Kata Sandi"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                leftIcon={<Lock className="w-4 h-4" />}
-                required
-              />
+                <TextInput
+                  label="Kata Sandi"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  leftIcon={<Lock className="w-4 h-4" />}
+                  required
+                />
 
-              <Button
-                type="submit"
-                variant="primary"
-                className="w-full justify-center mt-2"
-                isLoading={isLoading}
-              >
-                Masuk ke Akun
-              </Button>
-            </form>
-          </CardContent>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  className="w-full justify-center mt-2"
+                  isLoading={isLoading}
+                >
+                  Masuk ke Akun
+                </Button>
+              </form>
+            </CardContent>
 
-          <CardFooter className="justify-center text-xs text-slate-500">
-            Belum memiliki akun?{" "}
-            <Link href="/register" className="ml-1 font-semibold text-blue-600 hover:underline">
-              Daftar Baru
-            </Link>
-          </CardFooter>
-        </Card>
+            <CardFooter className="justify-center text-xs text-sb-text-2">
+              Belum memiliki akun?{" "}
+              <Link href="/register" className="ml-1 font-semibold text-sb-blue hover:underline">
+                Daftar Baru
+              </Link>
+            </CardFooter>
+          </Card>
         )}
       </div>
     </div>

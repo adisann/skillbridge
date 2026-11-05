@@ -33,11 +33,11 @@ export function DataTable<T extends object>({
   className,
 }: DataTableProps<T>) {
   return (
-    <div className={cn("w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs", className)}>
+    <div className={cn("w-full overflow-hidden rounded-xl border border-sb-border bg-white shadow-xs", className)}>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm border-collapse">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50/80 text-xs font-semibold text-slate-600 uppercase tracking-wider">
+            <tr className="border-b border-sb-border bg-sb-mist-faint/60 text-xs font-semibold text-sb-text-2 uppercase tracking-wider">
               {columns.map((col) => {
                 const isSorted = sortColumn === col.key;
                 const alignClass =
@@ -53,7 +53,7 @@ export function DataTable<T extends object>({
                     className={cn(
                       "px-4 py-3 select-none",
                       alignClass,
-                      col.sortable && "cursor-pointer hover:bg-slate-100/80 transition-colors",
+                      col.sortable && "cursor-pointer hover:bg-sb-mist-soft transition-colors",
                       col.className
                     )}
                     onClick={() => col.sortable && onSort && onSort(col.key)}
@@ -67,12 +67,12 @@ export function DataTable<T extends object>({
                     >
                       <span>{col.header}</span>
                       {col.sortable && (
-                        <span className="text-slate-400">
+                        <span className="text-sb-text-2">
                           {isSorted ? (
                             sortDirection === "asc" ? (
-                              <ChevronUp className="w-3.5 h-3.5 text-blue-600" />
+                              <ChevronUp className="w-3.5 h-3.5 text-sb-blue" />
                             ) : (
-                              <ChevronDown className="w-3.5 h-3.5 text-blue-600" />
+                              <ChevronDown className="w-3.5 h-3.5 text-sb-blue" />
                             )
                           ) : (
                             <ArrowUpDown className="w-3.5 h-3.5" />
@@ -85,12 +85,12 @@ export function DataTable<T extends object>({
               })}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 text-slate-800">
+          <tbody className="divide-y divide-sb-border text-sb-navy">
             {data.length === 0 ? (
               <tr>
                 <td
                   colSpan={columns.length}
-                  className="px-4 py-8 text-center text-xs text-slate-400"
+                  className="px-4 py-8 text-center text-xs text-sb-text-2"
                 >
                   {emptyMessage}
                 </td>
@@ -99,7 +99,7 @@ export function DataTable<T extends object>({
               data.map((row, idx) => (
                 <tr
                   key={keyExtractor(row, idx)}
-                  className="hover:bg-slate-50/80 transition-colors"
+                  className="hover:bg-sb-mist-faint/50 transition-colors"
                 >
                   {columns.map((col) => {
                     const alignClass =
@@ -114,9 +114,7 @@ export function DataTable<T extends object>({
                         key={col.key}
                         className={cn("px-4 py-3 text-xs leading-relaxed", alignClass, col.className)}
                       >
-                        {col.render
-                          ? col.render(row, idx)
-                          : ((row as Record<string, unknown>)[col.key] as React.ReactNode)}
+                        {col.render ? col.render(row, idx) : String((row as Record<string, unknown>)[col.key] ?? "")}
                       </td>
                     );
                   })}

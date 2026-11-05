@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import { Compass } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LogoProps {
@@ -16,66 +17,60 @@ export function SkillBridgeLogo({
   href = "/",
 }: LogoProps) {
   const iconSizes = {
-    sm: "w-6 h-6",
-    md: "w-8 h-8",
-    lg: "w-10 h-10",
+    sm: "h-7 w-7 rounded-lg",
+    md: "h-9 w-9 rounded-xl",
+    lg: "h-11 w-11 rounded-2xl",
+  };
+
+  const compassSizes = {
+    sm: "h-3.5 w-3.5",
+    md: "h-5 w-5",
+    lg: "h-6 w-6",
   };
 
   const textSizes = {
-    sm: "text-lg",
-    md: "text-xl",
+    sm: "text-base",
+    md: "text-lg",
     lg: "text-2xl",
   };
 
   const content = (
-    <div className={cn("inline-flex items-center gap-2.5 font-bold tracking-tight select-none", className)}>
-      {/* SVG Icon: Jembatan Koneksi & Pertumbuhan Kompetensi */}
-      <div className={cn("relative flex items-center justify-center shrink-0 rounded-xl bg-gradient-to-tr from-blue-700 via-blue-600 to-emerald-500 p-1.5 shadow-sm shadow-blue-500/20 text-white", iconSizes[size])}>
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-full"
-        >
-          {/* Bridge Arch Vector */}
-          <path
-            d="M3 17C6 11 10 9 12 9C14 9 18 11 21 17"
-            stroke="currentColor"
-            strokeWidth="2.4"
-            strokeLinecap="round"
-          />
-          {/* Support Columns / Cables */}
-          <path
-            d="M8 12.5V17M12 9V17M16 12.5V17"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeDasharray="0.5 1.5"
-            opacity="0.85"
-          />
-          {/* Foundation Baseline */}
-          <path
-            d="M2 18.5H22"
-            stroke="currentColor"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-          />
-          {/* Skill Star / Opportunity Pulse */}
-          <circle cx="12" cy="5" r="2" fill="#A7F3D0" />
-        </svg>
-      </div>
+    <span
+      className={cn(
+        "inline-flex items-center gap-2.5 font-bold tracking-tight select-none",
+        className
+      )}
+    >
+      {/* Box icon rounded with sky-mist gradient, navy compass, ring-1 ring-white/50, and soft shadow */}
+      <span
+        className={cn(
+          "flex items-center justify-center text-sb-navy shrink-0 bg-gradient-to-br from-sb-sky to-sb-mist shadow-xs ring-1 ring-white/60",
+          iconSizes[size]
+        )}
+        aria-hidden="true"
+      >
+        <Compass className={compassSizes[size]} strokeWidth={2.4} />
+      </span>
 
       {showText && (
-        <span className={cn("font-extrabold text-slate-900 tracking-tight flex items-center", textSizes[size])}>
-          Skill<span className="text-blue-600">Bridge</span>
+        <span
+          className={cn(
+            "font-extrabold tracking-[-0.03em] text-sb-navy",
+            textSizes[size]
+          )}
+        >
+          Skill<span className="text-sb-blue">Bridge</span>
         </span>
       )}
-    </div>
+    </span>
   );
 
   if (href) {
     return (
-      <Link href={href} className="focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-lg">
+      <Link
+        href={href}
+        className="focus:outline-none focus-visible:ring-2 focus-visible:ring-sb-blue rounded-xl transition-transform active:scale-95 inline-flex"
+      >
         {content}
       </Link>
     );
@@ -83,4 +78,3 @@ export function SkillBridgeLogo({
 
   return content;
 }
-

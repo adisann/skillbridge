@@ -30,7 +30,7 @@ export default function TrackerPage() {
       <Suspense
         fallback={
           <div className="max-w-7xl mx-auto p-8">
-            <div className="h-64 rounded-2xl bg-white border border-slate-200 animate-pulse" />
+            <div className="h-64 rounded-2xl bg-white border border-sb-border animate-pulse" />
           </div>
         }
       >
@@ -350,8 +350,8 @@ function TrackerContent() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <div className="space-y-6">
         <TrackerHeader
           stageCounts={stageCounts}
           activeStageFilter={activeStageFilter}
@@ -379,22 +379,22 @@ function TrackerContent() {
 
         {/* MAIN VIEW: TABLE OR KANBAN */}
         {isLoading ? (
-          <div className="p-12 text-center bg-white rounded-2xl border border-slate-200 space-y-3">
-            <div className="w-8 h-8 rounded-full border-2 border-blue-600 border-t-transparent animate-spin mx-auto" />
-            <p className="text-xs font-semibold text-slate-600">
+          <div className="p-12 text-center glass-panel rounded-2xl space-y-3">
+            <div className="w-8 h-8 rounded-full border-2 border-sb-blue border-t-transparent animate-spin mx-auto" />
+            <p className="text-xs font-semibold text-sb-text-2">
               Memuat status pelacakan lamaran...
             </p>
           </div>
         ) : displayedJobs.length === 0 ? (
-          <div className="p-12 text-center bg-white rounded-2xl border border-slate-200 space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+          <div className="p-12 text-center glass-panel rounded-2xl space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-sb-mist-faint text-sb-blue flex items-center justify-center mx-auto border border-sb-border">
               <Bookmark className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900">
+              <h3 className="text-base font-bold text-sb-navy">
                 Belum ada lowongan di tahapan ini
               </h3>
-              <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+              <p className="text-xs text-sb-text-2 mt-1 max-w-md mx-auto">
                 Simpan lowongan menarik saat mencari lowongan atau tambahkan target pekerjaan
                 kamu secara mandiri untuk mulai melacak.
               </p>

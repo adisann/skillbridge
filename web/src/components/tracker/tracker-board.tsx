@@ -37,17 +37,17 @@ export function TrackerBoard({
         return (
           <div
             key={stageKey}
-            className="w-72 sm:w-80 shrink-0 rounded-2xl border border-slate-200 bg-slate-100/60 p-3 flex flex-col space-y-3 min-h-[460px]"
+            className="w-72 sm:w-80 shrink-0 rounded-2xl border border-sb-border bg-sb-mist-faint/50 p-3 flex flex-col space-y-3 min-h-[460px]"
           >
             {/* Column Header */}
             <div className="flex items-center justify-between px-1">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-slate-400" />
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                <span className="w-2.5 h-2.5 rounded-full bg-sb-sky" />
+                <h4 className="text-xs font-bold text-sb-navy uppercase tracking-wider">
                   {stageConf.label}
                 </h4>
               </div>
-              <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-white text-slate-700 border border-slate-200">
+              <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-white text-sb-navy border border-sb-border">
                 {stageJobs.length}
               </span>
             </div>
@@ -57,29 +57,29 @@ export function TrackerBoard({
               {stageJobs.map((job) => (
                 <div
                   key={job.id}
-                  className="bg-white rounded-xl p-3.5 border border-slate-200 shadow-2xs hover:shadow-xs transition-shadow space-y-2.5"
+                  className="bg-white rounded-xl p-3.5 border border-sb-border shadow-2xs hover:shadow-xs transition-shadow space-y-2.5"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <Link
                         href={job.id.startsWith("custom_") ? "#" : `/jobs/${job.id}`}
-                        className="font-bold text-xs text-slate-900 hover:text-blue-600 line-clamp-1"
+                        className="font-bold text-xs text-sb-navy hover:text-sb-blue line-clamp-1"
                       >
                         {job.title}
                       </Link>
-                      <p className="text-[11px] font-semibold text-slate-500">{job.company}</p>
+                      <p className="text-[11px] font-semibold text-sb-text-2">{job.company}</p>
                     </div>
                     <MatchBadge status={job.matchStatus} score={job.matchScore} />
                   </div>
 
                   {/* Priority Rating */}
-                  <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+                  <div className="flex items-center justify-between pt-1 border-t border-sb-border">
                     <PriorityStars
                       value={job.priority}
                       size="sm"
                       onChange={(val) => onPriorityChange(job.id, val)}
                     />
-                    <span className="text-[10px] text-slate-400 font-semibold">
+                    <span className="text-xs text-sb-text-2 font-semibold">
                       {job.salaryExpectation ? job.salaryExpectation.slice(0, 15) : "Kompetitif"}
                     </span>
                   </div>
@@ -89,7 +89,7 @@ export function TrackerBoard({
                     <select
                       value={job.stage}
                       onChange={(e) => onStageChange(job.id, e.target.value as JobStage)}
-                      className="text-[10px] py-1 px-1.5 rounded-md border border-slate-200 font-bold bg-slate-50 text-slate-700 focus:outline-hidden"
+                      className="text-xs py-1 px-1.5 rounded-md border border-sb-border font-bold bg-sb-mist-soft text-sb-navy focus:outline-hidden"
                     >
                       <option value="bookmarked">Tersimpan</option>
                       <option value="applying">Siapkan Berkas</option>
@@ -103,7 +103,7 @@ export function TrackerBoard({
                     <button
                       type="button"
                       onClick={() => onEditJob(job)}
-                      className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+                      className="text-sb-text-2 hover:text-sb-navy p-1 cursor-pointer"
                       title="Edit"
                     >
                       <Pencil className="w-3.5 h-3.5" />

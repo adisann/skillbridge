@@ -1,9 +1,16 @@
 import React from "react";
-import { Check, HelpCircle, MinusCircle, ArrowUpRight } from "lucide-react";
+import {
+  CheckCircle2,
+  AlertTriangle,
+  ArrowUpCircle,
+  HelpCircle,
+  XCircle,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatPercent } from "@/lib/copy";
 
 // -----------------------------------------------------------------------------
-// Base Badge
+// Base Badge (Pill Shaped)
 // -----------------------------------------------------------------------------
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   variant?: "primary" | "secondary" | "success" | "warning" | "danger" | "outline";
@@ -18,23 +25,23 @@ export function Badge({
   ...props
 }: BadgeProps) {
   const variantStyles = {
-    primary: "bg-blue-50 text-blue-700 border-blue-200",
-    secondary: "bg-slate-100 text-slate-700 border-slate-200",
-    success: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    warning: "bg-amber-50 text-amber-700 border-amber-200",
-    danger: "bg-red-50 text-red-700 border-red-200",
-    outline: "bg-transparent text-slate-600 border-slate-300",
+    primary: "bg-sb-mist-soft text-sb-navy border-sb-border",
+    secondary: "bg-sb-mist-soft text-sb-navy border-sb-border",
+    success: "bg-emerald-50 text-sb-good border-emerald-200",
+    warning: "bg-amber-50 text-sb-warning border-amber-200",
+    danger: "bg-rose-50 text-sb-critical border-rose-200",
+    outline: "bg-transparent text-sb-text-2 border-sb-border",
   };
 
   const sizeStyles = {
-    sm: "text-[11px] px-2 py-0.5",
-    md: "text-xs px-2.5 py-1",
+    sm: "text-[11px] px-2.5 py-0.5",
+    md: "text-xs px-3 py-1",
   };
 
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 font-semibold rounded-md border select-none transition-colors",
+        "inline-flex items-center gap-1.5 font-semibold rounded-full border select-none transition-colors",
         variantStyles[variant],
         sizeStyles[size],
         className
@@ -57,51 +64,61 @@ export type MatchStatus =
 
 export interface MatchBadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   status: MatchStatus;
-  score?: number | null; // e.g. 85 -> 85%
+  score?: number | null;
+  size?: "sm" | "md" | "lg";
 }
 
-export function MatchBadge({ status, score, className, ...props }: MatchBadgeProps) {
+export function MatchBadge({ status, score, size = "md", className, ...props }: MatchBadgeProps) {
+  const sizeClasses =
+    size === "sm"
+      ? "px-2.5 py-0.5 text-xs gap-1.5"
+      : size === "lg"
+      ? "px-4 py-2 text-sm gap-2"
+      : "px-3 py-1.5 text-xs gap-1.5";
+
   const config: Record<
     MatchStatus,
     { label: string; bg: string; text: string; border: string; icon: React.ReactNode }
   > = {
     match: {
-      label: "Match",
+      label: "Cocok",
       bg: "bg-emerald-50",
-      text: "text-emerald-800",
-      border: "border-emerald-300",
-      icon: <Check className="w-3.5 h-3.5 text-emerald-600" strokeWidth={2} />,
+      text: "text-sb-good",
+      border: "border-emerald-200",
+      icon: <CheckCircle2 className="w-3.5 h-3.5 text-sb-good shrink-0" aria-hidden="true" />,
     },
     underqualified: {
-      label: "Underqualified",
+      label: "Perlu penguatan skill",
       bg: "bg-amber-50",
-      text: "text-amber-800",
-      border: "border-amber-300",
-      icon: <MinusCircle className="w-3.5 h-3.5 text-amber-600" strokeWidth={1.5} />,
+      text: "text-sb-warning",
+      border: "border-amber-200",
+      icon: <AlertTriangle className="w-3.5 h-3.5 text-sb-warning shrink-0" aria-hidden="true" />,
     },
     potentially_overqualified: {
-      label: "Potentially Overqualified",
-      bg: "bg-indigo-50",
-      text: "text-indigo-800",
-      border: "border-indigo-300",
-      icon: <ArrowUpRight className="w-3.5 h-3.5 text-indigo-600" strokeWidth={1.5} />,
+      label: "Melampaui level posisi",
+      bg: "bg-sb-mist-soft",
+      text: "text-sb-blue",
+      border: "border-sb-mist",
+      icon: <ArrowUpCircle className="w-3.5 h-3.5 text-sb-blue shrink-0" aria-hidden="true" />,
     },
     insufficient_evidence: {
       label: "Belum ada skor",
-      bg: "bg-slate-100",
-      text: "text-slate-700",
-      border: "border-slate-300",
-      icon: <HelpCircle className="w-3.5 h-3.5 text-slate-500" />,
+      bg: "bg-sb-mist-soft",
+      text: "text-sb-navy",
+      border: "border-sb-border",
+      icon: <HelpCircle className="w-3.5 h-3.5 text-sb-text-2 shrink-0" aria-hidden="true" />,
     },
   };
 
   const current = config[status];
-  const shouldShowScore = score != null && status !== "insufficient_evidence";
+  const safeScore = score != null ? formatPercent(score) : null;
+  const shouldShowScore = safeScore != null && status !== "insufficient_evidence";
 
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-semibold rounded-full border shadow-2xs select-none whitespace-nowrap shrink-0",
+        "inline-flex items-center font-semibold rounded-full border shadow-2xs select-none whitespace-nowrap shrink-0",
+        sizeClasses,
         current.bg,
         current.text,
         current.border,
@@ -112,8 +129,8 @@ export function MatchBadge({ status, score, className, ...props }: MatchBadgePro
       {current.icon}
       <span>{current.label}</span>
       {shouldShowScore && (
-        <span className="ml-1 pl-1.5 border-l border-current/30 font-bold font-mono">
-          {score}%
+        <span className="ml-1 pl-1.5 border-l border-current/30 font-bold font-mono-metric">
+          {safeScore}%
         </span>
       )}
     </span>
@@ -121,67 +138,97 @@ export function MatchBadge({ status, score, className, ...props }: MatchBadgePro
 }
 
 // -----------------------------------------------------------------------------
-// Skill Status Badge
-// Status nonwarna: wajib teks eksplisit "tercantum di CV" / "belum ditemukan"
+// Skill Comparison Badge (Terbukti di CV / Belum ditemukan / Belum cukup bukti)
 // -----------------------------------------------------------------------------
-export type CVSkillStatus = "found" | "missing" | "needs_verification";
+export type CVSkillStatus = "found" | "missing" | "needs_verification" | "matched" | "insufficient";
 
 export interface CVSkillBadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  skillName: string;
+  skillName?: string;
   status: CVSkillStatus;
   isMandatory?: boolean;
+  compact?: boolean;
 }
 
 export function CVSkillBadge({
   skillName,
   status,
   isMandatory = false,
+  compact = false,
   className,
   ...props
 }: CVSkillBadgeProps) {
-  const configs: Record<
-    CVSkillStatus,
-    { label: string; icon: React.ReactNode; cls: string }
-  > = {
-    found: {
-      label: "Tercantum di CV",
-      icon: <Check className="w-3 h-3 text-emerald-600 stroke-[2.5]" />,
-      cls: "bg-emerald-50 text-emerald-800 border-emerald-200",
-    },
-    missing: {
-      label: "Belum ditemukan",
-      icon: <MinusCircle className="w-3 h-3 text-amber-600" />,
-      cls: "bg-slate-50 text-slate-700 border-slate-200",
-    },
-    needs_verification: {
-      label: "Perlu verifikasi",
-      icon: <HelpCircle className="w-3 h-3 text-blue-500" />,
-      cls: "bg-blue-50 text-blue-800 border-blue-200",
-    },
-  };
+  const isFound = status === "found" || status === "matched";
+  const isMissing = status === "missing";
 
-  const curr = configs[status];
+  const padding = compact ? "px-2.5 py-0.5 text-xs" : "px-3 py-1 text-xs";
+
+  if (isFound) {
+    return (
+      <span
+        className={cn(
+          "inline-flex items-center gap-1.5 font-semibold rounded-full bg-emerald-50 text-sb-good border border-emerald-200 select-none",
+          padding,
+          className
+        )}
+        {...props}
+      >
+        <CheckCircle2 className="w-3.5 h-3.5 text-sb-good shrink-0" aria-hidden="true" />
+        {skillName && <span className="font-bold text-sb-navy">{skillName}</span>}
+        {isMandatory && (
+          <span className="text-xs uppercase font-bold px-1 rounded bg-emerald-100 text-sb-good">
+            Wajib
+          </span>
+        )}
+        <span className={skillName ? "pl-1 border-l border-emerald-300/50 text-[11px]" : ""}>
+          Terbukti di CV
+        </span>
+      </span>
+    );
+  }
+
+  if (isMissing) {
+    return (
+      <span
+        className={cn(
+          "inline-flex items-center gap-1.5 font-semibold rounded-full bg-sb-mist-faint text-sb-text-2 border border-sb-border select-none",
+          padding,
+          className
+        )}
+        {...props}
+      >
+        <XCircle className="w-3.5 h-3.5 text-sb-critical shrink-0" aria-hidden="true" />
+        {skillName && <span className="font-bold text-sb-navy">{skillName}</span>}
+        {isMandatory && (
+          <span className="text-xs uppercase font-bold px-1 rounded bg-rose-100 text-sb-critical">
+            Wajib
+          </span>
+        )}
+        <span className={skillName ? "pl-1 border-l border-sb-border text-[11px]" : ""}>
+          Belum ditemukan di CV
+        </span>
+      </span>
+    );
+  }
 
   return (
-    <div
+    <span
       className={cn(
-        "inline-flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg border transition-colors duration-150",
-        curr.cls,
+        "inline-flex items-center gap-1.5 font-semibold rounded-full bg-amber-50 text-sb-warning border border-amber-200 select-none",
+        padding,
         className
       )}
       {...props}
     >
-      <span className="font-semibold text-slate-900">{skillName}</span>
+      <HelpCircle className="w-3.5 h-3.5 text-sb-warning shrink-0" aria-hidden="true" />
+      {skillName && <span className="font-bold text-sb-navy">{skillName}</span>}
       {isMandatory && (
-        <span className="text-[10px] uppercase font-bold tracking-wider px-1 rounded bg-slate-200/60 text-slate-700">
+        <span className="text-xs uppercase font-bold px-1 rounded bg-amber-100 text-sb-warning">
           Wajib
         </span>
       )}
-      <span className="inline-flex items-center gap-1 text-[11px] opacity-90 pl-1 border-l border-current/20 font-medium">
-        {curr.icon}
-        {curr.label}
+      <span className={skillName ? "pl-1 border-l border-amber-300 text-[11px]" : ""}>
+        Belum cukup bukti
       </span>
-    </div>
+    </span>
   );
 }
-

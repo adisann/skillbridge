@@ -123,9 +123,9 @@ function ProgressContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           skillName: newTitle.trim(),
-          reason: "Ditambahkan mandiri oleh pengguna berdasarkan analisis kebutuhan lowongan pasar.",
+          reason: "Ditambahkan mandiri oleh pengguna berdasarkan analisis kebutuhan lowongan.",
           priority: newPriority,
-          resourceSuggestion: "Dokumentasi resmi dan latihan proyek studi kasus mandiri.",
+          resourceSuggestion: "Dokumentasi resmi dan latihan studi kasus mandiri.",
         }),
       });
 
@@ -167,67 +167,69 @@ function ProgressContent() {
   };
 
   const doneCount = learningList.filter((i) => i.isDone).length;
-  const progressPercent = learningList.length > 0 ? Math.round((doneCount / learningList.length) * 100) : 0;
+  const progressPercent = learningList.length > 0 ? Math.min(100, Math.max(0, Math.round((doneCount / learningList.length) * 100))) : 0;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Rencana Belajar & Simpanan Lowongan
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Pantau progres peningkatan keahlian dan kelola lowongan yang kamu simpan.
-          </p>
-        </div>
-        <Link href="/insights">
-          <Button variant="outline" size="sm">
-            <BarChart2 className="w-4 h-4 mr-1 text-emerald-600" />
-            Cek Kebutuhan Pasar
-          </Button>
-        </Link>
-      </div>
-
-      {notification && (
-        <AlertBanner
-          type="success"
-          title="Pembaruan Progress"
-          message={notification}
-        />
-      )}
-
-      {/* Progress Metric Card */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-blue-900 to-indigo-950 text-white shadow-lg space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-400/30">
-              Progres Rencana Belajar
-            </span>
-            <h2 className="text-xl sm:text-2xl font-bold mt-1">
-              {doneCount} dari {learningList.length} Kompetensi Dikuasai
-            </h2>
-            <p className="text-xs text-blue-200 mt-0.5">
-              Tingkatkan daya saing CV-mu dengan menyelesaikan target skill yang sering diminta pasar.
+      {/* ------------------------------------------------------------------- */}
+      {/* Page Banner (Sky-Blue Light Gradient, No Eyebrows)                 */}
+      {/* ------------------------------------------------------------------- */}
+      <div className="page-banner rounded-3xl p-6 sm:p-8 text-sb-navy relative overflow-hidden border border-sb-border shadow-2xs">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-sb-border">
+          <div className="space-y-2 max-w-2xl">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-sb-navy">
+              Rencana Belajar
+            </h1>
+            <p className="text-sb-text-2 text-sm leading-relaxed">
+              Centang skill yang sudah kamu pelajari.
             </p>
           </div>
-          <div className="text-3xl sm:text-4xl font-extrabold text-emerald-400 font-mono">
+
+          <div className="flex flex-wrap items-center gap-3">
+            <Link href="/insights">
+              <Button variant="secondary" size="sm">
+                <BarChart2 className="w-4 h-4 mr-1 text-sb-blue" />
+                Lihat Tren Skill
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+        {/* Hero Progress Metrics */}
+        <div className="relative z-10 pt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <h2 className="text-xl sm:text-2xl font-bold text-sb-navy">
+              {doneCount} dari {learningList.length} Skill Selesai Dipelajari
+            </h2>
+            <p className="text-xs text-sb-text-2">
+              Pelajari skill yang sering dibutuhkan di lowongan incaranmu.
+            </p>
+          </div>
+          <div className="text-3xl sm:text-4xl font-extrabold text-sb-blue font-mono-metric shrink-0">
             {progressPercent}%
           </div>
         </div>
 
         {/* Progress Bar */}
-        <div className="w-full bg-blue-950/80 rounded-full h-3 p-0.5 border border-blue-800">
+        <div className="relative z-10 w-full bg-sb-mist-soft rounded-full h-3 p-0.5 border border-sb-border mt-4 overflow-hidden">
           <div
-            className="bg-gradient-to-r from-emerald-400 to-teal-400 h-full rounded-full transition-all duration-500"
+            className="bg-sb-sky h-full rounded-full transition-all duration-500"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
       </div>
 
+      {notification && (
+        <AlertBanner
+          type="success"
+          title="Pembaruan Rencana Belajar"
+          message={notification}
+        />
+      )}
+
       {isLoading ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+          <div className="xl:col-span-2 space-y-4">
             <SkeletonCard />
             <SkeletonCard />
           </div>
@@ -236,104 +238,106 @@ function ProgressContent() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Kolom Kiri: Rencana Belajar (2 Cols) */}
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+          {/* Kolom Kiri: Target Belajar (2 Cols pada xl, 1 Col pada lg) */}
+          <div className="xl:col-span-2 space-y-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-3">
                 <div>
                   <CardTitle className="text-base flex items-center gap-2">
-                    <BookOpen className="w-4 h-4 text-blue-600" />
-                    Target Peningkatan Skill
+                    <BookOpen className="w-4 h-4 text-sb-blue" />
+                    Target Belajar
                   </CardTitle>
                   <CardDescription className="text-xs">
-                    Centang target yang telah kamu pelajari untuk memperbarui estimasi kesiapan kerja.
+                    Centang skill yang sudah kamu pelajari untuk memantau kemajuanmu.
                   </CardDescription>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Form Tambah Target Baru */}
-                <form onSubmit={handleAddItem} className="flex gap-2">
-                  <div className="flex-1">
+                <form onSubmit={handleAddItem} className="flex flex-col sm:flex-row lg:flex-col xl:flex-row gap-2">
+                  <div className="flex-1 min-w-0">
                     <TextInput
-                      placeholder="Tambah target skill baru (cth. Snowflake, Airflow, PySpark)..."
+                      placeholder="Tambah target skill baru (cth. SQL, React, Excel)..."
                       value={newTitle}
                       onChange={(e) => setNewTitle(e.target.value)}
                     />
                   </div>
-                  <select
-                    value={newPriority}
-                    onChange={(e) => setNewPriority(e.target.value)}
-                    className="text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700"
-                  >
-                    <option value="Tinggi">Tinggi</option>
-                    <option value="Menengah">Menengah</option>
-                    <option value="Dasar">Dasar</option>
-                  </select>
-                  <Button type="submit" variant="primary" size="md">
-                    <Plus className="w-4 h-4 mr-1" />
-                    Tambah
-                  </Button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <select
+                      value={newPriority}
+                      onChange={(e) => setNewPriority(e.target.value)}
+                      className="text-xs font-semibold px-3 py-2 rounded-xl border border-sb-border bg-white text-sb-navy focus:outline-none focus:ring-1 focus:ring-sb-blue"
+                    >
+                      <option value="Tinggi">Tinggi</option>
+                      <option value="Menengah">Menengah</option>
+                      <option value="Dasar">Dasar</option>
+                    </select>
+                    <Button type="submit" variant="primary" size="md" className="whitespace-nowrap shrink-0">
+                      <Plus className="w-4 h-4 mr-1 shrink-0" />
+                      Tambah
+                    </Button>
+                  </div>
                 </form>
 
                 {/* List Item Belajar */}
                 {learningList.length === 0 ? (
-                  <div className="py-8 text-center text-xs text-slate-500 border border-dashed rounded-xl border-slate-200">
+                  <div className="py-10 text-center text-xs text-sb-text-2 border border-dashed rounded-2xl border-sb-border bg-white/40">
                     Belum ada target belajar. Buka{" "}
-                    <Link href="/insights" className="text-blue-600 font-semibold hover:underline">
-                      Market Insights
+                    <Link href="/insights" className="text-sb-blue font-semibold hover:underline">
+                      Tren Skill
                     </Link>{" "}
-                    untuk menambahkan skill yang paling banyak dicari pasar kerja.
+                    untuk menambahkan skill yang sering dicari.
                   </div>
                 ) : (
                   <div className="space-y-3 pt-2">
                     {learningList.map((item) => (
                       <div
                         key={item.id}
-                        className={`p-4 rounded-xl border transition-colors duration-150 flex items-start justify-between gap-3 ${
+                        className={`p-4 rounded-xl border transition-all duration-150 flex items-start justify-between gap-3 ${
                           item.isDone
-                            ? "bg-slate-50/70 border-slate-200 opacity-75"
-                            : "bg-white border-slate-200 hover:border-slate-300 shadow-2xs"
+                            ? "bg-white/40 border-sb-border opacity-70"
+                            : "bg-white/80 border-sb-border hover:border-sb-blue/40 hover:shadow-2xs"
                         }`}
                       >
                         <div className="flex items-start gap-3">
                           <button
                             type="button"
                             onClick={() => toggleDone(item.id, item.isDone)}
-                            className="mt-0.5 text-slate-400 hover:text-emerald-600 transition-colors shrink-0"
+                            className="mt-0.5 text-sb-text-2 hover:text-sb-good transition-colors shrink-0"
                             aria-label={item.isDone ? "Tandai belum selesai" : "Tandai selesai"}
                           >
                             {item.isDone ? (
-                              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                              <CheckCircle2 className="w-5 h-5 text-sb-good" />
                             ) : (
-                              <Circle className="w-5 h-5" />
+                              <Circle className="w-5 h-5 text-sb-text-2" />
                             )}
                           </button>
                           <div className="space-y-1">
                             <div className="flex flex-wrap items-center gap-2">
                               <span
                                 className={`font-bold text-sm ${
-                                  item.isDone ? "line-through text-slate-400" : "text-slate-900"
+                                  item.isDone ? "line-through text-sb-text-2" : "text-sb-navy"
                                 }`}
                               >
                                 {item.skillName}
                               </span>
                               <span
-                                className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
+                                className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
                                   item.priority === "Tinggi"
-                                    ? "bg-rose-50 text-rose-700 border-rose-200"
-                                    : "bg-blue-50 text-blue-700 border-blue-200"
+                                    ? "bg-sb-critical/10 text-sb-critical border-sb-critical/30"
+                                    : "bg-sb-mist-soft text-sb-navy border border-sb-border"
                                 }`}
                               >
                                 Prioritas {item.priority}
                               </span>
                             </div>
-                            <p className="text-xs text-slate-600 leading-relaxed">
+                            <p className="text-xs text-sb-text-2 leading-relaxed">
                               {item.reason}
                             </p>
                             {item.resourceSuggestion && (
-                              <div className="text-[11px] text-blue-800 bg-blue-50/70 p-2 rounded-lg border border-blue-100 flex items-center gap-1.5 mt-1">
-                                <BookOpen className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                              <div className="text-[11px] text-sb-text-2 bg-sb-mist-soft p-2.5 rounded-xl border border-sb-border flex items-center gap-1.5 mt-1.5">
+                                <BookOpen className="w-3.5 h-3.5 text-sb-blue shrink-0" />
                                 <span>Rekomendasi: {item.resourceSuggestion}</span>
                               </div>
                             )}
@@ -343,7 +347,7 @@ function ProgressContent() {
                         <button
                           type="button"
                           onClick={() => handleRemoveItem(item.id)}
-                          className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors shrink-0"
+                          className="text-sb-text-2 hover:text-sb-critical p-1.5 rounded-lg hover:bg-sb-critical/10 transition-colors shrink-0"
                           title="Hapus target belajar"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -359,40 +363,49 @@ function ProgressContent() {
           {/* Kolom Kanan: Lowongan Tersimpan (1 Col) */}
           <div>
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-3">
-                <div>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Bookmark className="w-4 h-4 text-blue-600" />
-                    Lowongan Tersimpan ({savedJobs.length})
+              <CardHeader className="pb-3 space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <CardTitle className="text-base flex items-center gap-2 min-w-0">
+                    <Bookmark className="w-4 h-4 text-sb-blue shrink-0" />
+                    <span className="truncate">Lowongan Tersimpan ({savedJobs.length})</span>
                   </CardTitle>
-                  <CardDescription className="text-xs">
-                    Lowongan yang kamu simpan dari Cari Lowongan.
-                  </CardDescription>
+                  <Link
+                    href="/jobs"
+                    className="text-xs font-semibold text-sb-blue hover:underline whitespace-nowrap shrink-0"
+                  >
+                    Cari Lagi
+                  </Link>
                 </div>
-                <Link href="/jobs" className="text-xs font-semibold text-blue-600 hover:underline">
-                  Cari Lagi
-                </Link>
+                <CardDescription className="text-xs">
+                  Lowongan yang kamu simpan dari Cari Lowongan.
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 {/* Tracker CTA Callout */}
-                <div className="p-3 bg-gradient-to-r from-amber-50 to-blue-50 border border-amber-200/80 rounded-xl flex items-center justify-between gap-2">
+                <div className="p-3.5 glass-panel border border-sb-border rounded-xl space-y-2.5">
                   <div className="space-y-0.5">
-                    <p className="text-xs font-bold text-slate-900">Pelacakan Lamaran Kerja</p>
-                    <p className="text-[11px] text-slate-600">Atur prioritas 1–5 bintang dan pantau tahapan seleksi.</p>
+                    <p className="text-xs font-bold text-sb-navy">Pelacakan Lamaran Kerja</p>
+                    <p className="text-[11px] text-sb-text-2 leading-relaxed">
+                      Atur prioritas dan pantau tahapan seleksimu.
+                    </p>
                   </div>
-                  <Link href="/tracker">
-                    <Button variant="primary" size="sm" className="text-xs shrink-0 flex items-center gap-1">
-                      <span>Buka Pelacakan</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
+                  <Link href="/tracker" className="block">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      rightIcon={<ArrowRight className="w-3.5 h-3.5 shrink-0" />}
+                      className="w-full text-xs justify-center whitespace-nowrap"
+                    >
+                      Buka Pelacakan
                     </Button>
                   </Link>
                 </div>
 
                 {savedJobs.length === 0 ? (
-                  <div className="py-8 text-center text-xs text-slate-500 border border-dashed rounded-xl border-slate-200">
+                  <div className="py-10 text-center text-xs text-sb-text-2 border border-dashed rounded-2xl border-sb-border bg-white/40">
                     Belum ada lowongan yang disimpan. Buka{" "}
-                    <Link href="/jobs" className="text-blue-600 font-semibold hover:underline">
-                      Job Explorer
+                    <Link href="/jobs" className="text-sb-blue font-semibold hover:underline">
+                      Lowongan
                     </Link>{" "}
                     dan klik ikon simpan pada kartu lowongan.
                   </div>
@@ -400,32 +413,32 @@ function ProgressContent() {
                   savedJobs.map((j) => (
                     <div
                       key={j.id}
-                      className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-white hover:border-slate-300 transition-colors duration-150 space-y-2"
+                      className="p-4 rounded-xl border border-sb-border bg-white/70 hover:bg-white hover:border-sb-blue/40 transition-all space-y-2.5"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="space-y-0.5">
-                          <h4 className="text-xs font-bold text-slate-900 line-clamp-1">{j.title}</h4>
-                          <p className="text-[11px] text-slate-500 font-medium">
+                          <h4 className="text-xs font-bold text-sb-navy line-clamp-1">{j.title}</h4>
+                          <p className="text-[11px] text-sb-text-2 font-medium">
                             {j.company} • {j.location}
                           </p>
                         </div>
                         <MatchBadge status={j.matchStatus} score={j.matchScore} />
                       </div>
 
-                      <div className="space-y-1 text-xs">
+                      <div className="space-y-1.5 text-xs">
                         <div className="flex flex-wrap gap-1">
                           {j.matchedSkills.slice(0, 3).map((s) => (
-                            <span key={s} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-semibold">
-                              <Check className="w-2.5 h-2.5 text-emerald-600" />
+                            <span key={s} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sb-good/10 text-sb-good border border-sb-good/30 text-xs font-semibold">
+                              <Check className="w-2.5 h-2.5 text-sb-good" />
                               {s}
                             </span>
                           ))}
                         </div>
                         {j.missingSkills.length > 0 && (
-                          <div className="flex flex-wrap gap-1">
-                            <span className="text-[11px] font-semibold text-slate-600">Belum ditemukan:</span>
+                          <div className="flex flex-wrap items-center gap-1">
+                            <span className="text-[11px] font-semibold text-sb-text-2">Belum ditemukan:</span>
                             {j.missingSkills.slice(0, 2).map((s) => (
-                              <span key={s} className="px-1.5 py-0.5 rounded bg-white border border-slate-200 text-[10px] text-slate-700 font-medium">
+                              <span key={s} className="px-2 py-0.5 rounded-full bg-sb-mist-soft border border-sb-border text-xs text-sb-text-2 font-medium">
                                 {s}
                               </span>
                             ))}
@@ -433,27 +446,27 @@ function ProgressContent() {
                         )}
                       </div>
 
-                      <div className="pt-2 border-t border-slate-200/80 flex items-center justify-between text-xs">
+                      <div className="pt-2 border-t border-sb-border flex items-center justify-between text-xs">
                         <button
                           type="button"
                           onClick={() => handleUnsaveJob(j.id)}
-                          className="text-slate-400 hover:text-rose-600 text-[11px] hover:underline"
+                          className="text-sb-text-2 hover:text-sb-critical text-[11px] hover:underline"
                         >
                           Hapus
                         </button>
                         <div className="flex items-center gap-2">
                           <Link
                             href={`/tracker`}
-                            className="text-amber-700 font-semibold hover:underline text-[11px]"
+                            className="text-sb-blue font-semibold hover:underline text-[11px]"
                           >
                             Atur Pipeline
                           </Link>
-                          <span className="text-slate-300">•</span>
+                          <span className="text-sb-border">•</span>
                           <Link
                             href={`/jobs/${j.id}`}
-                            className="text-blue-600 font-semibold hover:underline inline-flex items-center gap-1 text-[11px]"
+                            className="text-sb-blue font-semibold hover:underline inline-flex items-center gap-1 text-[11px]"
                           >
-                            Detail Gap <ExternalLink className="w-3 h-3" />
+                            Rincian <ExternalLink className="w-3 h-3" />
                           </Link>
                         </div>
                       </div>

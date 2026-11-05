@@ -37,14 +37,14 @@ export const TextInput = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-xs font-semibold text-slate-700"
+            className="block text-xs font-semibold text-sb-navy"
           >
             {label}
           </label>
         )}
         <div className="relative flex items-center">
           {leftIcon && (
-            <div className="absolute left-3 text-slate-400 pointer-events-none flex items-center justify-center">
+            <div className="absolute left-3 text-sb-text-2 pointer-events-none flex items-center justify-center">
               {leftIcon}
             </div>
           )}
@@ -53,26 +53,26 @@ export const TextInput = React.forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             disabled={disabled}
             className={cn(
-              "w-full h-10 rounded-lg border bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed",
+              "w-full h-10 rounded-xl border bg-white/80 backdrop-blur-xs px-3 text-sm text-sb-navy placeholder:text-sb-text-2/70 transition-colors focus:outline-none focus:ring-2 focus:ring-sb-blue focus:border-sb-blue disabled:bg-sb-mist-faint disabled:text-sb-text-2/40 disabled:cursor-not-allowed",
               leftIcon && "pl-9",
               rightIcon && "pr-9",
               error
-                ? "border-red-400 focus:border-red-500 focus:ring-red-400/20 text-red-900"
-                : "border-slate-300 hover:border-slate-400",
+                ? "border-sb-critical focus:border-sb-critical focus:ring-sb-critical/20 text-sb-critical"
+                : "border-sb-border hover:border-sb-blue/40",
               className
             )}
             {...props}
           />
           {rightIcon && (
-            <div className="absolute right-3 text-slate-400 pointer-events-none flex items-center justify-center">
+            <div className="absolute right-3 text-sb-text-2 pointer-events-none flex items-center justify-center">
               {rightIcon}
             </div>
           )}
         </div>
         {error ? (
-          <p className="text-xs text-red-600 font-medium">{error}</p>
+          <p className="text-xs text-sb-critical font-medium">{error}</p>
         ) : helperText ? (
-          <p className="text-xs text-slate-500">{helperText}</p>
+          <p className="text-xs text-sb-text-2">{helperText}</p>
         ) : null}
       </div>
     );
@@ -103,19 +103,19 @@ export function SearchInput({
   return (
     <div className="w-full space-y-1.5">
       {label && (
-        <label className="block text-xs font-semibold text-slate-700">
+        <label className="block text-xs font-semibold text-sb-navy">
           {label}
         </label>
       )}
       <div className="relative flex items-center">
-        <Search className="absolute left-3.5 w-4 h-4 text-slate-400 pointer-events-none" />
+        <Search className="absolute left-3.5 w-4 h-4 text-sb-text-2 pointer-events-none" />
         <input
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           className={cn(
-            "w-full h-10 pl-10 pr-9 rounded-lg border border-slate-300 bg-white text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+            "w-full h-10 pl-10 pr-9 rounded-xl border border-sb-border bg-white/80 backdrop-blur-xs text-sm text-sb-navy placeholder:text-sb-text-2/70 transition-colors focus:outline-none focus:ring-2 focus:ring-sb-blue focus:border-sb-blue",
             className
           )}
           {...props}
@@ -127,7 +127,7 @@ export function SearchInput({
               onChange("");
               if (onClear) onClear();
             }}
-            className="absolute right-3 p-0.5 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100"
+            className="absolute right-3 p-0.5 text-sb-text-2 hover:text-sb-navy rounded-full hover:bg-sb-mist-soft cursor-pointer"
             aria-label="Bersihkan pencarian"
           >
             <X className="w-4 h-4" />
@@ -158,7 +158,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         {label && (
           <label
             htmlFor={selectId}
-            className="block text-xs font-semibold text-slate-700"
+            className="block text-xs font-semibold text-sb-navy"
           >
             {label}
           </label>
@@ -167,8 +167,8 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           id={selectId}
           ref={ref}
           className={cn(
-            "w-full h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
-            error && "border-red-400 focus:ring-red-400/20 text-red-900",
+            "w-full h-10 rounded-xl border border-sb-border bg-white/80 backdrop-blur-xs px-3 text-sm text-sb-navy transition-colors focus:outline-none focus:ring-2 focus:ring-sb-blue focus:border-sb-blue",
+            error && "border-sb-critical focus:ring-sb-critical/20 text-sb-critical",
             className
           )}
           {...props}
@@ -179,7 +179,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             </option>
           ))}
         </select>
-        {error && <p className="text-xs text-red-600 font-medium">{error}</p>}
+        {error && <p className="text-xs text-sb-critical font-medium">{error}</p>}
       </div>
     );
   }
@@ -206,7 +206,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         {label && (
           <label
             htmlFor={textareaId}
-            className="block text-xs font-semibold text-slate-700"
+            className="block text-xs font-semibold text-sb-navy"
           >
             {label}
           </label>
@@ -215,16 +215,16 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           id={textareaId}
           ref={ref}
           className={cn(
-            "w-full min-h-[96px] rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
-            error && "border-red-400 focus:ring-red-400/20 text-red-900",
+            "w-full min-h-[96px] rounded-xl border border-sb-border bg-white/80 p-3 text-sm text-sb-navy placeholder:text-sb-text-2/70 transition-colors focus:outline-none focus:ring-2 focus:ring-sb-blue focus:border-sb-blue",
+            error && "border-sb-critical focus:ring-sb-critical/20 text-sb-critical",
             className
           )}
           {...props}
         />
         {error ? (
-          <p className="text-xs text-red-600 font-medium">{error}</p>
+          <p className="text-xs text-sb-critical font-medium">{error}</p>
         ) : helperText ? (
-          <p className="text-xs text-slate-500">{helperText}</p>
+          <p className="text-xs text-sb-text-2">{helperText}</p>
         ) : null}
       </div>
     );
@@ -257,7 +257,7 @@ export function Checkbox({
         type="checkbox"
         id={checkboxId}
         className={cn(
-          "w-4 h-4 mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 transition-colors cursor-pointer",
+          "w-4 h-4 mt-0.5 rounded border-sb-border text-sb-blue focus:ring-sb-blue focus:ring-offset-0 transition-colors cursor-pointer",
           className
         )}
         {...props}
@@ -265,12 +265,12 @@ export function Checkbox({
       <div className="text-sm">
         <label
           htmlFor={checkboxId}
-          className="font-medium text-slate-800 cursor-pointer select-none"
+          className="font-medium text-sb-navy cursor-pointer select-none"
         >
           {label}
         </label>
         {description && (
-          <p className="text-xs text-slate-500">{description}</p>
+          <p className="text-xs text-sb-text-2">{description}</p>
         )}
       </div>
     </div>

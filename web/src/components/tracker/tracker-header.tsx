@@ -57,17 +57,17 @@ export function TrackerHeader({
       {/* Top Breadcrumb & Title */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-1">
-            <Link href="/dashboard" className="hover:text-blue-600 transition-colors">
+          <div className="flex items-center gap-2 text-xs font-semibold text-sb-text-2 mb-1">
+            <Link href="/dashboard" className="hover:text-sb-blue transition-colors">
               Dashboard
             </Link>
             <ChevronRight className="w-3.5 h-3.5" />
-            <span className="text-slate-800">Lamaran Saya</span>
+            <span className="text-sb-navy">Lamaran Saya</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Lamaran Saya
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-sb-navy tracking-tight flex items-center gap-2">
+            <span>Lamaran Saya</span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600 mt-1">
+          <p className="text-xs sm:text-sm text-sb-text-2 mt-1">
             Kelola 7 tahapan lamaran kerjamu dan atur prioritas minat kariermu secara terstruktur.
           </p>
         </div>
@@ -79,7 +79,6 @@ export function TrackerHeader({
               size="sm"
               onClick={onOpenCompare}
               leftIcon={<SlidersHorizontal className="w-4 h-4 text-white" />}
-              className="bg-slate-900 hover:bg-slate-800 text-white shadow-xs"
             >
               Bandingkan {selectedCount} Lowongan
             </Button>
@@ -97,7 +96,7 @@ export function TrackerHeader({
       </div>
 
       {/* Pipeline Stage Tabs */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-2 shadow-2xs overflow-x-auto">
+      <div className="glass-panel rounded-2xl p-2 shadow-2xs overflow-x-auto">
         <div className="flex items-center gap-1.5 min-w-max">
           {STAGES_PIPELINE.map((stage) => {
             const isActive = activeStageFilter === stage.id;
@@ -106,16 +105,16 @@ export function TrackerHeader({
                 key={stage.id}
                 type="button"
                 onClick={() => onStageFilterChange(stage.id)}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors duration-150 ${
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
                   isActive
-                    ? "bg-slate-900 text-white shadow-xs"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                    ? "bg-sb-sky text-sb-navy shadow-xs"
+                    : "text-sb-text-2 hover:bg-white/70 hover:text-sb-navy"
                 }`}
               >
                 <span>{stage.label}</span>
                 <span
-                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-extrabold ${
-                    isActive ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
+                  className={`px-2 py-0.5 rounded-full text-xs font-extrabold font-mono-metric ${
+                    isActive ? "bg-white/40 text-sb-navy" : "bg-sb-mist-soft text-sb-blue"
                   }`}
                 >
                   {stage.count}
@@ -127,28 +126,28 @@ export function TrackerHeader({
       </div>
 
       {/* Filter Controls & View Switcher */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 glass-panel p-3.5 rounded-2xl">
         {/* Search bar */}
         <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-sb-text-2 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Cari lowongan, posisi, perusahaan..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:border-blue-500 bg-slate-50/50"
+            className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-sb-border focus:outline-hidden focus:border-sb-blue bg-white/70"
           />
         </div>
 
         <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-2.5">
           {/* Sort by */}
-          <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold">
-            <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400" />
+          <div className="flex items-center gap-1.5 text-xs text-sb-text-2 font-semibold">
+            <SlidersHorizontal className="w-3.5 h-3.5 text-sb-text-2" />
             <span>Urutkan:</span>
             <select
               value={sortBy}
               onChange={(e) => onSortChange(e.target.value as "priority" | "match" | "date")}
-              className="py-1 px-2 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-700 focus:outline-hidden cursor-pointer"
+              className="py-1 px-2.5 rounded-xl border border-sb-border bg-white/80 text-xs font-bold text-sb-navy focus:outline-hidden cursor-pointer"
             >
               <option value="priority">Prioritas Bintang (Tertinggi)</option>
               <option value="match">Skor Match CV (Tertinggi)</option>
@@ -157,12 +156,12 @@ export function TrackerHeader({
           </div>
 
           {/* View switcher */}
-          <div className="flex items-center border border-slate-200 rounded-xl p-0.5 bg-slate-100/60">
+          <div className="flex items-center border border-sb-border rounded-xl p-0.5 bg-sb-mist-faint">
             <button
               type="button"
               onClick={() => onViewModeChange("table")}
-              className={`p-1.5 rounded-lg text-xs font-bold transition-colors ${
-                viewMode === "table" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-900"
+              className={`p-1.5 rounded-lg text-xs font-bold transition-all ${
+                viewMode === "table" ? "bg-white text-sb-blue shadow-2xs" : "text-sb-text-2 hover:text-sb-navy"
               }`}
               title="Tampilan Tabel & Perbandingan"
             >
@@ -171,8 +170,8 @@ export function TrackerHeader({
             <button
               type="button"
               onClick={() => onViewModeChange("board")}
-              className={`p-1.5 rounded-lg text-xs font-bold transition-colors ${
-                viewMode === "board" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-900"
+              className={`p-1.5 rounded-lg text-xs font-bold transition-all ${
+                viewMode === "board" ? "bg-white text-sb-blue shadow-2xs" : "text-sb-text-2 hover:text-sb-navy"
               }`}
               title="Tampilan Kanban Board Pipeline"
             >
@@ -184,10 +183,10 @@ export function TrackerHeader({
 
       {/* Selected Counter & Multi Action Bar */}
       {selectedCount > 0 && (
-        <div className="p-3 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-between text-xs text-indigo-900">
+        <div className="p-3.5 rounded-xl bg-sb-mist-soft border border-sb-border flex items-center justify-between text-xs text-sb-navy">
           <div className="flex items-center gap-2">
-            <span className="font-bold">{selectedCount} lowongan dipilih</span>
-            <span className="text-indigo-600">• Kamu dapat membandingkan kecocokan skill & gaji secara berdampingan.</span>
+            <span className="font-bold text-sb-blue font-mono-metric">{selectedCount} lowongan dipilih</span>
+            <span className="text-sb-text-2">• Kamu dapat membandingkan kecocokan skill & gaji secara berdampingan.</span>
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -195,14 +194,13 @@ export function TrackerHeader({
               size="sm"
               onClick={onOpenCompare}
               leftIcon={<SlidersHorizontal className="w-3.5 h-3.5" />}
-              className="bg-slate-900 hover:bg-slate-800 text-white"
             >
               Buka Matriks Perbandingan
             </Button>
             <button
               type="button"
               onClick={onClearSelection}
-              className="text-xs text-indigo-700 hover:underline font-semibold ml-2 cursor-pointer"
+              className="text-xs text-sb-blue hover:underline font-semibold ml-2 cursor-pointer"
             >
               Batalkan Pilihan
             </button>
@@ -212,4 +210,3 @@ export function TrackerHeader({
     </div>
   );
 }
-

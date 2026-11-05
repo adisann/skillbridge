@@ -41,17 +41,17 @@ export function TrackerTable({
   onPageSizeChange,
 }: TrackerTableProps) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+    <div className="glass-panel rounded-2xl overflow-hidden shadow-2xs">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs border-collapse">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 font-bold uppercase tracking-wider">
+            <tr className="border-b border-sb-border bg-white/60 text-sb-text-2 font-bold uppercase tracking-wider">
               <th className="py-3 px-3.5 w-10 text-center">
                 <input
                   type="checkbox"
                   checked={selectedJobIds.size === jobs.length && jobs.length > 0}
                   onChange={onToggleSelectAll}
-                  className="rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
+                  className="rounded text-sb-blue focus:ring-sb-blue cursor-pointer"
                   title="Pilih Semua di Halaman Ini"
                 />
               </th>
@@ -66,7 +66,7 @@ export function TrackerTable({
           </thead>
           <tbody
             className={cn(
-              "divide-y divide-slate-100 transition-opacity duration-150",
+              "divide-y divide-sb-border transition-opacity duration-150",
               isPending ? "opacity-40" : "opacity-100"
             )}
           >
@@ -77,8 +77,8 @@ export function TrackerTable({
               return (
                 <tr
                   key={job.id}
-                  className={`hover:bg-slate-50/60 transition-colors ${
-                    isSelected ? "bg-indigo-50/40" : ""
+                  className={`hover:bg-white/80 transition-colors ${
+                    isSelected ? "bg-sb-mist-soft" : "bg-white/40"
                   }`}
                 >
                   {/* Checkbox */}
@@ -87,7 +87,7 @@ export function TrackerTable({
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => onToggleSelectJob(job.id)}
-                      className="rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
+                      className="rounded text-sb-blue focus:ring-sb-blue cursor-pointer"
                     />
                   </td>
 
@@ -96,12 +96,12 @@ export function TrackerTable({
                     <div className="space-y-0.5">
                       <Link
                         href={job.id.startsWith("custom_") ? "#" : `/jobs/${job.id}`}
-                        className="font-bold text-slate-900 hover:text-blue-600 hover:underline line-clamp-1"
+                        className="font-bold text-sb-navy hover:text-sb-blue hover:underline line-clamp-1"
                       >
                         {job.title}
                       </Link>
-                      <p className="text-slate-600 font-medium">{job.company}</p>
-                      <p className="text-[11px] text-slate-400">
+                      <p className="text-sb-text-2 font-medium">{job.company}</p>
+                      <p className="text-[11px] text-sb-text-2">
                         {job.location} • {job.employmentType}
                       </p>
                     </div>
@@ -117,7 +117,7 @@ export function TrackerTable({
                     <select
                       value={job.stage}
                       onChange={(e) => onStageChange(job.id, e.target.value as JobStage)}
-                      className={`w-full py-1 px-2 rounded-lg border text-xs font-bold focus:outline-hidden ${stageConf.badgeClass}`}
+                      className={`w-full py-1 px-2.5 rounded-full border text-xs font-bold focus:outline-hidden ${stageConf.badgeClass}`}
                     >
                       <option value="bookmarked">Tersimpan</option>
                       <option value="applying">Siapkan Berkas</option>
@@ -136,14 +136,14 @@ export function TrackerTable({
                         value={job.priority}
                         onChange={(newVal) => onPriorityChange(job.id, newVal)}
                       />
-                      <span className="block text-[10px] text-slate-400 font-medium">
+                      <span className="block text-xs text-sb-text-2 font-medium font-mono-metric">
                         Level {job.priority}/5
                       </span>
                     </div>
                   </td>
 
                   {/* Salary */}
-                  <td className="py-3.5 px-3 font-semibold text-slate-800">
+                  <td className="py-3.5 px-3 font-semibold text-sb-navy">
                     {job.salaryExpectation || "Kompensasi Kompetitif"}
                   </td>
 
@@ -151,55 +151,53 @@ export function TrackerTable({
                   <td className="py-3.5 px-3">
                     <div className="space-y-1 text-[11px]">
                       {job.dateApplied && (
-                        <p className="text-blue-600 font-semibold flex items-center gap-1">
+                        <p className="text-sb-blue font-semibold flex items-center gap-1 font-mono-metric">
                           <Clock className="w-3 h-3" /> Dilamar: {job.dateApplied}
                         </p>
                       )}
                       {job.interviewDate && (
-                        <p className="text-indigo-600 font-semibold flex items-center gap-1">
+                        <p className="text-sb-warning font-semibold flex items-center gap-1 font-mono-metric">
                           <Calendar className="w-3 h-3" /> {job.interviewDate}
                         </p>
                       )}
                       {job.notes ? (
-                        <p className="text-slate-500 italic line-clamp-1 max-w-[150px]">
+                        <p className="text-sb-text-2 italic line-clamp-1 max-w-[150px]">
                           &ldquo;{job.notes}&rdquo;
                         </p>
                       ) : (
-                        <span className="text-slate-400">-</span>
+                        <span className="text-sb-text-2">-</span>
                       )}
                     </div>
                   </td>
 
                   {/* Actions */}
                   <td className="py-3.5 px-3 text-right">
-                    <div className="inline-flex items-center gap-1">
-                      {job.sourceUrl && (
-                        <a
-                          href={job.sourceUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-slate-100 transition-colors"
-                          title="Buka Lowongan di Situs Asli"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
-                      )}
+                    <div className="flex items-center justify-end gap-1.5">
                       <button
                         type="button"
                         onClick={() => onEditJob(job)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                        title="Edit Catatan & Jadwal"
+                        className="p-1.5 rounded-lg text-sb-text-2 hover:text-sb-blue hover:bg-sb-mist-soft transition-colors"
+                        title="Edit catatan atau rincian"
                       >
                         <Pencil className="w-4 h-4" />
                       </button>
                       <button
                         type="button"
                         onClick={() => onDeleteJob(job.id)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                        title="Hapus dari Pelacakan"
+                        className="p-1.5 rounded-lg text-sb-text-2 hover:text-sb-critical hover:bg-sb-critical/10 transition-colors"
+                        title="Hapus dari pelacakan"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
+                      {!job.id.startsWith("custom_") && (
+                        <Link
+                          href={`/jobs/${job.id}`}
+                          className="p-1.5 rounded-lg text-sb-text-2 hover:text-sb-blue hover:bg-sb-mist-soft transition-colors"
+                          title="Lihat detail lowongan"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </Link>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -209,18 +207,15 @@ export function TrackerTable({
         </table>
       </div>
 
-      {/* Pagination Controls */}
-      <div className="p-4 border-t border-slate-200 bg-slate-50/50">
-        <Pagination
-          currentPage={currentPage}
-          totalItems={totalItems}
-          pageSize={pageSize}
-          onPageChange={onPageChange}
-          onPageSizeChange={onPageSizeChange}
-          itemLabel="lowongan"
-        />
-      </div>
+      {/* Pagination Footer */}
+      <Pagination
+        currentPage={currentPage}
+        totalItems={totalItems}
+        pageSize={pageSize}
+        pageSizeOptions={[10, 20, 50]}
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
+      />
     </div>
   );
 }
-

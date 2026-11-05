@@ -5,7 +5,7 @@ import { getCachedPublicJobs, aggregateMarketData } from "@/lib/public-jobs";
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const roleParam = searchParams.get("role");
+    const roleParam = searchParams.get("bidang") || searchParams.get("role");
     const role = roleParam && roleParam !== "all" ? roleParam : "all";
     const workType = searchParams.get("workType");
     const seniority = searchParams.get("seniority");
@@ -51,10 +51,11 @@ export async function GET(req: NextRequest) {
     );
 
     const headers = new Headers();
+    headers.set("Vary", "Cookie");
     if (user) {
       headers.set("Cache-Control", "private, no-store, must-revalidate");
     } else {
-      headers.set("Cache-Control", "public, s-maxage=900, stale-while-revalidate=60");
+      headers.set("Cache-Control", "public, s-maxage=300, stale-while-revalidate=60");
     }
 
     return NextResponse.json(
@@ -134,7 +135,7 @@ export async function POST(req: NextRequest) {
       resume_id: resume.id,
       skill_id: skillId,
       is_claimed_by_user: true,
-      evidence: "Ditandai manual oleh pengguna (belum terverifikasi di dokumen CV).",
+      evidence: "Ditandai manual oleh pengguna (belum ditemukan di dokumen CV).",
     }, { onConflict: "resume_id,skill_id" });
 
     return NextResponse.json({

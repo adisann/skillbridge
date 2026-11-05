@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { Filter, RotateCcw, X, SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { JOB_CATEGORIES } from "@/lib/job-categories";
 
 export interface FilterState {
-  role: string;
+  role: string; // Bidang slug or 'all'
   workType: string;
   seniority: string;
   location?: string;
@@ -14,24 +15,10 @@ export interface FilterBarProps {
   filters: FilterState;
   onChange: (newFilters: FilterState) => void;
   onReset?: () => void;
+  categoryCounts?: Record<string, number>;
   sampleCount?: number;
   className?: string;
 }
-
-export const ROLE_OPTIONS = [
-  { label: "Semua Role", value: "all" },
-  { label: "Data Analyst", value: "Data Analyst" },
-  { label: "BI Analyst", value: "BI Analyst" },
-  { label: "Software Engineer", value: "Software Engineer" },
-  { label: "Frontend Developer", value: "Frontend Developer" },
-  { label: "Backend Developer", value: "Backend Developer" },
-  { label: "Product Manager", value: "Product Manager" },
-  { label: "UI/UX Designer", value: "UI/UX Designer" },
-  { label: "Digital Marketing", value: "Marketing" },
-  { label: "Keuangan / Finansial", value: "Finance" },
-  { label: "Operasional Bisnis", value: "Operations" },
-  { label: "Cyber Security", value: "Cyber Security" },
-];
 
 export const WORK_TYPE_OPTIONS = [
   { label: "Semua Tipe", value: "all" },
@@ -69,16 +56,37 @@ export function FilterBar({
   filters,
   onChange,
   onReset,
+  categoryCounts,
   className,
 }: FilterBarProps) {
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
+  // Buat daftar opsi bidang berdasarkan JOB_CATEGORIES dan categoryCounts
+  const bidangOptions = [
+    { label: "Semua Bidang", value: "all" },
+    ...JOB_CATEGORIES.filter((c) => {
+      // Jika categoryCounts ada, sembunyikan bidang yang jumlahnya 0 (kecuali jika sedang dipilih)
+      if (categoryCounts && filters.role !== c.slug) {
+        return (categoryCounts[c.slug] || 0) > 0;
+      }
+      return true;
+    }).map((c) => {
+      const count = categoryCounts ? categoryCounts[c.slug] : undefined;
+      const countLabel = count !== undefined ? ` (${count})` : "";
+      return {
+        label: `${c.label}${countLabel}`,
+        value: c.slug,
+      };
+    }),
+  ];
+
   const activeFilterList: Array<{ key: keyof FilterState; label: string; valueLabel: string }> = [];
   if (filters.role && filters.role !== "all") {
+    const foundCat = JOB_CATEGORIES.find((c) => c.slug === filters.role);
     activeFilterList.push({
       key: "role",
-      label: "Role",
-      valueLabel: ROLE_OPTIONS.find((o) => o.value === filters.role)?.label || filters.role,
+      label: "Bidang",
+      valueLabel: foundCat ? foundCat.label : filters.role,
     });
   }
   if (filters.location && filters.location !== "all") {
@@ -130,12 +138,12 @@ export function FilterBar({
           <button
             type="button"
             onClick={() => setIsMobileDrawerOpen(true)}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-300 bg-white shadow-2xs text-xs font-bold text-slate-800 hover:bg-slate-50 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full border border-sb-border bg-white/80 backdrop-blur-md shadow-xs text-xs font-bold text-sb-navy hover:bg-white transition-colors cursor-pointer"
           >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-blue-600" />
+            <SlidersHorizontal className="w-3.5 h-3.5 text-sb-blue" />
             <span>Filter</span>
             {activeFilterList.length > 0 && (
-              <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center">
+              <span className="w-5 h-5 rounded-full bg-sb-sky text-sb-navy text-xs font-bold flex items-center justify-center">
                 {activeFilterList.length}
               </span>
             )}
@@ -145,7 +153,7 @@ export function FilterBar({
             <button
               type="button"
               onClick={onReset}
-              className="text-xs font-semibold text-slate-500 hover:text-blue-600 flex items-center gap-1"
+              className="text-xs font-semibold text-sb-text-2 hover:text-sb-blue flex items-center gap-1 cursor-pointer"
             >
               <RotateCcw className="w-3 h-3" />
               Reset
@@ -159,13 +167,13 @@ export function FilterBar({
             {activeFilterList.map((chip) => (
               <span
                 key={chip.key}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-blue-800 border border-blue-200 text-[11px] font-semibold shrink-0"
+                className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-sb-mist-soft text-sb-navy border border-sb-border text-[11px] font-semibold shrink-0"
               >
                 <span>{chip.valueLabel}</span>
                 <button
                   type="button"
                   onClick={() => removeFilter(chip.key)}
-                  className="hover:bg-blue-200/60 rounded-full p-0.5 text-blue-600 cursor-pointer"
+                  className="hover:bg-sb-mist rounded-full p-0.5 text-sb-text-2 cursor-pointer"
                   aria-label={`Hapus filter ${chip.label}`}
                 >
                   <X className="w-3 h-3" />
@@ -183,38 +191,40 @@ export function FilterBar({
         <div className="fixed inset-0 z-50 md:hidden flex flex-col justify-end">
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-slate-950/50 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-black/30 backdrop-blur-xs transition-opacity"
             onClick={() => setIsMobileDrawerOpen(false)}
+            aria-hidden="true"
           />
 
           {/* Sheet container */}
-          <div className="relative bg-white rounded-t-3xl border-t border-slate-200 p-5 shadow-2xl max-h-[85vh] overflow-y-auto space-y-4 animate-in slide-in-from-bottom-5 duration-200">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="relative glass-panel rounded-t-[28px] border-t border-sb-border p-6 shadow-2xl max-h-[85vh] overflow-y-auto space-y-4 animate-in slide-in-from-bottom-5 duration-200">
+            <div className="flex items-center justify-between pb-3 border-b border-sb-border">
               <div className="flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4 text-blue-600" />
-                <h3 className="text-sm font-bold text-slate-900">Filter Lowongan</h3>
+                <SlidersHorizontal className="w-4 h-4 text-sb-blue" />
+                <h3 className="text-sm font-bold text-sb-navy">Filter Lowongan</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsMobileDrawerOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 bg-slate-100 cursor-pointer"
+                className="p-1.5 rounded-full text-sb-text-2 hover:text-sb-navy bg-white/70 border border-sb-border cursor-pointer"
+                aria-label="Tutup filter"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="space-y-3.5">
-              {/* Role */}
+              {/* Bidang (sebelumnya Peran Target) */}
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                  Peran Target
+                <label className="text-[11px] font-bold uppercase tracking-wider text-sb-text-2">
+                  Bidang
                 </label>
                 <select
                   value={filters.role}
                   onChange={(e) => updateField("role", e.target.value)}
-                  className="w-full h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full h-10 rounded-xl border border-sb-border bg-white/80 px-3 text-xs font-semibold text-sb-navy focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue"
                 >
-                  {ROLE_OPTIONS.map((opt) => (
+                  {bidangOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>
                       {opt.label}
                     </option>
@@ -224,13 +234,13 @@ export function FilterBar({
 
               {/* Location */}
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-sb-text-2">
                   Lokasi Kerja
                 </label>
                 <select
                   value={filters.location || "all"}
                   onChange={(e) => updateField("location", e.target.value)}
-                  className="w-full h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full h-10 rounded-xl border border-sb-border bg-white/80 px-3 text-xs font-semibold text-sb-navy focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue"
                 >
                   {LOCATION_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -242,13 +252,13 @@ export function FilterBar({
 
               {/* Work Type */}
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-sb-text-2">
                   Tipe Kerja
                 </label>
                 <select
                   value={filters.workType}
                   onChange={(e) => updateField("workType", e.target.value)}
-                  className="w-full h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full h-10 rounded-xl border border-sb-border bg-white/80 px-3 text-xs font-semibold text-sb-navy focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue"
                 >
                   {WORK_TYPE_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -260,13 +270,13 @@ export function FilterBar({
 
               {/* Seniority */}
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-sb-text-2">
                   Senioritas
                 </label>
                 <select
                   value={filters.seniority}
                   onChange={(e) => updateField("seniority", e.target.value)}
-                  className="w-full h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full h-10 rounded-xl border border-sb-border bg-white/80 px-3 text-xs font-semibold text-sb-navy focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue"
                 >
                   {SENIORITY_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -278,13 +288,13 @@ export function FilterBar({
 
               {/* Posted Date */}
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-sb-text-2">
                   Waktu Tayang
                 </label>
                 <select
                   value={filters.postedDate || "all"}
                   onChange={(e) => updateField("postedDate", e.target.value)}
-                  className="w-full h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full h-10 rounded-xl border border-sb-border bg-white/80 px-3 text-xs font-semibold text-sb-navy focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue"
                 >
                   {DATE_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -303,7 +313,7 @@ export function FilterBar({
                     onReset();
                     setIsMobileDrawerOpen(false);
                   }}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+                  className="flex-1 py-3 rounded-full border border-sb-border text-xs font-bold text-sb-navy hover:bg-white/80 transition-colors cursor-pointer"
                 >
                   Reset
                 </button>
@@ -311,7 +321,7 @@ export function FilterBar({
               <button
                 type="button"
                 onClick={() => setIsMobileDrawerOpen(false)}
-                className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors"
+                className="flex-1 py-3 rounded-full bg-sb-sky hover:bg-sb-sky-hover text-sb-navy text-xs font-bold transition-all cursor-pointer shadow-xs"
               >
                 Terapkan Filter
               </button>
@@ -321,25 +331,25 @@ export function FilterBar({
       )}
 
       {/* ----------------------------------------------------------------- */}
-      {/* Desktop Filter Bar (Visible on md and above)                       */}
+      {/* Desktop Filter Bar (Glass Panel with 20px radius)                 */}
       {/* ----------------------------------------------------------------- */}
       <div
         className={cn(
-          "hidden md:block p-4 rounded-xl border border-slate-200 bg-white shadow-xs space-y-3.5",
+          "hidden md:block p-5 rounded-[20px] glass space-y-4",
           className
         )}
       >
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
-            <Filter className="w-4 h-4 text-blue-600" />
-            Filter Lowongan & Pasar
+          <div className="flex items-center gap-2 text-xs font-bold text-sb-navy uppercase tracking-wider">
+            <Filter className="w-4 h-4 text-sb-blue" />
+            Filter Lowongan
           </div>
 
           {isFiltered && onReset && (
             <button
               type="button"
               onClick={onReset}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-sb-text-2 hover:text-sb-blue transition-colors cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               Reset Filter
@@ -348,18 +358,18 @@ export function FilterBar({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          {/* Role Filter */}
+          {/* Bidang (sebelumnya Peran Target) */}
           <div className="space-y-1">
-            <label htmlFor="filter-role" className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-              Peran Target
+            <label htmlFor="filter-role" className="text-[11px] font-bold uppercase tracking-wider text-sb-text-2">
+              Bidang
             </label>
             <select
               id="filter-role"
               value={filters.role}
               onChange={(e) => updateField("role", e.target.value)}
-              className="w-full h-9 rounded-lg border border-slate-200 bg-slate-50/60 px-3 text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full h-10 rounded-xl border border-sb-border bg-white/70 px-3 text-xs font-semibold text-sb-navy focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue"
             >
-              {ROLE_OPTIONS.map((opt) => (
+              {bidangOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>
@@ -369,14 +379,14 @@ export function FilterBar({
 
           {/* Location Filter */}
           <div className="space-y-1">
-            <label htmlFor="filter-location" className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+            <label htmlFor="filter-location" className="text-[11px] font-bold uppercase tracking-wider text-sb-text-2">
               Lokasi Kerja
             </label>
             <select
               id="filter-location"
               value={filters.location || "all"}
               onChange={(e) => updateField("location", e.target.value)}
-              className="w-full h-9 rounded-lg border border-slate-200 bg-slate-50/60 px-3 text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full h-10 rounded-xl border border-sb-border bg-white/70 px-3 text-xs font-semibold text-sb-navy focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue"
             >
               {LOCATION_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -388,14 +398,14 @@ export function FilterBar({
 
           {/* Work Type Filter */}
           <div className="space-y-1">
-            <label htmlFor="filter-work-type" className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+            <label htmlFor="filter-work-type" className="text-[11px] font-bold uppercase tracking-wider text-sb-text-2">
               Tipe Kerja
             </label>
             <select
               id="filter-work-type"
               value={filters.workType}
               onChange={(e) => updateField("workType", e.target.value)}
-              className="w-full h-9 rounded-lg border border-slate-200 bg-slate-50/60 px-3 text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full h-10 rounded-xl border border-sb-border bg-white/70 px-3 text-xs font-semibold text-sb-navy focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue"
             >
               {WORK_TYPE_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -407,14 +417,14 @@ export function FilterBar({
 
           {/* Seniority Filter */}
           <div className="space-y-1">
-            <label htmlFor="filter-seniority" className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+            <label htmlFor="filter-seniority" className="text-[11px] font-bold uppercase tracking-wider text-sb-text-2">
               Senioritas
             </label>
             <select
               id="filter-seniority"
               value={filters.seniority}
               onChange={(e) => updateField("seniority", e.target.value)}
-              className="w-full h-9 rounded-lg border border-slate-200 bg-slate-50/60 px-3 text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full h-10 rounded-xl border border-sb-border bg-white/70 px-3 text-xs font-semibold text-sb-navy focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue"
             >
               {SENIORITY_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -426,14 +436,14 @@ export function FilterBar({
 
           {/* Posted Date Filter */}
           <div className="space-y-1">
-            <label htmlFor="filter-posted-date" className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+            <label htmlFor="filter-posted-date" className="text-[11px] font-bold uppercase tracking-wider text-sb-text-2">
               Waktu Tayang
             </label>
             <select
               id="filter-posted-date"
               value={filters.postedDate || "all"}
               onChange={(e) => updateField("postedDate", e.target.value)}
-              className="w-full h-9 rounded-lg border border-slate-200 bg-slate-50/60 px-3 text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full h-10 rounded-xl border border-sb-border bg-white/70 px-3 text-xs font-semibold text-sb-navy focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue"
             >
               {DATE_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -447,4 +457,3 @@ export function FilterBar({
     </>
   );
 }
-

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, search } = request.nextUrl;
 
   // Cek cookie sesi server
   let isAuthenticated = false;
@@ -29,24 +29,63 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Daftar rute yang wajib memiliki sesi terautentikasi
-  const protectedPrefixes = [
-    "/dashboard",
-    "/cv",
-    "/tracker",
-    "/progress",
-    "/profile",
-    "/admin",
-  ];
+  // =========================================================================
+  // 1. TAMU (UNAUTHENTICATED):
+  //    - /jobs, /jobs/* -> redirect ke /lowongan, /lowongan/*
+  //    - /insights, /insights/* -> redirect ke /tren-skill, /tren-skill/*
+  //    - Rute aplikasi terproteksi -> redirect ke /login?next=...
+  // =========================================================================
+  if (!isAuthenticated) {
+    if (pathname === "/jobs" || pathname.startsWith("/jobs/")) {
+      const publicPath = pathname.replace(/^\/jobs/, "/lowongan");
+      const url = new URL(`${publicPath}${search}`, request.url);
+      return NextResponse.redirect(url);
+    }
 
-  const isProtected = protectedPrefixes.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
-  );
+    if (pathname === "/insights" || pathname.startsWith("/insights/")) {
+      const publicPath = pathname.replace(/^\/insights/, "/tren-skill");
+      const url = new URL(`${publicPath}${search}`, request.url);
+      return NextResponse.redirect(url);
+    }
 
-  if (isProtected && !isAuthenticated) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("next", pathname);
-    return NextResponse.redirect(loginUrl);
+    // Rute wajib login lainnya
+    const protectedPrefixes = [
+      "/dashboard",
+      "/cv",
+      "/tracker",
+      "/progress",
+      "/profile",
+      "/admin",
+    ];
+
+    const isProtected = protectedPrefixes.some(
+      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+    );
+
+    if (isProtected) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("next", `${pathname}${search}`);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  // =========================================================================
+  // 2. PENGGUNA TERAUTENTIKASI (AUTHENTICATED):
+  //    - /lowongan, /lowongan/* -> redirect ke /jobs, /jobs/*
+  //    - /tren-skill, /tren-skill/* -> redirect ke /insights, /insights/*
+  // =========================================================================
+  if (isAuthenticated) {
+    if (pathname === "/lowongan" || pathname.startsWith("/lowongan/")) {
+      const appPath = pathname.replace(/^\/lowongan/, "/jobs");
+      const url = new URL(`${appPath}${search}`, request.url);
+      return NextResponse.redirect(url);
+    }
+
+    if (pathname === "/tren-skill" || pathname.startsWith("/tren-skill/")) {
+      const appPath = pathname.replace(/^\/tren-skill/, "/insights");
+      const url = new URL(`${appPath}${search}`, request.url);
+      return NextResponse.redirect(url);
+    }
   }
 
   return NextResponse.next();
@@ -60,6 +99,9 @@ export const config = {
     "/progress/:path*",
     "/profile/:path*",
     "/admin/:path*",
+    "/jobs/:path*",
+    "/insights/:path*",
+    "/lowongan/:path*",
+    "/tren-skill/:path*",
   ],
 };
-

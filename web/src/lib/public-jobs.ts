@@ -1,6 +1,7 @@
 import { unstable_cache, revalidateTag } from "next/cache";
 import { getServiceSupabase } from "@/lib/supabase/server";
 import { getCanonicalSkill } from "@/lib/matching-config";
+import { getCategoryFromTitle, getCategoryBySlug } from "@/lib/job-categories";
 
 export interface RawPublicJobSkill {
   is_mandatory: boolean;
@@ -131,7 +132,12 @@ export function aggregateMarketData(
   let filteredJobs = allJobs;
 
   if (role !== "all") {
+    const catFilter = getCategoryBySlug(role);
     filteredJobs = filteredJobs.filter((j) => {
+      if (catFilter) {
+        const jCat = getCategoryFromTitle(j.title, j.canonical_title);
+        if (jCat.slug === catFilter.slug) return true;
+      }
       const cTitle = (j.canonical_title || "").toLowerCase();
       const title = (j.title || "").toLowerCase();
       return cTitle.includes(role) || title.includes(role);

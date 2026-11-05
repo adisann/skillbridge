@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "outline" | "ghost" | "danger" | "success";
+  variant?: "primary" | "secondary" | "outline" | "ghost" | "danger" | "success" | "dark" | "glass";
   size?: "sm" | "md" | "lg";
   isLoading?: boolean;
   leftIcon?: React.ReactNode;
@@ -27,27 +27,31 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      "inline-flex items-center justify-center font-medium transition duration-150 rounded-lg cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none active:scale-[0.98]";
+      "inline-flex items-center justify-center font-bold transition-all duration-180 rounded-full cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-sb-blue disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none active:scale-[0.98]";
 
     const variantStyles = {
       primary:
-        "bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 focus-visible:ring-blue-500 shadow-sm shadow-blue-500/20",
+        "bg-sb-sky text-sb-navy hover:bg-sb-sky-hover shadow-xs font-bold",
       secondary:
-        "bg-slate-100 text-slate-800 hover:bg-slate-200 active:bg-slate-300 focus-visible:ring-slate-400",
+        "bg-white hover:bg-sb-mist-soft text-sb-navy border border-sb-border shadow-xs font-semibold",
       outline:
-        "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-400 active:bg-slate-100 focus-visible:ring-blue-500",
+        "border border-sb-border bg-white/70 hover:bg-white hover:border-sb-sky text-sb-navy font-semibold",
       ghost:
-        "bg-transparent text-slate-600 hover:bg-slate-100 active:bg-slate-200 focus-visible:ring-slate-400",
+        "bg-transparent text-sb-text-2 hover:text-sb-navy hover:bg-sb-mist-soft font-semibold",
+      dark:
+        "bg-sb-mist-soft text-sb-navy border border-sb-border hover:bg-sb-mist font-semibold",
       danger:
-        "bg-red-600 text-white hover:bg-red-700 active:bg-red-800 focus-visible:ring-red-500 shadow-sm shadow-red-500/20",
+        "bg-sb-critical text-white hover:opacity-90 shadow-sm",
       success:
-        "bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800 focus-visible:ring-emerald-500 shadow-sm shadow-emerald-500/20",
+        "bg-sb-good text-white hover:opacity-90 shadow-sm",
+      glass:
+        "glass-soft hover:bg-white text-sb-navy border border-sb-border shadow-xs font-semibold",
     };
 
     const sizeStyles = {
-      sm: "h-8 px-3 text-xs gap-1.5",
-      md: "h-10 px-4 text-sm gap-2",
-      lg: "h-12 px-6 text-base gap-2.5",
+      sm: "h-9 px-4 text-xs gap-1.5",
+      md: "h-11 px-5 text-sm gap-2",
+      lg: "h-12 px-7 text-base gap-2.5",
     };
 
     return (
@@ -58,11 +62,13 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {isLoading ? (
-          <Loader2 className="w-4 h-4 animate-spin text-current" />
+          <Loader2 className="w-4 h-4 animate-spin text-current shrink-0" />
         ) : (
           leftIcon
         )}
-        <span>{children}</span>
+        <span className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap">
+          {children}
+        </span>
         {!isLoading && rightIcon}
       </button>
     );
@@ -70,4 +76,3 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 
 Button.displayName = "Button";
-

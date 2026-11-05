@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser, getAuthenticatedAdmin, getServiceSupabase } from "@/lib/supabase/server";
 import { calculateJobMatch } from "@/lib/matching";
 import { getCachedPublicJobs, revalidateJobsCache } from "@/lib/public-jobs";
+import { getCategoryFromTitle, getCategoryBySlug } from "@/lib/job-categories";
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const role = searchParams.get("role");
+    const role = searchParams.get("bidang") || searchParams.get("role");
     const query = searchParams.get("q");
 
     const { user, supabase } = await getAuthenticatedUser(req);
@@ -14,15 +15,21 @@ export async function GET(req: NextRequest) {
     // 1. Ambil katalog lowongan aktif dari cache server (unstable_cache tag 'jobs')
     const allJobs = await getCachedPublicJobs();
 
-    // Filter lowongan berdasarkan role dan query pencarian
+    // Filter lowongan berdasarkan bidang / role dan query pencarian
     let filteredJobs = allJobs;
     if (role && role !== "all") {
       const lowerRole = role.toLowerCase();
-      filteredJobs = filteredJobs.filter(
-        (j) =>
+      const catFilter = getCategoryBySlug(role);
+      filteredJobs = filteredJobs.filter((j) => {
+        if (catFilter) {
+          const jCat = getCategoryFromTitle(j.title, j.canonical_title);
+          if (jCat.slug === catFilter.slug) return true;
+        }
+        return (
           (j.canonical_title || "").toLowerCase().includes(lowerRole) ||
           (j.title || "").toLowerCase().includes(lowerRole)
-      );
+        );
+      });
     }
     if (query) {
       const q = query.toLowerCase();
@@ -41,12 +48,23 @@ export async function GET(req: NextRequest) {
     let candidateEdu = "Sarjana (S1)";
 
     if (user) {
-      const { data: resumeRows } = await supabase
+      let { data: resumeRows } = await supabase
         .from("resumes")
         .select("id, experience_years, education, resume_skills(skills(name))")
         .eq("user_id", user.id)
         .eq("is_active", true)
         .limit(1);
+
+      if ((!resumeRows || resumeRows.length === 0) && user.id) {
+        const serviceDb = getServiceSupabase();
+        const { data: fallbackRows } = await serviceDb
+          .from("resumes")
+          .select("id, experience_years, education, resume_skills(skills(name))")
+          .eq("user_id", user.id)
+          .eq("is_active", true)
+          .limit(1);
+        if (fallbackRows) resumeRows = fallbackRows;
+      }
 
       activeResume = resumeRows && resumeRows.length > 0 ? (resumeRows[0] as unknown as Record<string, unknown>) : null;
       if (activeResume && activeResume.resume_skills) {
@@ -111,16 +129,20 @@ export async function GET(req: NextRequest) {
         matchScore = null;
         matchStatus = "insufficient_evidence";
         factorsLimiting = ["CV belum terunggah. Unggah CV untuk mengevaluasi kecocokan kualifikasi."];
-        factorsSupporting = ["Data lowongan resmi terverifikasi."];
+        factorsSupporting = ["Data lowongan resmi aktif."];
         scoreBreakdown = [];
         requirementsEvaluation = [];
       }
+
+      const jobCategory = getCategoryFromTitle(j.title, j.canonical_title);
 
       return {
         id: j.id,
         externalId: j.external_id,
         title: j.title,
         canonicalTitle: j.canonical_title,
+        category: jobCategory.slug,
+        categoryLabel: jobCategory.label,
         company: j.company,
         location: j.location,
         employmentType: j.employment_type,
@@ -149,10 +171,11 @@ export async function GET(req: NextRequest) {
     });
 
     const headers = new Headers();
+    headers.set("Vary", "Cookie");
     if (user) {
       headers.set("Cache-Control", "private, no-store, must-revalidate");
     } else {
-      headers.set("Cache-Control", "public, s-maxage=900, stale-while-revalidate=60");
+      headers.set("Cache-Control", "public, s-maxage=300, stale-while-revalidate=60");
     }
 
     return NextResponse.json(

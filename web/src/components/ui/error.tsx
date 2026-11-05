@@ -33,16 +33,16 @@ export function AlertBanner({
       icon: <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />,
     },
     info: {
-      bg: "bg-blue-50",
-      border: "border-blue-200",
-      text: "text-blue-900",
-      icon: <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />,
+      bg: "bg-sb-mist-soft",
+      border: "border-sb-border",
+      text: "text-sb-navy",
+      icon: <Info className="w-4 h-4 text-sb-blue shrink-0 mt-0.5" />,
     },
     success: {
-      bg: "bg-emerald-50",
-      border: "border-emerald-200",
-      text: "text-emerald-900",
-      icon: <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />,
+      bg: "bg-sb-good/10",
+      border: "border-sb-good/30",
+      text: "text-sb-good",
+      icon: <CheckCircle2 className="w-4 h-4 text-sb-good shrink-0 mt-0.5" />,
     },
   };
 

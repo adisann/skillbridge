@@ -2,19 +2,31 @@ import React from "react";
 import { Building2, MapPin, Briefcase, ExternalLink, Bookmark, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MatchBadge, MatchStatus } from "./badge";
+import { ScoreRing } from "./score-ring";
 import { Button } from "./button";
 
 // -----------------------------------------------------------------------------
-// Base Card Components
+// Base Card Components (Glassmorphism as Default)
 // -----------------------------------------------------------------------------
+export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: "glass" | "solid";
+  hoverEffect?: boolean;
+}
+
 export function Card({
   className,
+  variant = "glass",
+  hoverEffect = true,
   ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+}: CardProps) {
   return (
     <div
       className={cn(
-        "rounded-xl border border-slate-200 bg-white shadow-xs hover:border-slate-300 transition-colors duration-150",
+        "rounded-[20px] transition-all duration-200",
+        variant === "glass"
+          ? "glass"
+          : "border border-sb-border bg-white shadow-xs",
+        hoverEffect && "lift-card",
         className
       )}
       {...props}
@@ -28,7 +40,7 @@ export function CardHeader({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("flex flex-col space-y-1.5 p-5 pb-3", className)}
+      className={cn("flex flex-col space-y-1.5 p-6 pb-3", className)}
       {...props}
     />
   );
@@ -41,7 +53,7 @@ export function CardTitle({
   return (
     <h3
       className={cn(
-        "text-base font-bold text-slate-900 tracking-tight",
+        "text-base font-bold text-sb-navy tracking-tight",
         className
       )}
       {...props}
@@ -54,7 +66,7 @@ export function CardDescription({
   ...props
 }: React.HTMLAttributes<HTMLParagraphElement>) {
   return (
-    <p className={cn("text-xs text-slate-500 leading-relaxed", className)} {...props} />
+    <p className={cn("text-xs text-sb-text-2 leading-relaxed", className)} {...props} />
   );
 }
 
@@ -62,7 +74,7 @@ export function CardContent({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("p-5 pt-0", className)} {...props} />;
+  return <div className={cn("p-6 pt-0", className)} {...props} />;
 }
 
 export function CardFooter({
@@ -71,7 +83,7 @@ export function CardFooter({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("flex items-center p-5 pt-3 border-t border-slate-100", className)}
+      className={cn("flex items-center p-6 pt-3 border-t border-sb-border", className)}
       {...props}
     />
   );
@@ -100,29 +112,29 @@ export function MetricCard({
   return (
     <div
       className={cn(
-        "p-5 rounded-xl border border-slate-200 bg-white shadow-xs hover:border-blue-200 transition-colors duration-150 flex flex-col justify-between",
+        "p-5 rounded-[20px] glass lift-card flex flex-col justify-between",
         className
       )}
     >
       <div className="flex items-center justify-between gap-3">
-        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+        <span className="text-xs font-bold uppercase tracking-wider text-sb-text-2">
           {title}
         </span>
         {icon && (
-          <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-sb-mist-soft text-sb-navy flex items-center justify-center shrink-0 border border-sb-border">
             {icon}
           </div>
         )}
       </div>
       <div className="mt-3">
         <div className="flex items-baseline gap-2">
-          <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          <span className="text-2xl sm:text-3xl font-extrabold text-sb-navy tracking-tight font-mono-metric">
             {value}
           </span>
           {badge}
         </div>
         {subtitle && (
-          <p className="mt-1 text-xs text-slate-500 leading-normal">{subtitle}</p>
+          <p className="mt-1 text-xs text-sb-text-2 leading-normal">{subtitle}</p>
         )}
       </div>
     </div>
@@ -130,8 +142,7 @@ export function MetricCard({
 }
 
 // -----------------------------------------------------------------------------
-// JobCard
-// Menampilkan judul, perusahaan, lokasi, level, sumber asli, status kecocokan
+// JobCard (Glassmorphic Job Card with ScoreRing Option)
 // -----------------------------------------------------------------------------
 export interface JobCardProps {
   id: string;
@@ -140,13 +151,16 @@ export interface JobCardProps {
   location: string;
   employmentType: string;
   seniority?: string;
-  sourceName: string;
+  sourceName?: string;
   sourceUrl: string;
-  matchStatus: MatchStatus;
+  matchStatus?: MatchStatus;
   matchScore?: number | null;
-  matchedSkills: string[];
-  missingSkills: string[];
+  matchedSkills?: string[];
+  missingSkills?: string[];
+  requiredSkills?: string[];
+  mode?: "guest" | "user";
   isSaved?: boolean;
+  isSelected?: boolean;
   onSaveToggle?: () => void;
   onViewDetails?: () => void;
   className?: string;
@@ -159,19 +173,25 @@ export function JobCard({
   employmentType,
   seniority,
   sourceUrl,
-  matchStatus,
+  matchStatus = "insufficient_evidence",
   matchScore,
-  matchedSkills,
-  missingSkills,
+  matchedSkills = [],
+  missingSkills = [],
+  requiredSkills = [],
+  mode = "user",
   isSaved = false,
+  isSelected = false,
   onSaveToggle,
   onViewDetails,
   className,
 }: JobCardProps) {
+  const isGuest = mode === "guest";
+
   return (
     <Card
       className={cn(
-        "overflow-hidden flex flex-col justify-between h-full hover:shadow-md hover:border-slate-300 transition-[border-color,box-shadow] duration-200 border-slate-200 bg-white",
+        "overflow-hidden flex flex-col justify-between h-full transition-all duration-200",
+        isSelected && "ring-2 ring-sb-blue border-sb-blue bg-white/90 shadow-md",
         className
       )}
     >
@@ -180,14 +200,14 @@ export function JobCard({
         <div className="flex items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-1.5 min-w-0 flex-1">
             <span
-              className="inline-flex items-center text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md max-w-[200px] sm:max-w-[260px] truncate"
+              className="inline-flex items-center text-xs font-semibold text-sb-navy bg-white/80 border border-sb-border px-2.5 py-0.5 rounded-full max-w-[200px] sm:max-w-[260px] truncate"
               title={company}
             >
-              <Building2 className="w-3 h-3 mr-1 text-slate-400 shrink-0" />
+              <Building2 className="w-3 h-3 mr-1 text-sb-blue shrink-0" />
               <span className="truncate">{company}</span>
             </span>
             {seniority && (
-              <span className="text-[11px] font-medium text-slate-500 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded-md shrink-0">
+              <span className="text-[11px] font-medium text-sb-text-2 bg-sb-mist-faint border border-sb-border px-2 py-0.5 rounded-full shrink-0">
                 {seniority}
               </span>
             )}
@@ -199,10 +219,10 @@ export function JobCard({
                 type="button"
                 onClick={onSaveToggle}
                 className={cn(
-                  "p-1.5 rounded-lg border transition-colors",
+                  "p-2 rounded-full border transition-colors cursor-pointer",
                   isSaved
-                    ? "bg-blue-50 text-blue-600 border-blue-200"
-                    : "text-slate-400 hover:text-slate-600 hover:bg-slate-50 border-transparent"
+                    ? "bg-sb-mist-soft text-sb-blue border-sb-border"
+                    : "text-sb-text-2 hover:text-sb-blue hover:bg-white/80 border-sb-border"
                 )}
                 aria-label={isSaved ? "Hapus dari simpanan" : "Simpan lowongan"}
                 title={isSaved ? "Tersimpan" : "Simpan lowongan"}
@@ -213,15 +233,15 @@ export function JobCard({
           </div>
         </div>
 
-        {/* Title & Match Badge Row */}
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2.5">
+        {/* Title & Score Gauge Row */}
+        <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <h4 className="text-base font-bold text-slate-900 tracking-tight line-clamp-2 leading-snug">
+            <h4 className="text-base font-extrabold text-sb-navy tracking-tight line-clamp-2 leading-snug">
               {onViewDetails ? (
                 <button
                   type="button"
                   onClick={onViewDetails}
-                  className="text-left font-bold text-slate-900 hover:text-blue-600 transition-colors cursor-pointer w-full focus:outline-none focus:underline"
+                  className="text-left font-extrabold text-sb-navy hover:text-sb-blue transition-colors cursor-pointer w-full focus:outline-none focus:underline"
                   title={title}
                 >
                   {title}
@@ -230,92 +250,127 @@ export function JobCard({
                 <span title={title}>{title}</span>
               )}
             </h4>
-            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 pt-1">
+            <div className="flex flex-wrap items-center gap-3 text-xs text-sb-text-2 pt-1.5">
               <span className="flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <MapPin className="w-3.5 h-3.5 text-sb-blue shrink-0" />
                 <span>{location}</span>
               </span>
               <span className="flex items-center gap-1">
-                <Briefcase className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <Briefcase className="w-3.5 h-3.5 text-sb-blue shrink-0" />
                 <span>{employmentType}</span>
               </span>
             </div>
           </div>
 
-          <div className="shrink-0 self-start sm:self-auto pt-0.5 sm:pt-0">
-            <MatchBadge status={matchStatus} score={matchScore} />
-          </div>
+          {!isGuest && (
+            <div className="shrink-0 self-start">
+              <ScoreRing score={matchScore} size="sm" showLabel={false} />
+            </div>
+          )}
         </div>
+
+        {/* Status Badge (Hanya mode user) */}
+        {!isGuest && (
+          <div>
+            <MatchBadge status={matchStatus} score={matchScore} size="sm" />
+          </div>
+        )}
       </CardHeader>
 
       <CardContent className="px-5 py-3 flex-1">
-        {/* Breakdown Singkat Kecocokan */}
-        <div className="space-y-2.5 text-xs">
-          {matchedSkills.length > 0 && (
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">
-                Cocok:
-              </span>
-              <div className="flex flex-wrap items-center gap-1.5">
-                {matchedSkills.map((s) => (
-                  <span
-                    key={s}
-                    className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200/80 font-medium text-[11px]"
-                  >
-                    <Check className="w-3 h-3 text-emerald-600 mr-1 shrink-0 stroke-[2.5]" />
-                    {s}
-                  </span>
-                ))}
-              </div>
+        {isGuest ? (
+          /* Mode Tamu: Tampilkan 3-4 chip skill yang diminta */
+          <div className="space-y-1.5">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-sb-text-2">
+              Skill yang diminta:
+            </span>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {(requiredSkills && requiredSkills.length > 0
+                ? requiredSkills.slice(0, 4)
+                : ["Kualifikasi di deskripsi"]
+              ).map((s) => (
+                <span
+                  key={s}
+                  className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-sb-mist-soft text-sb-navy border border-sb-border font-medium text-[11px]"
+                >
+                  {s}
+                </span>
+              ))}
+              {requiredSkills && requiredSkills.length > 4 && (
+                <span className="text-[11px] font-medium text-sb-text-2">
+                  +{requiredSkills.length - 4} lainnya
+                </span>
+              )}
             </div>
-          )}
+          </div>
+        ) : (
+          /* Mode User: Breakdown Singkat */
+          <div className="space-y-2.5 text-xs">
+            {matchedSkills.length > 0 && (
+              <div className="space-y-1">
+                <span className="text-xs font-bold uppercase tracking-wider text-sb-good">
+                  Cocok:
+                </span>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {matchedSkills.map((s) => (
+                    <span
+                      key={s}
+                      className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-50 text-sb-good border border-emerald-200/80 font-medium text-[11px]"
+                    >
+                      <Check className="w-3 h-3 text-sb-good mr-1 shrink-0 stroke-[2.5]" />
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
-          {missingSkills.length > 0 && (
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                Belum ditemukan:
-              </span>
-              <div className="flex flex-wrap items-center gap-1.5">
-                {missingSkills.map((s) => (
-                  <span
-                    key={s}
-                    className="px-2 py-0.5 rounded-md bg-slate-50 text-slate-700 border border-slate-200 font-medium text-[11px]"
-                  >
-                    {s}
-                  </span>
-                ))}
+            {missingSkills.length > 0 && (
+              <div className="space-y-1">
+                <span className="text-xs font-bold uppercase tracking-wider text-sb-text-2">
+                  Belum ditemukan:
+                </span>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {missingSkills.map((s) => (
+                    <span
+                      key={s}
+                      className="px-2 py-0.5 rounded-full bg-sb-mist-faint text-sb-text-2 border border-sb-border font-medium text-[11px]"
+                    >
+                      {s}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </CardContent>
 
-      <CardFooter className="px-5 py-3.5 justify-between items-center bg-slate-50/70 border-t border-slate-100 rounded-b-xl gap-2 mt-auto">
+      <CardFooter className="px-5 py-3.5 justify-between items-center bg-white/60 border-t border-sb-border rounded-b-[20px] gap-2 mt-auto">
         <div className="min-w-0">
           {sourceUrl && sourceUrl.trim() !== "" ? (
             <a
               href={sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+              className="inline-flex items-center gap-1 text-xs font-bold text-sb-navy hover:text-sb-blue underline underline-offset-3 decoration-sb-sky"
             >
-              <span>Lihat Sumber Asli</span>
+              <span>Sumber Asli</span>
               <ExternalLink className="w-3.5 h-3.5 shrink-0" />
             </a>
           ) : (
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-sb-text-2">
               Rincian kontak di deskripsi
             </span>
           )}
         </div>
 
         {onViewDetails && (
-          <Button variant="outline" size="sm" onClick={onViewDetails} className="shrink-0">
-            Detail Lowongan
+          <Button variant="outline" size="sm" onClick={onViewDetails} className="shrink-0 text-xs whitespace-nowrap px-3">
+            Detail
           </Button>
         )}
       </CardFooter>
     </Card>
   );
 }
-

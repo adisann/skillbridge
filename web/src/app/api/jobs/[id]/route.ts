@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthenticatedUser } from "@/lib/supabase/server";
+import { getAuthenticatedUser, getServiceSupabase } from "@/lib/supabase/server";
 import { calculateJobMatch } from "@/lib/matching";
 
 export async function GET(
@@ -28,12 +28,23 @@ export async function GET(
     let candidateEdu = "Sarjana (S1)";
 
     if (user) {
-      const { data: resumeRows } = await supabase
+      let { data: resumeRows } = await supabase
         .from("resumes")
         .select("id, experience_years, education, resume_skills(skills(name))")
         .eq("user_id", user.id)
         .eq("is_active", true)
         .limit(1);
+
+      if ((!resumeRows || resumeRows.length === 0) && user.id) {
+        const serviceDb = getServiceSupabase();
+        const { data: fallbackRows } = await serviceDb
+          .from("resumes")
+          .select("id, experience_years, education, resume_skills(skills(name))")
+          .eq("user_id", user.id)
+          .eq("is_active", true)
+          .limit(1);
+        if (fallbackRows) resumeRows = fallbackRows;
+      }
 
       activeResume = resumeRows && resumeRows.length > 0 ? (resumeRows[0] as unknown as Record<string, unknown>) : null;
       if (activeResume && activeResume.resume_skills) {
@@ -97,7 +108,7 @@ export async function GET(
         matchedSkills: activeResume ? liveMatch.matchedSkills : [],
         missingSkills: activeResume ? liveMatch.missingSkills : reqSkills,
         unprovenSkills: activeResume ? liveMatch.unprovenSkills : [],
-        factorsSupporting: activeResume ? liveMatch.factorsSupporting : ["Data lowongan resmi terverifikasi."],
+        factorsSupporting: activeResume ? liveMatch.factorsSupporting : ["Data lowongan resmi aktif."],
         factorsLimiting: activeResume ? liveMatch.factorsLimiting : ["CV belum terunggah. Unggah CV untuk mengevaluasi kecocokan."],
         scoreBreakdown: activeResume ? liveMatch.breakdown : [],
         requirementsEvaluation: activeResume ? liveMatch.requirementsEvaluation : [],

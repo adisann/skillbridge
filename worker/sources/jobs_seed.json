@@ -62,8 +62,8 @@
     "seniority": "Mid",
     "experience_years_min": 2,
     "education": "Bachelor",
-    "description": "Dibutuhkan BI Analyst berpengalaman untuk mengoptimasi rute armada dan efisiensi rantai pasok dengan Power BI dan SQL.",
-    "content_hash": "hash_li_412988102",
+    "description": "Karya Logistik membuka lowongan Business Intelligence (BI) Analyst untuk optimasi rute, pemantauan armada, dan efisiensi biaya logistik operasional.\n\nTanggung Jawab:\n- Mengembangkan dan memelihara dashboard BI untuk memantau KPI logistik harian, on-time delivery (OTD), dan utilisasi armada.\n- Mengekstraksi dan memproses data logistik berskala besar dari database operasional.\n- Menyusun laporan performa mingguan dan bulanan untuk manajemen eksekutif.\n\nKualifikasi Utama:\n- Pendidikan S1 Teknik Informatika, Sistem Informasi, Statistika, Matematika, atau bidang relevan.\n- Minimal 2 tahun pengalaman kerja sebagai BI Analyst, Data Analyst, atau Business Analyst.\n- Kemampuan tingkat lanjut dalam SQL (PostgreSQL, BigQuery, atau MySQL) untuk query analitik kompleks.\n- Pengalaman mendalam menggunakan Business Intelligence tools seperti Tableau, Power BI, atau Metabase.\n- Pengalaman dalam pemodelan data (Data Modeling) dan pemahaman konsep Data Warehousing / ETL.\n- Kemampuan analisis data (Data Analysis) yang kuat dan ketelitian tinggi terhadap integritas data.\n\nKualifikasi Tambahan / Nilai Plus:\n- Pengalaman pemrograman Python untuk otomatisasi laporan dan data scraping adalah nilai tambah.\n- Pemahaman tentang metrik supply chain dan logistik express di Indonesia.\n- Kemampuan komunikasi yang efektif untuk menyajikan temuan analitik kepada stakeholder non-teknis.",
+    "content_hash": "548e7509a46b579ba6da20c58ccca06f7aad726f25d313f85ec14e2ed654f85f",
     "retrieval_method": "jobspy",
     "is_active": true,
     "job_skills": [
@@ -85,6 +85,22 @@
         },
         "is_mandatory": true
       }
+    ],
+    "required_skills": [
+      "SQL",
+      "PostgreSQL",
+      "MySQL",
+      "BigQuery",
+      "Tableau",
+      "Power BI",
+      "Metabase",
+      "ETL",
+      "Data Modeling",
+      "Data Warehousing",
+      "Data Analysis"
+    ],
+    "preferred_skills": [
+      "Python"
     ]
   },
   {
@@ -1021,13 +1037,21 @@
     "location": "Bandung, West Java, Indonesia",
     "employment_type": "Full-time",
     "seniority": "Senior",
-    "experience_years_min": null,
-    "education": null,
-    "description": "Senior Data Analyst di Dropsuite. Deskripsi kualifikasi lowongan.",
-    "content_hash": "6598508c475f432de6c17d6113ac635ec411214adf5a37fe548e23586521bf34",
+    "experience_years_min": 5,
+    "education": "Sarjana (S1)",
+    "description": "About the Role\nWe’re looking for a highly analytical and motivated Data Analyst to join our team in Bandung, Indonesia. In this role, you’ll support our data operations and reporting needs by working closely with teams across the business. You’ll help deliver accurate insights, improve data quality, and support data-driven decision-making.\nLocation\n– Hybrid, Indonesia (2 days per week in the office)\nWhat You’ll be Doing\nUnderstand business requirements and translate them into scalable reporting frameworks that provide clear, actionable insights.\nCollect data from multiple sources, maintain data quality, identify discrepancies, and help resolve data issues.\nBuild dashboards and reports based on defined business logic.\nValidate data consistency across multiple reports.\nAnalyze reports and identify insights that help measure the company’s key performance indicators (KPIs).\nWork with stakeholders to define KPIs, interpret performance drivers, and recommend actions based on data.\nAnalyze trends and notify key users when KPI results appear incorrect or unusual.\nProvide data and analysis to stakeholders as needed.\nWork with the Data Engineering team to report missing or incorrect data and support improvements.\nMaintain a list of activities and improvements, and support basic project coordination.\nCommunicate changes and new developments to business users.\nAbout You\n5–7 years of experience in data analysis and reporting.\nMandatory: Proficiency in Excel, SQL, Power BI, and Tableau.\nProven ability to analyze large volumes of data, identify actionable insights, and communicate findings to stakeholders—not just build dashboards and reports.\nExperience integrating data across BI platforms, data warehouses, and operational tools, such as Sales Operations systems, while ensuring data consistency and integrity\nA strong business-oriented mindset, with the ability to connect data to commercial context and focus on outcomes.\nExperience working with stakeholders.\nGood English communication skills.\nStrong attention to detail.\nA collaborative, dependable, trustworthy, customer-focused, and solution-oriented approach.\nA big plus if you have\nExperience with Databricks, particularly developing SQL dashboards.\nFamiliarity with data warehouse concepts, including Medallion Architecture and Star Schema.\nExperience supporting commercial or operational reporting in SaaS or subscription-based businesses.\nAbout Us\nNinjaOne unifies IT to simplify work for nearly 40,000 customers in 140+ countries.\nThe NinjaOne Unified IT Operations Platform delivers endpoint management, autonomous patching, backup, and remote access in a single console to improve efficiency, increase resilience, and reduce spend. By automating IT and managing all endpoints, organizations give employees a great technology experience at work.\nNinjaOne is obsessed with customer success and has retained a 98% customer satisfaction score for more than 5 years.\nWhat You’ll Love\nWe are a collaborative, kind, and curious community\nWe prioritise your work/life balance offering a hybrid work environment and free in-office lunches throughout the week\nWe reward your work with opportunity for growth and advancement\nGrow personally and together with one of the fastest growing companies globally\nDevelop your skills through our renowned training platform\nReceive competitive compensation\nCollaborate with an amazing international workforce\nAdditional Information\nApplicants must hold valid working rights in Indonesia at the time of application. We are unable to provide visa sponsorship for this role.\nWe are an equal opportunity employer in accordance with Indonesia's Manpower Law. All applicants will receive fair consideration for employment regardless of nationality, gender, age, disability, or background. We are committed to fostering an inclusive and respectful workplace for all employees.",
+    "content_hash": "31a436c0211c16eb5f4307a11dd856c047dccdc5df55be399c33a69369324fbc",
     "retrieval_method": "jobspy",
     "is_active": true,
-    "job_skills": []
+    "job_skills": [],
+    "required_skills": [
+      "SQL",
+      "Excel",
+      "Tableau",
+      "Power BI",
+      "Data Analysis"
+    ],
+    "preferred_skills": []
   },
   {
     "id": "bea6d8ac-56fb-42b7-b675-b8164f5bea19",
@@ -1039,14 +1063,22 @@
     "company": "Kredivo Group",
     "location": "Jakarta Metropolitan Area",
     "employment_type": "Full-time",
-    "seniority": null,
-    "experience_years_min": null,
-    "education": null,
-    "description": "Data Analyst Operations di Kredivo Group. Deskripsi kualifikasi lowongan.",
-    "content_hash": "c0f282c3d4a75eeeccb08574c538137fa4952d9fcb3641a201070790d4d12609",
+    "seniority": "Mid",
+    "experience_years_min": 2,
+    "education": "Sarjana (S1)",
+    "description": "Our Data Analyst will be responsible for conducting data mining and in-depth analysis/research according to the assigned squad. The role will be working closely with the Product Manager and provide recommendations and insights that can enhance our business performance. Last but not least, he/she will also provide ad-hoc support for various projects.\nAbout The Job\nAnalyzing data and creating data quality reports.\nPerforming data reconciliation across multiple sources to ensure the accuracy of data report.\nSupporting initiatives for data integrity and normalization.\nIngesting and normalizing customer data.\nCommunicating with engineering and customer support teams.\nHelping our common interface standards (specifications) and collaborating with multiple teams to enhance it as needed.\nAbout You\nAt Least 2 Years of Experience and Knowledge of SQL and Database.\nHave a good understanding in SQL and Python/R\nHave a good abstraction logics\nExperience with Machine Learning method (Random Forest Regression, Logistics Regression, K-Means Clustering, Apriori , Eclat, Deep Learning and etc)\nWilling to learn something new\nDetail oriented\nCan able to work as a team and Individually",
+    "content_hash": "41a4314e1eab94e4efe24d8cd10720644b3834c3619c2d74f874127f503d8d90",
     "retrieval_method": "jobspy",
     "is_active": true,
-    "job_skills": []
+    "job_skills": [],
+    "required_skills": [
+      "SQL",
+      "Python",
+      "R",
+      "Machine Learning",
+      "Deep Learning"
+    ],
+    "preferred_skills": []
   },
   {
     "id": "6e11b787-6a84-4c8f-9942-5515258b7e05",
@@ -1059,13 +1091,21 @@
     "location": "Jakarta Metropolitan Area",
     "employment_type": "Full-time",
     "seniority": "Senior",
-    "experience_years_min": null,
-    "education": null,
-    "description": "Senior Data Analyst di Traveloka. Deskripsi kualifikasi lowongan.",
-    "content_hash": "66239e362908df8a2b7e61645e7e2cf55cc1b9a938157e3c896cffcb212f0109",
+    "experience_years_min": 5,
+    "education": "Sarjana (S1)",
+    "description": "Job Description\nJob ID: MJ000302\nAbout Traveloka\nTraveloka is Southeast Asia's leading travel and lifestyle super-app. We connect tens of millions of travellers across the region with flights, hotels, experiences, financial services, and more — all from a single platform. Since our founding in 2012, we have expanded to eleven markets, processed billions of dollars in transactions, and built one of the most recognised consumer brands in the region.\nWe move fast because the region demands it. Southeast Asia is young, mobile-first, and growing faster than almost anywhere else on earth. We are not transplanting a Western playbook — we are writing a new one, from scratch, for a market that does not look like anywhere else — and we are calling for people who want to be part of that.\nAbout The Team\nAccommodation Data is the analytical engine behind how millions of travellers across Southeast Asia find and book the right place to stay — from budget guesthouses to premium international chains. We turn billions of search, pricing, and booking signals into the models and insights that shape supply quality, competitive pricing, ranking, and conversion. When a traveller sees the right property at the right price, that is our work.\nHere you build at real scale on real markets, not slideware. You own problems end to end — framing the question, shipping the model or the analysis, and watching it move conversion and revenue across 11 countries. You will help build the cross-sell bridge that turns a flight booking into a full trip. We are not importing someone else's playbook for this region; we are writing our own, and you can write the next chapter of it.\nAbout The Job\nAs a Senior Data Analyst on Traveloka’s Accommodation team, you are a senior expert individual contributor with no direct reports who develops and implements the operational analytics plan for the Accommodation business area — work with direct impact on that area’s overall results and performance.\nOwn and deliver the operational analytics plan for the Accommodation business area in line with the domain’s priorities, with your work directly shaping its results.\nTackle genuinely complex problems that require in-depth understanding of impact across operational, financial, and human-capital dimensions, and turn them into clear recommendations.\nBuild the advanced models, segmentations, and experiments the business uses to set direction, applying deep, well-developed expertise built from theory and experience.\nEnhance the metric definitions, pipelines, and analytical processes your area runs on as part of project teams, raising the standard others inherit.\nPersuade and convince senior business and tech stakeholders of the right course of action with evidence, even when the decision-making authority sits with them.\nSet the technical bar for rigour and experimentation across a wide analytics surface, leading through expertise rather than line authority.\nPropose strong inputs and mentor other analysts as the go-to expert, without owning a team or carrying people-management accountability.\nJob Requirements\nYou have at least 5 years of relevant experience.\nYou are deeply expert in SQL, BI tooling, and advanced analytical methods — segmentation, experimentation, modelling — and still build hands-on.\nYou have repeatedly solved complex, ambiguous problems whose impact spans operations, finance, and people.\nYou design and interpret experiments to a high standard and improve how your area runs them.\nYou build dashboards, pipelines, and data products (Tableau, Looker, Power BI, cloud platforms) that the business trusts as the source of truth.\nYou influence senior business and tech leaders and have shaped real strategy with your analysis.\nYou are the technical reference point others come to — you raise the bar through expertise, not headcount.\nYou mentor and guide peers as a senior individual contributor, without managing a team.\nYou have a degree in a quantitative field (or equivalent) and typically at least 7 years in analytics, BI, or data science.\nYou communicate with executive presence in English — concise, clear, persuasive — and bring strong business acumen.\nYou have built a reusable analytics framework or self-serve data product that scaled across multiple teams.\nYou have led a high-stakes analytics initiative end to end and can point to the business decision it changed.\nYou have driven adoption of AI-assisted analytics among your peers while keeping rigour high.\nJoin Us\nIf you have read this far and felt something click — the problem, the scale, the moment — we would like to hear from you.\nWe review every application. If your background is a strong fit, you will hear from us within 5 business days.\nWe are building the kind of company where strong people choose to stay because the work keeps getting bigger and better. If that is what you are looking for, apply.",
+    "content_hash": "9671051b6afa704ad29768b4487426a1ea9f98d18b2ccf0a1c77b89ca12cc93f",
     "retrieval_method": "jobspy",
     "is_active": true,
-    "job_skills": []
+    "job_skills": [],
+    "required_skills": [
+      "SQL",
+      "Tableau",
+      "Power BI",
+      "Looker",
+      "Data Science"
+    ],
+    "preferred_skills": []
   },
   {
     "id": "04740e11-6c17-419b-aad2-173e72afc99a",
@@ -1077,14 +1117,27 @@
     "company": "Monee",
     "location": "Jakarta, Indonesia",
     "employment_type": "Full-time",
-    "seniority": null,
-    "experience_years_min": null,
-    "education": null,
-    "description": "Data Analyst - Work Force Management di Monee. Deskripsi kualifikasi lowongan.",
-    "content_hash": "1b5c5fa718fe31fa30b2e977c12a9c2257bd952c6cae3020d8197868d7355ea9",
+    "seniority": "Mid",
+    "experience_years_min": 2,
+    "education": "Bachelor",
+    "description": "Job Description\nAnalyze and interpret data using statistical techniques and research methodologies to identify trends, generate insights, and support data-driven decision-making.\nDevelop and implement data analysis strategies to improve data accuracy, efficiency, and quality.\nIdentify opportunities for operational improvements and develop actionable plans to optimize workflows and business processes.\nEstablish, monitor, and evaluate key performance indicators (KPIs) to ensure alignment with business objectives and global directives.\nPrepare and maintain regular operational performance reports, including weekly, monthly, and periodic analyses, to support stakeholder decision-making.\nManage end-to-end analytics projects, from gathering requirements and collecting data to data processing, analysis, and execution.\nCollaborate with cross-functional stakeholders to communicate analytical findings, provide actionable recommendations, and support business performance improvements.\nRequirements\nBachelor's degree in Statistics, Mathematics, Engineering, Computer Science, or a related field.\nMinimum of 2 years of professional experience in data analytics, business intelligence, or a related role.\nExperience in credit data analytics is a strong advantage.\nProficiency in SQL and spreadsheets (Microsoft Excel or Google Sheets), with familiarity in business intelligence tools such as Power BI, Tableau, or similar platforms.\nProficiency in Python for data analysis or modeling is a strong advantage.\nStrong analytical and problem-solving skills, with excellent attention to detail.\nGood communication skills, with the ability to translate complex data findings into clear, actionable insights for non-technical stakeholders.",
+    "content_hash": "b93845c7ee6b2ed076dcd011bf5e1f561a166161b5d44a07bb7a200f6e039f48",
     "retrieval_method": "jobspy",
     "is_active": true,
-    "job_skills": []
+    "job_skills": [],
+    "required_skills": [
+      "SQL",
+      "Python",
+      "Excel",
+      "Microsoft Excel",
+      "Google Sheets",
+      "Tableau",
+      "Power BI",
+      "Statistics",
+      "Data Analysis",
+      "Data Analytics"
+    ],
+    "preferred_skills": []
   },
   {
     "id": "36039428-a498-44bd-afdc-517acd0e6635",
@@ -1096,14 +1149,21 @@
     "company": "Cermati Fintech Group",
     "location": "Jakarta, Jakarta, Indonesia",
     "employment_type": "Full-time",
-    "seniority": null,
-    "experience_years_min": null,
-    "education": null,
-    "description": "Data Analyst - Fraud & Risk Platform di Cermati Fintech Group. Deskripsi kualifikasi lowongan.",
-    "content_hash": "0a6333c5feec082ed3ba0835aa058e4fdda999b9a8fbcfd486c86696878b6e8d",
+    "seniority": "Mid",
+    "experience_years_min": 1,
+    "education": "Bachelor",
+    "description": "Job Description\nIdentify new, emerging fraud and abuse trends/patterns through data analysis and metrics tracking to mitigate risks\nCollaborate with internal stakeholders (Risk, Data Science, Engineering, Product Management, Operations, and others) to ensure proper enforcement of fraud prevention rules and detection strategies\nAssess, define, and optimize relevant operational fraud metrics for long-term tracking\nQualifications\nBachelor's degree in computer science, informatics, computer engineering, or a related field from a reputable university.\nHaving 1+ years experience in antifraud/risk (Fresh Graduate are welcome to apply)\nHaving knowledge in SQL / Bigquery, etc.\nGood communication and interpersonal skills\nGood analytical skills\nHighly motivated, self-driven and strong control attitude\nProficient in English language",
+    "content_hash": "f70e630006359bf4c0d0d2a5fd30e2db7a051ef5f3e27923095b4c76fa9c6744",
     "retrieval_method": "jobspy",
     "is_active": true,
-    "job_skills": []
+    "job_skills": [],
+    "required_skills": [
+      "SQL",
+      "BigQuery",
+      "Data Science",
+      "Data Analysis"
+    ],
+    "preferred_skills": []
   },
   {
     "id": "c99d839b-0e76-4f02-9347-b5cda77969f2",
@@ -1115,14 +1175,25 @@
     "company": "Facetology",
     "location": "Jakarta, Jakarta, Indonesia",
     "employment_type": "Full-time",
-    "seniority": null,
-    "experience_years_min": null,
-    "education": null,
-    "description": "E-Commerce Data Analyst di Facetology. Deskripsi kualifikasi lowongan.",
-    "content_hash": "76ed7954b972324c48f8ed371718f3cce2043d0a8fdbf33815573b45181940b4",
+    "seniority": "Mid",
+    "experience_years_min": 3,
+    "education": "Bachelor",
+    "description": "Responsibilities\n#BeOneofOurFaces!\nJoining FACETOLOGY means becoming part of a dynamic beauty brand. We are a human-centric environment, driven by the purpose of enhancing quality of life through our products.\nAs An E-Commerce Data Analyst, You Will\nBuild and maintain E-Commerce dashboards covering GMV, Ads, Voucher, Promotion, JBP & Campaign performance.\nAutomate multi-platform E-Commerce data extraction for accurate daily & real-time updates.\nDevelop real-time monitoring for Pricing & Promotion Compliance and suspicious/Bulk Order transactions.\nValidate & reconcile E-Commerce platform program benefits with internal data and support discrepancy/appeal processes.\nEnsure E-Commerce data accuracy & integrity and provide actionable data to support business decisions.\nRequirements\nBachelor’s/Master’s in IT, Information Systems, Computer Science, Statistics, Mathematics, or related fields.\n3–5 years of relevant experience.\nProficient in SQL and BI tools (Power BI, Tableau, or Looker Studio).\nPython/R & API extraction experience is a plus.\nStrong understanding of E-Commerce metrics (GMV, AOV, ROAS, CIR, JBP) and Ads Credit/Waiver refund mechanisms.\nWilling to WFO from Tebet, Jakarta Selatan\nKandidat yang sesuai dengan kualifikasi akan kami hubungi untuk dilanjutkan ke tahap berikutnya.\nOnly shortlisted candidates will be contacted by our recruitment team.",
+    "content_hash": "5cb11eab074ae05fbebdafd02adcd1a2ed8f4c39f75fda7d366b744cbca41ce9",
     "retrieval_method": "jobspy",
     "is_active": true,
-    "job_skills": []
+    "job_skills": [],
+    "required_skills": [
+      "SQL",
+      "Tableau",
+      "Power BI",
+      "Looker",
+      "Statistics"
+    ],
+    "preferred_skills": [
+      "Python",
+      "R"
+    ]
   },
   {
     "id": "558a4365-cd78-423c-bb7f-b5875bbde76f",
@@ -1134,14 +1205,22 @@
     "company": "PT. Metrodata Electronics Tbk.",
     "location": "Jakarta, Jakarta, Indonesia",
     "employment_type": "Full-time",
-    "seniority": null,
-    "experience_years_min": null,
-    "education": null,
-    "description": "Data Analyst di PT. Metrodata Electronics Tbk.. Deskripsi kualifikasi lowongan.",
-    "content_hash": "fc5fa1240b4449031b61ba70d4fe498311a9404fb04864e408e91fd600091138",
+    "seniority": "Mid",
+    "experience_years_min": 3,
+    "education": "Bachelor",
+    "description": "Responsibilities\nWe are looking for an experienced Data Analyst to join our team. If you have excellent programming skills and a passion for developing applications or improving existing ones, we would like to meet you. As a Data Analyst, you’ll work closely with our engineers to ensure system consistency and improve user experience.\nData Analyst Roles And Responsibilities Include\nInterpret data, analyze results using statistical techniques and provide ongoing reports\nDevelop and implement databases, data collection systems, data analytics and other strategies that optimize statistical efficiency and quality\nAcquire data from primary or secondary data sources and maintain databases/data systems\nIdentify, analyze, and interpret trends or patterns in complex data sets\nRequirements\nSkills\nPT Metrodata Electronics, Tbk (Digital Solution Provider & Technology Innovator) would like to invite you to be part of the company to develop yourself and your skills. If you are:\nBachelor's Degree, Computer Science/Information Technology/Mathematics/Statistic\nAt least 3 year(s) of working experience in the related field is required for this position\nAbility to analyze large datasets using Structured Query Language (SQL) or statistical programming languages.\nAn analytical mind and understand the concept of data warehousing, machine learning, and data visualization.\nIf you meet the requirement we needed, let’s apply for the following open positions.\nMetrodata not just offer for the job, we offer you for brighter career future.",
+    "content_hash": "104d58aaed087c1d46f068fbb7cd3ab207a6598e8196242c02e069c4a1e7c604",
     "retrieval_method": "jobspy",
     "is_active": true,
-    "job_skills": []
+    "job_skills": [],
+    "required_skills": [
+      "SQL",
+      "Machine Learning",
+      "Data Warehousing",
+      "Data Visualization",
+      "Data Analytics"
+    ],
+    "preferred_skills": []
   },
   {
     "id": "77402194-b415-4863-b506-a047a729823f",
@@ -1153,14 +1232,24 @@
     "company": "PT Astra International Tbk",
     "location": "Jakarta, Jakarta, Indonesia",
     "employment_type": "Full-time",
-    "seniority": null,
-    "experience_years_min": null,
-    "education": null,
-    "description": "Data Analyst - MODA di PT Astra International Tbk. Deskripsi kualifikasi lowongan.",
-    "content_hash": "3386a9a1a448f7ef158254bb68bc4833768d2cfbafc5d0d7596a905f91c52f70",
+    "seniority": "Mid",
+    "experience_years_min": 2,
+    "education": "Bachelor",
+    "description": "Deskripsi Pekerjaan\nMengidentifikasi sumber data yang relevan, mengumpulkan data yang dibutuhkan, serta melengkapi data yang hilang atau tidak lengkap dari sistem internal dan eksternal.\nMelakukan pembersihan, validasi, dan persiapan data untuk memastikan akurasi, konsistensi, dan kemudahan penggunaan data.\nMengorganisir dan menyusun data mentah ke dalam format yang siap digunakan untuk analisis dan pelaporan.\nMenganalisis dataset untuk menjawab pertanyaan bisnis tertentu dan menghasilkan insight yang dapat ditindaklanjuti.\nMengidentifikasi tren, pola, dan anomali dalam data untuk mendukung pengambilan keputusan berbasis data.\nMengembangkan visualisasi data, dashboard, dan laporan analitis menggunakan tools yang sesuai.\nMenyiapkan dan mempresentasikan laporan analisis serta dashboard kepada manajemen eksekutif dan tim proyek.\nMelakukan pelatihan dan sesi knowledge sharing, termasuk menyusun materi pelatihan serta mendukung tim lain dalam memahami struktur data dan konsep visualisasi.\nPersyaratan\nPendidikan minimal S1 di bidang Sistem Informasi, Ilmu Komputer, Statistik, Matematika, atau bidang terkait.\nMemiliki pengalaman kerja minimal 2 tahun sebagai Data Analyst atau posisi lain yang berfokus pada data.\nMemiliki kemampuan organisasi, manajemen waktu, penentuan prioritas, dan multitasking yang baik dengan tingkat ketelitian yang tinggi.\nMahir menggunakan Power BI, termasuk data modeling, DAX, pembuatan dashboard, publikasi laporan, dan pengaturan refresh data.\nMenguasai Microsoft Excel tingkat lanjut, termasuk Pivot Table, Power Query, formula lanjutan (INDEX-MATCH/XLOOKUP, array formulas), serta Macro.\nMemiliki kemampuan SQL yang kuat (GoogleSQL, MySQL, PostgreSQL, atau sejenisnya) untuk query kompleks, ekstraksi, dan transformasi data.\nBerpengalaman dalam proses integrasi data; memiliki pemahaman integrasi data SAP melalui SAP GUI menjadi nilai tambah.\nMemiliki kemampuan komunikasi yang baik serta mampu menjelaskan hasil analisis kepada stakeholder non-teknis.",
+    "content_hash": "b1f24a416123088665570be34bf27723c23234c932c73c56320317d4283f8c29",
     "retrieval_method": "jobspy",
     "is_active": true,
-    "job_skills": []
+    "job_skills": [],
+    "required_skills": [
+      "SQL",
+      "PostgreSQL",
+      "MySQL",
+      "Excel",
+      "Microsoft Excel",
+      "Power BI",
+      "Data Modeling"
+    ],
+    "preferred_skills": []
   },
   {
     "id": "20fcddf4-d9b3-46b9-8f19-e23afc3d534f",
@@ -1173,13 +1262,24 @@
     "location": "Jakarta, Jakarta, Indonesia",
     "employment_type": "Full-time",
     "seniority": "Senior",
-    "experience_years_min": null,
-    "education": null,
-    "description": "Senior Data Analyst - Digital Lending & Analytics di Amar Bank. Deskripsi kualifikasi lowongan.",
-    "content_hash": "2ad6325a149c4e88137ebbf8f041fb7a2ba6c2da6d200d0824f4a51929dff668",
+    "experience_years_min": 3,
+    "education": "Sarjana (S1)",
+    "description": "Who are we?\nAmar Bank is one of the most technologically advanced digital banks in Indonesia. Our leading\ndigital lending product, Tunaiku has the distinction of being the first FinTech product in\nIndonesia. We are also the first digital bank on the cloud. As the first profitable digital bank, we\nmanaged to get listed on the Indonesian Stock Exchange.\nHow did we manage to do that?\nWe are changing people’s perception of a bank. We believe we are the innovators who combine\ncustomer focus principles with creating technology-based impact. We incorporate freedom and\nflexibility as part of our startup working culture DNA to encourage innovation in creating better\nfinancial solutions for the banking industry. We think of ourselves as, ‘A technology company\nwith a banking license’. For this reason, we ‘Act like a FinTech, and think like a Bank.’\nHow did it all start?\nFounded on March 15, 1991, in Surabaya as PT Anglomas International Bank (Amin Bank), the\nbank was acquired by Tolaram Group and transformed to PT Bank Amar Indonesia (Amar Bank)\nin 2014. It has then undergone a significant digital transformation to become one of the\ncountry's forerunning fintech institutions through its award-winning digital lending platform,\nTunaiku.\nOur philosophy, mission, and vision\nTechnology must impact lives, must improve lives. We exist to provide banking to those who\n‘need’ and not only to those who ‘want’. Services when provided to those who need at the time\nof their need brings smiles. Our vision is to bring 200 million smiles.\nMore About The Bank With Startup Culture Environment\nConsist of 1000+ people, you will meet people who love to grow, dream big, and actually have\nfun at the workplace! We provide a great working environment that pushes people to grow\noutside their comfort zone. People with high drive and ambition find us a very attractive place to\nwork as their career growth matches their own drive and not any staid policies. Thus we hold\nthe honor of being awarded “Best Place to Work in Indonesia”.\nRecently Amar Bank was awarded as Inspirational Brand from APEA (Asia Pacific Enterprise\nAwards) 2022. Of course, our innovation won't stop here. So if you would love to be a part of it,\nhave a growth mindset, and are constantly hungry for challenges, we invite you to join us in our\njourney to ‘Impact Lives’.\nJoin us today and create #unlimitedinnovations!\nAbout The Role:\nAs a part of the Data Analyst team, you will collaborate with our Stakeholders to solve the problems with providing data & analytics solutions. You will play an essential role in the success of creating a data culture in the company by ensuring our Stakeholders can produce data-based decisions. If you are detail oriented and love to work with millions of data, this role can give you the chance to fully develop not only in technical aspects, but business & product acumen as well.\nWhat Will You Do:\nProvide analysis to measure impact of new feature, business flow, campaign and present the result in visual way to make data storytelling easier\nCreate new & manage automated report/dashboard based on requirement defined by Stakeholders to ensure Stakeholders consume correct and latest data\nCreate new & manage Data Mart to make work easier & faster\nEnsure correctness of data by collaborate with Data Engineer to maintain data quality aspect\nBecome strategic partner with Stakeholders from various background by advising new metrics, data source, visualization and other analytical methods for better data-based decisions\nMust be capable of tailoring complex messages into simplified and business applicable material\nAware of beside high accuracy, speed delivery of task as important as well\nStay up-to-date with data and analytics trend\nWhat You Need To Have:\nHave experience related with data analyst at least 3 years\nCan create user friendly and insightful dashboard/report using one of various BI Tools (Eg : Tableau, Power BI, Google Data Studio, etc)\nCan operate various type of data sources (eg. NoSQL, RDBMS, JSON, etc) to be implemented in analysis & report/dashboard\nHave experience to provide analysis (Descriptive/Diagnostic/Predictive/Prescriptive) with help of analytics tool (Eg : Big Query, Python, R, SPSS, etc)\nHave knowledge of Data Mining concept (Eg : Statistics, Machine Learning, Forecasting, etc)\nExperience to process Core Banking data and fully understand end to end flow process of Digital Lending\nCan explain of own project which he/she worked on using great storytelling skill\nThinks of a more holistic approach/cross functions\nComfortable working with million rows of data\nThinks out of the box to propose and implement an alternative solution if needed\nGood intrapersonal skills to collaborate within/across function\nSelf driven, high curiosity, problem solving mindset and very detail oriented\nPlus Point If You Have:\nHave experience using Google Big Query & Looker\nHave experience to explore data from 3rd party platform (eg : Web & Mobile Analytics Platform, Marketing Attribution Platform, API logging platform, etc)\nHave best practice to build Data Mart\nWe exist to innovate and maintain the architecture of Amar Bank's products. As part of our main focus to create through technology we ensure the process and technology we use helps maintain and build human connection at scale.\nIt’s our job to plan, monitor, and control the technology growth so we can provide a faster, more convenient, and more efficient way of performing business transactions.\nWe may use artificial intelligence (AI) tools to support parts of the hiring process, such as reviewing applications, analyzing resumes, or assessing responses and identifying potential inconsistencies or verification signals in application materials based on available information. These tools assist our recruitment team but do not replace human judgment. Final hiring decisions are ultimately made by humans. If you would like more information about how your data is processed, please contact us.",
+    "content_hash": "7bb109bf5b95daa668b7520fd5b9ae4f03196c6f3a5a70f66520090a4dc50f46",
     "retrieval_method": "jobspy",
     "is_active": true,
-    "job_skills": []
+    "job_skills": [],
+    "required_skills": [
+      "Python",
+      "R",
+      "Tableau",
+      "Power BI",
+      "Statistics",
+      "Machine Learning"
+    ],
+    "preferred_skills": [
+      "Looker"
+    ]
   },
   {
     "id": "8b09481d-1b31-4d22-9248-9ef8a3a24c55",
@@ -1192,13 +1292,20 @@
     "location": "Jakarta Metropolitan Area",
     "employment_type": "Full-time",
     "seniority": "Senior",
-    "experience_years_min": null,
-    "education": null,
-    "description": "Senior Data Analyst di Fore Coffee. Deskripsi kualifikasi lowongan.",
-    "content_hash": "9dab000744ebfd9b24990a540b6afa3656791a000a6244b6c43e35a8980f6c6d",
+    "experience_years_min": 1,
+    "education": "Sarjana (S1)",
+    "description": "The Role\nSenior Data Analyst\nwill be a key person to drive data-based decision making across our coffee, bakery, and digital businesses. This role plays a key part in shaping\ngrowth strategy, promotion effectiveness, customer retention, customer journey\nusing data.\nThis person will work closely with\nStrategy, Commercial, Product, Data Engineering, and Data Science teams\nto ensure every major decision is backed by clear and reliable insights.\nJob Description\nLead company-wide performance tracking across sales, profit, customer retention, promotions, and store productivity\nPartner closely with the Strategy team to support strategic planning, business reviews, and key company-wide decisions\nSupport Strategy, Commercial, and Product teams with insights to improve pricing, promotions, store performance, and customer experience\nAnalyze voucher, campaign, and discount performance to identify what increases GMV without hurting margins\nBuild and maintain executive dashboards and weekly performance reports using tools such as Looker Studio and Metabase\nMonitor app and customer engagement using tracking platforms such as CleverTap and AppsFlyer to guide product decisions\nPartner with the Data Engineering and Data Science teams to build and maintain reliable data models and pipelines using dbt, supporting accurate, scalable analysis\nPerform deep-dive analysis to explain business movements and recommend actions\nSupport Product and App teams with funnel, cohort, and feature impact analysis\nImprove the customer journey and provide insights that help drive key business metrics\nMentor and support junior Data Analysts to deliver high-quality insights",
+    "content_hash": "af85a1396b83b42fcc721abc206a634a187abcbc74a83f5affee36a6e6156eb3",
     "retrieval_method": "jobspy",
     "is_active": true,
-    "job_skills": []
+    "job_skills": [],
+    "required_skills": [
+      "Looker",
+      "Metabase",
+      "Data Science",
+      "DBT"
+    ],
+    "preferred_skills": []
   },
   {
     "id": "72f6cf45-c2b8-4af5-8026-ee0c81902d96",

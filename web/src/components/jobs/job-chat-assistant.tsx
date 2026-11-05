@@ -399,7 +399,7 @@ export function JobChatAssistant({
                   <p>
                     <span dangerouslySetInnerHTML={{ __html: formatBold(textBefore) }} />
                     {msgIsStreaming && isLastLine && (
-                      <span className="inline-block w-1.5 h-3.5 ml-1 align-middle bg-blue-600 animate-pulse rounded-xs" />
+                      <span className="inline-block w-1.5 h-3.5 ml-1 align-middle bg-sb-sky animate-pulse rounded-xs" />
                     )}
                   </p>
                 )}
@@ -409,7 +409,7 @@ export function JobChatAssistant({
                       href={actionUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs hover:shadow-sm transition-all duration-150 cursor-pointer group"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-sb-sky hover:bg-sb-sky-hover text-sb-navy font-semibold text-xs shadow-xs hover:shadow-sm transition-all duration-150 cursor-pointer group"
                     >
                       <span>{actionLabel}</span>
                       <ExternalLink className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
@@ -417,7 +417,7 @@ export function JobChatAssistant({
                   ) : (
                     <Link
                       href={actionUrl}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs hover:shadow-sm transition-all duration-150 cursor-pointer group"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-sb-sky hover:bg-sb-sky-hover text-sb-navy font-semibold text-xs shadow-xs hover:shadow-sm transition-all duration-150 cursor-pointer group"
                     >
                       <span>{actionLabel}</span>
                       <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
@@ -432,11 +432,11 @@ export function JobChatAssistant({
             const rawContent = trimmed.slice(2);
             return (
               <div key={idx} className="flex items-start gap-2 pl-2">
-                <span className="text-blue-600 font-bold shrink-0 mt-0.5">•</span>
+                <span className="text-sb-blue font-bold shrink-0 mt-0.5">•</span>
                 <span>
                   <span dangerouslySetInnerHTML={{ __html: formatBold(rawContent) }} />
                   {msgIsStreaming && isLastLine && (
-                    <span className="inline-block w-1.5 h-3.5 ml-1 align-middle bg-blue-600 animate-pulse rounded-xs" />
+                    <span className="inline-block w-1.5 h-3.5 ml-1 align-middle bg-sb-sky animate-pulse rounded-xs" />
                   )}
                 </span>
               </div>
@@ -447,13 +447,13 @@ export function JobChatAssistant({
           if (numMatch) {
             return (
               <div key={idx} className="flex items-start gap-2 pl-2">
-                <span className="text-blue-700 font-semibold shrink-0 text-xs mt-0.5">
+                <span className="text-sb-blue font-semibold shrink-0 text-xs mt-0.5">
                   {numMatch[1]}.
                 </span>
                 <span>
                   <span dangerouslySetInnerHTML={{ __html: formatBold(numMatch[2]) }} />
                   {msgIsStreaming && isLastLine && (
-                    <span className="inline-block w-1.5 h-3.5 ml-1 align-middle bg-blue-600 animate-pulse rounded-xs" />
+                    <span className="inline-block w-1.5 h-3.5 ml-1 align-middle bg-sb-sky animate-pulse rounded-xs" />
                   )}
                 </span>
               </div>
@@ -464,7 +464,7 @@ export function JobChatAssistant({
             <p key={idx}>
               <span dangerouslySetInnerHTML={{ __html: formatBold(line) }} />
               {msgIsStreaming && isLastLine && (
-                <span className="inline-block w-1.5 h-3.5 ml-1 align-middle bg-blue-600 animate-pulse rounded-xs" />
+                <span className="inline-block w-1.5 h-3.5 ml-1 align-middle bg-sb-sky animate-pulse rounded-xs" />
               )}
             </p>
           );
@@ -483,52 +483,52 @@ export function JobChatAssistant({
 
   return (
     <>
-      {/* Floating Pill Trigger Button (YOLO / Ultralytics Style) */}
+      {/* Floating Pill Trigger Button */}
       {!isOpen && (
         <button
           type="button"
           onClick={() => setIsOpen(true)}
           aria-label="Tanya Asisten AI"
-          className="fixed right-4 bottom-6 sm:right-6 sm:bottom-6 z-40 inline-flex items-center gap-2.5 px-4 py-2.5 sm:px-5 sm:py-3 rounded-full bg-slate-900 text-white shadow-xl hover:bg-slate-850 hover:scale-105 active:scale-95 transition-all duration-200 border border-slate-700/60 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="fixed right-4 bottom-6 sm:right-6 sm:bottom-6 z-40 inline-flex items-center gap-2.5 px-4 py-2.5 sm:px-5 sm:py-3 rounded-full bg-sb-sky text-sb-navy shadow-xl hover:bg-sb-sky-hover hover:scale-105 active:scale-95 transition-all duration-200 border border-sb-border cursor-pointer group focus:outline-none focus:ring-2 focus:ring-sb-blue focus:ring-offset-2 font-bold"
         >
-          <div className="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 group-hover:rotate-12 transition-transform">
-            <Bot className="w-4 h-4" />
+          <div className="w-6 h-6 rounded-lg bg-white/80 text-sb-navy flex items-center justify-center shrink-0 group-hover:rotate-12 transition-transform shadow-2xs">
+            <Bot className="w-4 h-4 text-sb-blue" />
           </div>
-          <span className="text-xs sm:text-sm font-semibold tracking-tight">
+          <span className="text-xs sm:text-sm font-bold tracking-tight">
             Tanya Asisten AI
           </span>
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse ml-0.5" />
+          <span className="w-2 h-2 rounded-full bg-sb-sky animate-pulse ml-0.5" />
         </button>
       )}
 
-      {/* Floating Dialog Modal (YOLO / Ultralytics Style) */}
+      {/* Floating Dialog Modal */}
       {isOpen && (
         <div
           role="dialog"
           aria-label={`Asisten AI Lowongan - ${jobTitle}`}
           className={cn(
-            "fixed z-50 flex flex-col overflow-hidden bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-2xl transition-all duration-200 animate-in fade-in zoom-in-95",
+            "fixed z-50 flex flex-col overflow-hidden bg-white/95 backdrop-blur-md border border-sb-border shadow-2xl transition-all duration-200 animate-in fade-in zoom-in-95",
             isMaximized
               ? "inset-2 sm:inset-6 md:inset-10 rounded-2xl"
               : "right-3 bottom-3 sm:right-6 sm:bottom-6 w-[calc(100vw-1.5rem)] sm:w-[440px] h-[580px] sm:h-[620px] max-h-[88vh] rounded-2xl"
           )}
         >
           {/* Header Panel */}
-          <div className="px-4 py-3 sm:px-4.5 sm:py-3 bg-gradient-to-r from-slate-900 via-slate-850 to-blue-950 text-white flex items-center justify-between shrink-0 select-none">
+          <div className="px-4 py-3 sm:px-4.5 sm:py-3 bg-sb-mist-soft text-sb-navy border-b border-sb-border flex items-center justify-between shrink-0 select-none">
             <div className="flex items-center gap-2.5 min-w-0 pr-2">
-              <div className="w-8 h-8 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center shrink-0">
-                <Bot className="w-4 h-4 text-blue-400" />
+              <div className="w-8 h-8 rounded-xl bg-white border border-sb-border flex items-center justify-center shrink-0 shadow-2xs">
+                <Bot className="w-4 h-4 text-sb-blue" />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <h3 className="text-sm font-bold tracking-tight truncate">
+                  <h3 className="text-sm font-bold tracking-tight truncate text-sb-navy">
                     SkillBridge AI
                   </h3>
-                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 shrink-0">
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-white text-sb-blue border border-sb-border shrink-0">
                     Kontekstual
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-300 truncate mt-0.5">
+                <p className="text-[11px] text-sb-text-2 truncate mt-0.5">
                   {jobTitle} • {company}
                 </p>
               </div>
@@ -541,7 +541,7 @@ export function JobChatAssistant({
                   onClick={handleClearChat}
                   title="Bersihkan percakapan"
                   aria-label="Bersihkan percakapan"
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-lg text-sb-text-2 hover:text-sb-navy hover:bg-white/60 transition-colors cursor-pointer"
                 >
                   <RotateCcw className="w-4 h-4" />
                 </button>
@@ -552,7 +552,7 @@ export function JobChatAssistant({
                 onClick={() => setIsMaximized(!isMaximized)}
                 title={isMaximized ? "Perkecil ukuran obrolan" : "Perbesar obrolan"}
                 aria-label={isMaximized ? "Perkecil ukuran obrolan" : "Perbesar obrolan"}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-sb-text-2 hover:text-sb-navy hover:bg-white/60 transition-colors cursor-pointer"
               >
                 {isMaximized ? (
                   <Minimize2 className="w-4 h-4" />
@@ -566,7 +566,7 @@ export function JobChatAssistant({
                 onClick={() => setIsOpen(false)}
                 title="Tutup obrolan"
                 aria-label="Tutup obrolan"
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-sb-text-2 hover:text-sb-navy hover:bg-white/60 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -577,24 +577,24 @@ export function JobChatAssistant({
           <div
             ref={scrollContainerRef}
             onScroll={handleScroll}
-            className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-4.5 space-y-4 bg-slate-50/60"
+            className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-4.5 space-y-4 bg-sb-mist-faint/30"
           >
             {messages.length === 0 ? (
               <div className="space-y-4 py-2">
-                <div className="p-4 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-2">
-                  <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
-                    <MessageSquare className="w-4 h-4 text-blue-600" />
+                <div className="p-4 rounded-xl bg-white border border-sb-border shadow-2xs space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-bold text-sb-navy">
+                    <MessageSquare className="w-4 h-4 text-sb-blue" />
                     Pusat Informasi & Konsultasi Lowongan
                   </div>
-                  <p className="text-xs text-slate-600 leading-relaxed">
+                  <p className="text-xs text-sb-text-2 leading-relaxed">
                     Ajukan pertanyaan seputar tanggung jawab, kualifikasi, atau perbandingan kecocokan CV-mu terhadap lowongan{" "}
-                    <strong>{jobTitle}</strong> ini. Jawaban bersumber langsung dari deskripsi lowongan resmi dan data CV-mu.
+                    <strong className="text-sb-navy">{jobTitle}</strong> ini. Jawaban bersumber langsung dari deskripsi lowongan resmi dan data CV-mu.
                   </p>
                 </div>
 
                 {/* Pre-suggested quick chips */}
                 <div className="space-y-2">
-                  <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                  <div className="text-[11px] font-semibold text-sb-text-2 uppercase tracking-wider">
                     Saran Pertanyaan Awal:
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -604,7 +604,7 @@ export function JobChatAssistant({
                         type="button"
                         onClick={() => handleSendMessage(question)}
                         disabled={isStreaming || isAnalyzing}
-                        className="text-left text-xs px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-blue-50 hover:border-blue-300 hover:text-blue-900 transition-all cursor-pointer shadow-2xs active:scale-[0.98] text-slate-700 disabled:opacity-50"
+                        className="text-left text-xs px-3 py-1.5 rounded-lg border border-sb-border bg-white hover:bg-sb-mist-soft hover:text-sb-navy transition-all cursor-pointer shadow-2xs active:scale-[0.98] text-sb-navy disabled:opacity-50 font-medium"
                       >
                         {question}
                       </button>
@@ -619,7 +619,7 @@ export function JobChatAssistant({
                   className={`flex gap-2.5 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   {msg.role === "assistant" && (
-                    <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                    <div className="w-7 h-7 rounded-lg bg-sb-sky text-sb-navy flex items-center justify-center shrink-0 mt-0.5 shadow-2xs border border-sb-border">
                       <Bot className="w-4 h-4" />
                     </div>
                   )}
@@ -627,21 +627,21 @@ export function JobChatAssistant({
                   <div
                     className={`max-w-[85%] sm:max-w-[80%] rounded-2xl p-3 sm:p-3.5 shadow-2xs space-y-2 ${
                       msg.role === "user"
-                        ? "bg-slate-900 text-white rounded-tr-xs"
-                        : "bg-white text-slate-800 border border-slate-200 rounded-tl-xs"
+                        ? "bg-sb-mist-soft text-sb-navy border border-sb-border rounded-tr-xs font-medium"
+                        : "bg-white text-sb-navy border border-sb-border rounded-tl-xs"
                     }`}
                   >
                     {renderMessageContent(msg.content, msg.isStreaming)}
 
                     {msg.role === "assistant" && (
-                      <div className="pt-1.5 mt-2 border-t border-slate-100 flex justify-end text-[10px] text-slate-400">
+                      <div className="pt-1.5 mt-2 border-t border-sb-border flex justify-end text-xs text-sb-text-2">
                         <span>{msg.timestamp}</span>
                       </div>
                     )}
                   </div>
 
                   {msg.role === "user" && (
-                    <div className="w-7 h-7 rounded-lg bg-slate-200 text-slate-700 flex items-center justify-center shrink-0 mt-0.5">
+                    <div className="w-7 h-7 rounded-lg bg-sb-mist text-sb-navy flex items-center justify-center shrink-0 mt-0.5 border border-sb-border">
                       <User className="w-4 h-4" />
                     </div>
                   )}
@@ -651,15 +651,15 @@ export function JobChatAssistant({
 
             {/* Initial Analyzing Indicator (Before First Token Arrives) */}
             {isAnalyzing && (
-              <div className="flex items-center gap-2.5 text-xs text-slate-500 py-2 animate-in fade-in duration-150">
-                <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 animate-pulse">
+              <div className="flex items-center gap-2.5 text-xs text-sb-text-2 py-2 animate-in fade-in duration-150">
+                <div className="w-7 h-7 rounded-lg bg-sb-sky text-sb-navy flex items-center justify-center shrink-0 animate-pulse border border-sb-border">
                   <Bot className="w-4 h-4" />
                 </div>
-                <div className="p-3 rounded-2xl bg-white border border-slate-200 shadow-2xs flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" />
-                  <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce [animation-delay:0.2s]" />
-                  <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce [animation-delay:0.4s]" />
-                  <span className="text-slate-600 font-medium pl-1 text-xs">Menganalisis konteks lowongan...</span>
+                <div className="p-3 rounded-2xl bg-white border border-sb-border shadow-2xs flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-sb-sky animate-bounce" />
+                  <div className="w-2 h-2 rounded-full bg-sb-sky animate-bounce [animation-delay:0.2s]" />
+                  <div className="w-2 h-2 rounded-full bg-sb-sky animate-bounce [animation-delay:0.4s]" />
+                  <span className="text-sb-text-2 font-medium pl-1 text-xs">Menganalisis konteks lowongan...</span>
                 </div>
               </div>
             )}
@@ -669,8 +669,8 @@ export function JobChatAssistant({
 
           {/* Quick chips bar when conversation has started */}
           {messages.length > 0 && !isStreaming && !isAnalyzing && (
-            <div className="px-3.5 py-1.5 bg-slate-100/80 border-t border-slate-200 overflow-x-auto flex items-center gap-1.5 scrollbar-none shrink-0">
-              <span className="text-[10px] font-bold text-slate-400 uppercase shrink-0">
+            <div className="px-3.5 py-1.5 bg-sb-mist-soft/60 border-t border-sb-border overflow-x-auto flex items-center gap-1.5 scrollbar-none shrink-0">
+              <span className="text-xs font-bold text-sb-text-2 uppercase shrink-0">
                 Tanya cepat:
               </span>
               {QUICK_QUESTIONS.slice(0, 3).map((q, idx) => (
@@ -679,7 +679,7 @@ export function JobChatAssistant({
                   type="button"
                   onClick={() => handleSendMessage(q)}
                   disabled={isStreaming || isAnalyzing}
-                  className="text-[11px] whitespace-nowrap px-2.5 py-1 rounded-md bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-700 text-slate-600 transition-colors shrink-0 disabled:opacity-50 cursor-pointer shadow-2xs"
+                  className="text-[11px] whitespace-nowrap px-2.5 py-1 rounded-md bg-white border border-sb-border hover:bg-sb-mist-soft text-sb-navy transition-colors shrink-0 disabled:opacity-50 cursor-pointer shadow-2xs font-medium"
                 >
                   {q}
                 </button>
@@ -688,7 +688,7 @@ export function JobChatAssistant({
           )}
 
           {/* Input Footer */}
-          <div className="p-3 sm:p-3.5 bg-white border-t border-slate-200 shrink-0">
+          <div className="p-3 sm:p-3.5 bg-white border-t border-sb-border shrink-0">
             {errorMessage && (
               <div className="mb-2 p-2 rounded-lg bg-red-50 border border-red-200 flex items-center gap-2 text-xs text-red-700">
                 <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
@@ -723,9 +723,9 @@ export function JobChatAssistant({
                       ? "Asisten AI sedang menyusun jawaban..."
                       : "Ketik pertanyaan seputar lowongan ini..."
                   }
-                  className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-14 disabled:opacity-60 disabled:bg-slate-100"
+                  className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl border border-sb-border bg-sb-mist-faint/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue focus:border-transparent transition-all pr-14 disabled:opacity-60 text-sb-navy placeholder:text-sb-text-2"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-mono">
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-sb-text-2 font-mono">
                   {inputValue.length}/300
                 </span>
               </div>
@@ -756,7 +756,7 @@ export function JobChatAssistant({
               )}
             </form>
 
-            <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 px-1">
+            <div className="flex items-center justify-between text-[11px] text-sb-text-2 pt-2 px-1">
               <span>{isStreaming ? "Klik 'Hentikan' untuk membatalkan" : "Tekan Enter untuk mengirim"}</span>
             </div>
           </div>

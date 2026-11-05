@@ -70,62 +70,31 @@ export function Pagination({
   return (
     <div
       className={cn(
-        "flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-200/90 select-none",
+        "flex flex-col gap-3 pt-4 border-t border-sb-border select-none w-full",
         className
       )}
     >
-      {/* Mobile view: Compact (Sebelumnya, "Halaman X dari Y", Berikutnya) */}
-      <div className="flex sm:hidden items-center justify-between gap-2 w-full">
-        <Button
-          variant="outline"
-          size="sm"
-          type="button"
-          onClick={() => onPageChange(safeCurrentPage - 1)}
-          disabled={safeCurrentPage <= 1}
-          className="px-2.5 py-1.5 text-xs font-semibold"
-          leftIcon={<ChevronLeft className="w-4 h-4" />}
-        >
-          Sebelumnya
-        </Button>
-
-        <span className="text-xs font-medium text-slate-600">
-          Halaman <strong className="font-bold text-slate-900">{safeCurrentPage}</strong> dari{" "}
-          <strong className="font-bold text-slate-900">{totalPages}</strong>
-        </span>
-
-        <Button
-          variant="outline"
-          size="sm"
-          type="button"
-          onClick={() => onPageChange(safeCurrentPage + 1)}
-          disabled={safeCurrentPage >= totalPages}
-          className="px-2.5 py-1.5 text-xs font-semibold"
-          rightIcon={<ChevronRight className="w-4 h-4" />}
-        >
-          Berikutnya
-        </Button>
-      </div>
-
-      {/* Desktop view: Left info & Rows per page */}
-      <div className="hidden sm:flex items-center gap-3 text-xs text-slate-500">
-        <span>
+      {/* Row 1: Summary counter on left, per-page dropdown on right */}
+      <div className="flex items-center justify-between gap-2 w-full text-xs text-sb-text-2">
+        <span className="truncate">
           Menampilkan{" "}
-          <strong className="font-semibold text-slate-800">
+          <strong className="font-semibold text-sb-navy">
             {totalItems === 0 ? "0" : `${startIndex}–${endIndex}`}
           </strong>{" "}
-          dari <strong className="font-semibold text-slate-800">{totalItems}</strong> {itemLabel}
+          dari <strong className="font-semibold text-sb-navy">{totalItems}</strong> {itemLabel}
         </span>
 
         {onPageSizeChange && (
-          <div className="flex items-center gap-1.5 pl-3 border-l border-slate-200">
-            <span className="text-slate-500 font-medium">Per halaman:</span>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="text-sb-text-2 font-medium hidden xs:inline">Per halaman:</span>
             <select
               value={pageSize}
               onChange={(e) => {
                 const newSize = Number(e.target.value);
                 if (onPageSizeChange) onPageSizeChange(newSize);
               }}
-              className="px-2 py-1 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:border-slate-300 focus:outline-hidden cursor-pointer"
+              aria-label="Jumlah baris per halaman"
+              className="px-2 py-1 rounded-lg border border-sb-border bg-white text-xs font-semibold text-sb-navy hover:border-sb-blue/40 focus:outline-hidden cursor-pointer"
             >
               {pageSizeOptions.map((opt) => (
                 <option key={opt} value={opt}>
@@ -137,27 +106,28 @@ export function Pagination({
         )}
       </div>
 
-      {/* Desktop view: Navigation buttons & numbered pills */}
-      <div className="hidden sm:flex items-center gap-1">
+      {/* Row 2: Navigation controls (Previous, pills, Next) */}
+      <div className="flex items-center justify-center gap-1 w-full max-w-full overflow-hidden py-0.5">
         <Button
           variant="outline"
           size="sm"
           type="button"
           onClick={() => onPageChange(safeCurrentPage - 1)}
           disabled={safeCurrentPage <= 1}
-          className="px-2.5 py-1 text-xs font-medium"
+          aria-label="Halaman sebelumnya"
+          className="h-8 px-2 sm:px-2.5 text-xs font-medium shrink-0"
           leftIcon={<ChevronLeft className="w-3.5 h-3.5" />}
         >
-          Sebelumnya
+          <span className="hidden xl:inline ml-1">Sebelumnya</span>
         </Button>
 
-        <div className="flex items-center gap-1 px-1">
+        <div className="flex items-center gap-1 px-0.5 shrink-0">
           {pages.map((p, idx) => {
             if (p === "ellipsis") {
               return (
                 <span
                   key={`ellipsis-${idx}`}
-                  className="w-8 h-8 flex items-center justify-center text-xs text-slate-400 select-none"
+                  className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-xs text-sb-text-2/60 select-none shrink-0"
                 >
                   …
                 </span>
@@ -171,10 +141,10 @@ export function Pagination({
                 type="button"
                 onClick={() => onPageChange(p)}
                 className={cn(
-                  "w-8 h-8 rounded-lg text-xs font-semibold transition-colors flex items-center justify-center cursor-pointer",
+                  "w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-xs font-semibold transition-colors flex items-center justify-center cursor-pointer shrink-0",
                   isActive
-                    ? "bg-slate-900 text-white shadow-2xs"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                    ? "bg-sb-sky text-sb-navy font-bold shadow-2xs"
+                    : "text-sb-text-2 hover:bg-sb-mist-soft hover:text-sb-navy"
                 )}
                 aria-current={isActive ? "page" : undefined}
               >
@@ -190,10 +160,11 @@ export function Pagination({
           type="button"
           onClick={() => onPageChange(safeCurrentPage + 1)}
           disabled={safeCurrentPage >= totalPages}
-          className="px-2.5 py-1 text-xs font-medium"
+          aria-label="Halaman berikutnya"
+          className="h-8 px-2 sm:px-2.5 text-xs font-medium shrink-0"
           rightIcon={<ChevronRight className="w-3.5 h-3.5" />}
         >
-          Berikutnya
+          <span className="hidden xl:inline mr-1">Berikutnya</span>
         </Button>
       </div>
     </div>

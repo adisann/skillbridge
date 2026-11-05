@@ -370,15 +370,21 @@ export function calculateJobMatch(
     } else {
       breakdown.push({
         label: comp.label,
-        score: Math.round(comp.score * 100),
+        score: 0,
         weight: 0,
         available: false,
-        notes: comp.notes,
+        notes: comp.notes || "Tidak disyaratkan di lowongan",
       });
     }
   }
 
-  const finalScore = isCandidateEmpty ? 15 : Math.min(100, Math.max(5, Math.round(rawWeightedScore * 100)));
+  const isJobWithoutTechnicalCriteria = !isMandatoryAvailable && !isPreferredAvailable && !isExpAvailable;
+
+  const finalScore = isCandidateEmpty
+    ? 15
+    : isJobWithoutTechnicalCriteria
+    ? Math.min(50, Math.round(semanticScore * 50))
+    : Math.min(100, Math.max(5, Math.round(rawWeightedScore * 100)));
 
   // ---------------------------------------------------------------------------
   // 7. Penentuan Kategori Status & Faktor Pendukung / Pembatas
@@ -422,9 +428,17 @@ export function calculateJobMatch(
   }
 
   // Klasifikasi Kategori
-  if (isCandidateEmpty) {
+  if (isCandidateEmpty || isJobWithoutTechnicalCriteria) {
     matchStatus = "insufficient_evidence";
-    factorsLimiting.unshift("CV belum memuat informasi kualifikasi atau keterampilan teknis yang cukup untuk dievaluasi");
+    if (isJobWithoutTechnicalCriteria) {
+      factorsLimiting.unshift(
+        "Lowongan ini belum memuat rincian kualifikasi skill atau pengalaman minimum spesifik di sistem"
+      );
+    } else {
+      factorsLimiting.unshift(
+        "CV belum memuat informasi kualifikasi atau keterampilan teknis yang cukup untuk dievaluasi"
+      );
+    }
   } else if (
     isExpAvailable &&
     candidateYears >= minYears + customThresholds.overqualifiedMinExperienceDiff &&

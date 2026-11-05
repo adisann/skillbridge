@@ -21,7 +21,7 @@ export function ProtectedRoute({
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 space-y-3">
         <Spinner size="lg" />
-        <p className="text-xs text-slate-500 font-medium">Memverifikasi sesi autentikasi...</p>
+        <p className="text-xs text-sb-text-2 font-medium">Memverifikasi sesi autentikasi...</p>
       </div>
     );
   }
@@ -30,9 +30,9 @@ export function ProtectedRoute({
   if (!isAuthenticated || !user) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center p-4">
-        <Card className="max-w-md w-full border-slate-200 shadow-md">
+        <Card className="max-w-md w-full border-sb-border shadow-md">
           <CardHeader className="text-center">
-            <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mx-auto mb-2">
+            <div className="w-12 h-12 rounded-full bg-sb-mist-soft text-sb-blue flex items-center justify-center mx-auto mb-2 border border-sb-border">
               <Lock className="w-6 h-6" />
             </div>
             <CardTitle>Masuk Dulu</CardTitle>
