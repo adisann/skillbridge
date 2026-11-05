@@ -1,31 +1,32 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
-  // Cek cookie sesi server
+  // Sesi diverifikasi ke Supabase Auth (bukan sekadar ada/tidaknya cookie).
+  // Cookie buatan sendiri atau token palsu tidak dianggap login.
   let isAuthenticated = false;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const response = NextResponse.next({ request });
 
-  const sessionCookie = request.cookies.get("sb_user_session")?.value;
-  if (sessionCookie) {
+  if (supabaseUrl && supabaseAnonKey) {
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+        },
+      },
+    });
     try {
-      const parsed = JSON.parse(sessionCookie);
-      if (parsed && parsed.userId) {
-        isAuthenticated = true;
-      }
+      const { data, error } = await supabase.auth.getUser();
+      isAuthenticated = Boolean(data.user) && !error;
     } catch {
-      // cookie tidak valid
-    }
-  }
-
-  // Cek juga cookie Supabase auth token jika sb_user_session tidak ada
-  if (!isAuthenticated) {
-    const allCookies = request.cookies.getAll();
-    const hasSupabaseCookie = allCookies.some(
-      (c) => c.name.startsWith("sb-") && c.name.includes("-auth-token")
-    );
-    if (hasSupabaseCookie) {
-      isAuthenticated = true;
+      isAuthenticated = false;
     }
   }
 
@@ -88,7 +89,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {

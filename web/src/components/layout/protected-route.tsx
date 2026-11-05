@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Lock, UserCheck } from "lucide-react";
+import { Lock } from "lucide-react";
 import { useAuth } from "@/lib/supabase/auth-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -16,7 +16,7 @@ export function ProtectedRoute({
   children: React.ReactNode;
   requireAdmin?: boolean;
 }) {
-  const { user, isLoading, isAuthenticated, isAdmin, loginDemoJuri } = useAuth();
+  const { user, isLoading, isAuthenticated, isAdmin } = useAuth();
 
   if (isLoading) {
     return (
@@ -42,18 +42,9 @@ export function ProtectedRoute({
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button
-              variant="success"
-              size="md"
-              className="w-full justify-center"
-              onClick={loginDemoJuri}
-              leftIcon={<UserCheck className="w-4 h-4" />}
-            >
-              Coba dengan akun demo
-            </Button>
             <Link href="/login" className="block">
               <Button variant="outline" size="md" className="w-full justify-center">
-                Masuk via Form Login
+                Masuk
               </Button>
             </Link>
           </CardContent>

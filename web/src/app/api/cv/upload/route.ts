@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { uploadToR2 } from "@/lib/r2";
+import { randomUUID } from "node:crypto";
+import { uploadToR2, resumeKeyPrefix } from "@/lib/r2";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 import { enforceRateLimits, getClientIp } from "@/lib/rate-limit";
 import { cvUploadRules } from "@/lib/rate-limit-policies";
@@ -112,7 +113,8 @@ export async function POST(req: NextRequest) {
     }
 
     // 5. Simpan ke Cloudflare R2 Bucket Privat, hanya setelah berkas lolos semua validasi
-    const safeKey = `resumes/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+    // Key per-pengguna dan acak: tidak bisa ditebak, dan kepemilikannya bisa diverifikasi saat simpan/hapus.
+    const safeKey = `${resumeKeyPrefix(user.id)}${randomUUID()}.${isPdfFile ? "pdf" : "docx"}`;
     const { presignedUrl } = await uploadToR2(buffer, safeKey, file.type || "application/pdf");
 
     const lowerText = extractedText.toLowerCase();

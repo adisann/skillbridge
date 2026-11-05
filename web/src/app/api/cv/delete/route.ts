@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
-import { deleteFromR2 } from "@/lib/r2";
+import { deleteFromR2, ownedResumeKey } from "@/lib/r2";
 import { clearCvAnalysisCache } from "@/lib/ai/cache";
 
 export async function POST(req: NextRequest) {
@@ -14,34 +14,27 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const { resumeId, r2Key } = body;
+    const resumeId = typeof body?.resumeId === "string" ? body.resumeId : undefined;
     const effectiveUserId = user.id;
 
-    // 1. Ambil data resume aktif untuk mengecek r2Key bila tidak disertakan klien
-    let targetR2Key = r2Key;
-    if (!targetR2Key) {
-      let findQuery = supabase.from("resumes").select("file_url").eq("user_id", effectiveUserId);
-      if (resumeId) {
-        findQuery = findQuery.eq("id", resumeId);
-      }
-      const { data: foundResume } = await findQuery.limit(1);
-      if (foundResume && foundResume.length > 0 && foundResume[0].file_url) {
-        const urlStr = foundResume[0].file_url;
-        if (urlStr.startsWith("r2://")) {
-          targetR2Key = urlStr.replace("r2://", "");
-        } else if (urlStr.includes("resumes/")) {
-          const match = urlStr.match(/resumes\/[^?&]+/);
-          if (match) targetR2Key = match[0];
-        }
-      }
+    // 1. Key R2 hanya diambil dari baris resume milik pengguna (RLS), tidak dari input klien.
+    let findQuery = supabase.from("resumes").select("file_url").eq("user_id", effectiveUserId);
+    if (resumeId) {
+      findQuery = findQuery.eq("id", resumeId);
     }
+    const { data: foundResumes } = await findQuery;
+    const keysToDelete = (foundResumes || [])
+      .map((r: { file_url: string | null }) => ownedResumeKey(effectiveUserId, r.file_url))
+      .filter((k: string | null): k is string => Boolean(k));
 
-    // 2. Hapus berkas fisik dari Cloudflare R2 bucket privat (NFR-02)
-    if (targetR2Key) {
-      try {
-        await deleteFromR2(targetR2Key);
-      } catch (r2Err) {
-        console.warn("[CV Delete] Peringatan saat menghapus objek R2:", r2Err);
+    // 2. Hapus berkas fisik dari R2. Bila gagal, hentikan agar data tidak setengah terhapus.
+    for (const key of keysToDelete) {
+      const deleted = await deleteFromR2(key);
+      if (!deleted) {
+        return NextResponse.json(
+          { error: "Berkas CV belum berhasil dihapus dari penyimpanan. Coba lagi beberapa saat." },
+          { status: 502 }
+        );
       }
     }
 

@@ -6,16 +6,15 @@ import type { JobDetailData } from "@/types/job";
 
 interface GuestLoginPromptProps {
   jobId: string;
-  onTryDemo: () => void;
 }
 
 /** Ajakan masuk atau coba akun demo untuk pengunjung tanpa login. */
-export function GuestLoginPrompt({ jobId, onTryDemo }: GuestLoginPromptProps) {
+export function GuestLoginPrompt({ jobId }: GuestLoginPromptProps) {
   return (
     <div className="glass-panel p-6 sm:p-8 rounded-2xl border border-sb-border bg-sb-mist-soft space-y-3">
       <h3 className="text-base font-extrabold text-sb-navy">Masuk untuk melihat skill mana yang sudah ada di CV-mu</h3>
       <p className="text-xs sm:text-sm text-sb-text-2 leading-relaxed max-w-2xl">
-        Unggah CV atau gunakan akun demo untuk membandingkan kualifikasi secara otomatis dengan lowongan ini, melihat skor kecocokan, dan mendapatkan rekomendasi gap kompetensi.
+        Masuk dan unggah CV untuk membandingkan kualifikasi secara otomatis dengan lowongan ini, melihat skor kecocokan, dan mendapatkan rekomendasi gap kompetensi.
       </p>
       <div className="flex flex-wrap items-center gap-3 pt-2">
         <Link href={`/login?next=${encodeURIComponent(`/lowongan/${jobId}`)}`}>
@@ -23,9 +22,6 @@ export function GuestLoginPrompt({ jobId, onTryDemo }: GuestLoginPromptProps) {
             Masuk
           </Button>
         </Link>
-        <Button variant="secondary" size="md" onClick={onTryDemo}>
-          Coba akun demo
-        </Button>
       </div>
     </div>
   );

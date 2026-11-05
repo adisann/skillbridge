@@ -6,11 +6,10 @@ test("Judge Demo Flow End-to-End Simulation", async (t) => {
   // Step 1: Demo Juri Login Validation
   let juriSession: { userId: string; email: string; fullName: string } | null = null;
 
-  await t.test("Step 1: Autentikasi Akun Demo Juri (1-Click Login)", () => {
+  await t.test("Step 1: Akun Demo Juri (login dengan email dan kata sandi)", () => {
     // Simulasi konfigurasi akun demo juri sesuai AGENTS.md
     const demoCredentials = {
       email: "juri@skillbridge.id",
-      demoPassword: "DemoJuriInvofest2026!",
       profile: {
         id: "aed3b8b5-c656-4cf6-8246-4e8c3384860c",
         full_name: "Budi Pratama (Juri Demo)",
@@ -19,7 +18,6 @@ test("Judge Demo Flow End-to-End Simulation", async (t) => {
     };
 
     assert.equal(demoCredentials.email, "juri@skillbridge.id");
-    assert.ok(demoCredentials.demoPassword.length >= 8);
     assert.equal(demoCredentials.profile.id, "aed3b8b5-c656-4cf6-8246-4e8c3384860c");
 
     juriSession = {

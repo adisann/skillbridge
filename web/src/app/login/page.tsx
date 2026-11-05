@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, UserCheck, Zap } from "lucide-react";
+import { Mail, Lock, UserCheck } from "lucide-react";
 import { SkillBridgeLogo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 import { TextInput } from "@/components/ui/input";
@@ -13,23 +13,11 @@ import { useAuth } from "@/lib/supabase/auth-context";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user, loginDemoJuri, login } = useAuth();
+  const { user, login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [demoNotice, setDemoNotice] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const isDemoMode =
-    process.env.NEXT_PUBLIC_DEMO_MODE === "true" ||
-    process.env.NODE_ENV !== "production";
-
-  const handleDemoLogin = async () => {
-    setIsLoading(true);
-    setDemoNotice(true);
-    setErrorMessage(null);
-    await loginDemoJuri();
-  };
 
   const handleRegularLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +29,7 @@ export default function LoginPage() {
       setErrorMessage(res.error || "Gagal masuk. Periksa kembali email dan kata sandimu.");
       return;
     }
-    if (email.toLowerCase().includes("admin")) {
+    if (res.role === "admin") {
       router.push("/admin");
     } else {
       router.push("/dashboard");
@@ -60,14 +48,6 @@ export default function LoginPage() {
             Akses dashboard rekomendasi karier dan analisis skill pasar kerja
           </p>
         </div>
-
-        {demoNotice && (
-          <AlertBanner
-            type="success"
-            title="Autentikasi Berhasil"
-            message="Masuk sebagai akun demo. Mengalihkan ke Dashboard..."
-          />
-        )}
 
         {errorMessage && (
           <AlertBanner
@@ -103,48 +83,16 @@ export default function LoginPage() {
             <CardHeader className="space-y-1">
               <CardTitle>Masuk</CardTitle>
               <CardDescription>
-                Silakan masukkan email dan kata sandi, atau gunakan akses instan dengan akun demo.
+                Masukkan email dan kata sandi akunmu.
               </CardDescription>
             </CardHeader>
 
             <CardContent className="space-y-4">
-              {/* Tombol Akses Instan Akun Demo (Hanya aktif jika NEXT_PUBLIC_DEMO_MODE=true) */}
-              {isDemoMode && (
-                <div className="p-4 rounded-2xl glass-panel bg-sb-mist-faint border border-sb-border space-y-2 text-center">
-                  <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-sb-navy">
-                    <Zap className="w-4 h-4 text-sb-blue" />
-                    Akses Demo Siap Uji
-                  </div>
-                  <p className="text-[11px] text-sb-text-2 leading-normal">
-                    Gunakan profil siap pakai dengan CV terstruktur dan analisis lowongan lengkap.
-                  </p>
-                  <Button
-                    type="button"
-                    variant="primary"
-                    size="md"
-                    className="w-full justify-center shadow-xs"
-                    isLoading={isLoading}
-                    leftIcon={<UserCheck className="w-4 h-4" />}
-                    onClick={handleDemoLogin}
-                  >
-                    Coba dengan akun demo
-                  </Button>
-                </div>
-              )}
-
-              <div className="relative flex py-1 items-center">
-                <div className="flex-grow border-t border-sb-border" />
-                <span className="flex-shrink mx-3 text-[11px] uppercase tracking-wider font-semibold text-sb-text-2">
-                  Atau Menggunakan Form
-                </span>
-                <div className="flex-grow border-t border-sb-border" />
-              </div>
-
               <form onSubmit={handleRegularLogin} className="space-y-3.5">
                 <TextInput
                   label="Email"
                   type="email"
-                  placeholder="juri@skillbridge.demo"
+                  placeholder="nama@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   leftIcon={<Mail className="w-4 h-4" />}

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { createServerSupabaseClient, getServiceSupabase } from "@/lib/supabase/server";
 import { syncDemoUserName } from "@/lib/demo-account";
 import { enforceRateLimits, getClientIp } from "@/lib/rate-limit";
@@ -63,25 +62,7 @@ export async function POST(req: NextRequest) {
       targetRole: (profileRow?.target_role as "Data Analyst" | "BI Analyst") || "Data Analyst",
     };
 
-    // Tetapkan cookie httpOnly, Secure, SameSite=Lax di server
-    const cookieStore = await cookies();
-    cookieStore.set(
-      "sb_user_session",
-      JSON.stringify({
-        userId: userProfile.id,
-        email: userProfile.email,
-        fullName: userProfile.fullName,
-        role: userProfile.role,
-        targetRole: userProfile.targetRole,
-      }),
-      {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        path: "/",
-        maxAge: 60 * 60 * 24 * 7, // 7 hari
-      }
-    );
+    // Sesi dipegang cookie Supabase (httpOnly) yang diset oleh signInWithPassword di atas.
 
     return NextResponse.json({
       success: true,

@@ -87,3 +87,20 @@ export async function deleteFromR2(key: string): Promise<boolean> {
   return true;
 }
 
+
+/** Awalan key R2 yang sah untuk satu pengguna: resumes/<userId>/ */
+export function resumeKeyPrefix(userId: string): string {
+  return `resumes/${userId}/`;
+}
+
+/**
+ * Mengembalikan key R2 hanya jika berada di folder milik pengguna tersebut.
+ * Menerima key mentah ("resumes/<id>/x.pdf") atau bentuk tersimpan ("r2://resumes/<id>/x.pdf").
+ * Nilai lain (milik orang lain, traversal, kosong) menghasilkan null.
+ */
+export function ownedResumeKey(userId: string, candidate: unknown): string | null {
+  if (typeof candidate !== "string") return null;
+  const key = candidate.startsWith("r2://") ? candidate.slice("r2://".length) : candidate;
+  if (key.includes("..") || key.includes("//") || key.includes("\\")) return null;
+  return key.startsWith(resumeKeyPrefix(userId)) && key.length > resumeKeyPrefix(userId).length ? key : null;
+}

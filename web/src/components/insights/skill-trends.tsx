@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
 import { FilterBar } from "@/components/ui/filter";
 import type { FilterState } from "@/lib/job-filters";
 import { MarketSkillBarChart } from "@/components/ui/chart";
@@ -29,8 +28,7 @@ const CHART_STATUS: Record<TopSkillInsight["cvStatus"], "found" | "needs_verific
 
 export function SkillTrends({ mode = "user" }: SkillTrendsProps) {
   const isGuest = mode === "guest";
-  const router = useRouter();
-  const { isAuthenticated, loginDemo } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   const [filters, setFilters] = useState<FilterState>({
     role: "all",
@@ -53,7 +51,7 @@ export function SkillTrends({ mode = "user" }: SkillTrendsProps) {
 
       {notice && <AlertBanner type="success" title="Pembaruan Rencana Belajar" message={notice} />}
 
-      {isGuest && <GuestCalloutBanner onTryDemo={loginDemo} />}
+      {isGuest && <GuestCalloutBanner />}
 
       <div className="space-y-4">
         <FilterBar filters={filters} onChange={setFilters} sampleCount={sampleSizeN} />
@@ -98,12 +96,7 @@ export function SkillTrends({ mode = "user" }: SkillTrendsProps) {
           />
 
           {isGuest && (
-            <GuestComparePrompt
-              onTryDemo={async () => {
-                await loginDemo();
-                router.push("/insights");
-              }}
-            />
+            <GuestComparePrompt />
           )}
 
           {!isGuest && learningRecs.length > 0 && (

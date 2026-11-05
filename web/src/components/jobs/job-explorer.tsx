@@ -28,7 +28,7 @@ export function JobExplorer({ mode = "user" }: JobExplorerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const { user, loginDemo } = useAuth();
+  const { user } = useAuth();
 
   const urlBidang = searchParams.get("bidang") || searchParams.get("role") || null;
   const { filters, setFilters, userCategory } = useExplorerFilters({
@@ -244,10 +244,6 @@ export function JobExplorer({ mode = "user" }: JobExplorerProps) {
                 detailRoutePrefix={detailRoutePrefix}
                 panelRef={panelRef}
                 onToggleSave={() => handleToggleSave(activeJob.id)}
-                onTryDemo={async () => {
-                  await loginDemo();
-                  router.push(`/jobs/${activeJob.id}`);
-                }}
               />
             )}
           </div>

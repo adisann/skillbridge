@@ -28,7 +28,6 @@ interface JobPreviewPanelProps {
   detailRoutePrefix: string;
   panelRef: RefObject<HTMLDivElement | null>;
   onToggleSave: () => void;
-  onTryDemo: () => void;
 }
 
 function PreviewHeader({
@@ -37,7 +36,7 @@ function PreviewHeader({
   isSaved,
   detailRoutePrefix,
   onToggleSave,
-}: Omit<JobPreviewPanelProps, "panelRef" | "onTryDemo">) {
+}: Omit<JobPreviewPanelProps, "panelRef">) {
   const categoryLabel =
     job.categoryLabel ||
     getCategoryBySlug(job.category)?.label ||
@@ -134,17 +133,15 @@ function PreviewHeader({
 function GuestLoginCard({
   jobId,
   detailRoutePrefix,
-  onTryDemo,
 }: {
   jobId: string;
   detailRoutePrefix: string;
-  onTryDemo: () => void;
 }) {
   return (
     <div className="p-5 rounded-2xl bg-sb-mist-soft border border-sb-border space-y-3">
       <h4 className="text-sm font-bold text-sb-navy">Masuk untuk melihat skill mana yang sudah ada di CV-mu</h4>
       <p className="text-xs text-sb-text-2 leading-relaxed">
-        Unggah CV atau gunakan akun demo untuk membandingkan kualifikasi secara otomatis dengan lowongan ini.
+        Masuk dan unggah CV untuk membandingkan kualifikasi secara otomatis dengan lowongan ini.
       </p>
       <div className="flex flex-wrap items-center gap-2.5 pt-1">
         <Link href={`/login?next=${encodeURIComponent(`${detailRoutePrefix}/${jobId}`)}`}>
@@ -152,9 +149,6 @@ function GuestLoginCard({
             Masuk
           </Button>
         </Link>
-        <Button variant="secondary" size="sm" onClick={onTryDemo}>
-          Coba akun demo
-        </Button>
       </div>
     </div>
   );
@@ -231,7 +225,6 @@ export function JobPreviewPanel({
   detailRoutePrefix,
   panelRef,
   onToggleSave,
-  onTryDemo,
 }: JobPreviewPanelProps) {
   return (
     <div className={cn("hidden lg:block lg:col-span-6 xl:col-span-7 sticky self-start", isGuest ? "top-[88px]" : "top-6")}>
@@ -251,7 +244,7 @@ export function JobPreviewPanel({
         />
 
         <div className="p-5 sm:p-6 pt-5 pb-24 sm:pb-28 space-y-5">
-          {isGuest && <GuestLoginCard jobId={job.id} detailRoutePrefix={detailRoutePrefix} onTryDemo={onTryDemo} />}
+          {isGuest && <GuestLoginCard jobId={job.id} detailRoutePrefix={detailRoutePrefix} />}
 
           <div className="space-y-4 pt-1">
             <h3 className="text-sm font-extrabold uppercase tracking-wider text-sb-navy">Persyaratan Kualifikasi</h3>
