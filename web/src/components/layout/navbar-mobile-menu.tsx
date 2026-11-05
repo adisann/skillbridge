@@ -22,7 +22,7 @@ export function NavbarMobileMenu({ isAuthenticated, onClose }: NavbarMobileMenuP
         aria-hidden="true"
       />
 
-      <div className="relative w-72 max-w-[80vw] bg-white h-full shadow-2xl flex flex-col justify-between z-50 p-6 border-l border-sb-border animate-in slide-in-from-right duration-200">
+      <div className="relative w-72 max-w-[80vw] bg-white h-full shadow-2xl flex flex-col justify-between z-50 p-6 border-l border-sb-border animate-slide-in-right">
         <div className="space-y-6">
           <div className="flex items-center justify-between pb-4 border-b border-sb-border">
             <SkillBridgeLogo size="sm" href="/" />

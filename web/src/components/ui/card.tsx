@@ -23,7 +23,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-[20px] transition-all duration-200",
+        "rounded-[20px] transition-ui duration-200",
         variant === "glass"
           ? "glass"
           : "border border-sb-border bg-white shadow-xs",
@@ -198,7 +198,7 @@ export function JobCard({
   return (
     <Card
       className={cn(
-        "overflow-hidden flex flex-col justify-between h-full transition-all duration-200",
+        "overflow-hidden flex flex-col justify-between h-full transition-ui duration-200",
         isSelected && "ring-2 ring-sb-blue border-sb-blue bg-white/90 shadow-md",
         className
       )}

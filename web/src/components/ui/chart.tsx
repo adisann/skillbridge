@@ -59,7 +59,7 @@ export function MarketSkillBarChart({
           return (
             <div
               key={item.skillName}
-              className="group p-3.5 rounded-xl border border-sb-border bg-white/70 hover:bg-white hover:border-sb-blue/30 hover:shadow-2xs transition-all space-y-2.5"
+              className="group p-3.5 rounded-xl border border-sb-border bg-white/70 hover:bg-white hover:border-sb-blue/30 hover:shadow-2xs transition-ui space-y-2.5"
             >
               {/* Row Header: Rank, Name, Badges & Actions */}
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -126,7 +126,7 @@ export function MarketSkillBarChart({
               <div className="w-full h-2 rounded-full bg-sb-mist-soft overflow-hidden relative">
                 <div
                   className={cn(
-                    "h-full rounded-full transition-all duration-500",
+                    "h-full rounded-full transition-[width] duration-300 ease-out-strong",
                     isFoundInCV ? "bg-sb-good" : "bg-sb-sky"
                   )}
                   style={{ width: `${formatPercent(item.percentage)}%` }}

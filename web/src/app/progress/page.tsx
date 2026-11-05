@@ -213,7 +213,7 @@ function ProgressContent() {
         {/* Progress Bar */}
         <div className="relative z-10 w-full bg-sb-mist-soft rounded-full h-3 p-0.5 border border-sb-border mt-4 overflow-hidden">
           <div
-            className="bg-sb-sky h-full rounded-full transition-all duration-500"
+            className="bg-sb-sky h-full rounded-full transition-[width] duration-300 ease-out-strong"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
@@ -294,7 +294,7 @@ function ProgressContent() {
                     {learningList.map((item) => (
                       <div
                         key={item.id}
-                        className={`p-4 rounded-xl border transition-all duration-150 flex items-start justify-between gap-3 ${
+                        className={`p-4 rounded-xl border transition-ui duration-150 flex items-start justify-between gap-3 ${
                           item.isDone
                             ? "bg-white/40 border-sb-border opacity-70"
                             : "bg-white/80 border-sb-border hover:border-sb-blue/40 hover:shadow-2xs"
@@ -413,7 +413,7 @@ function ProgressContent() {
                   savedJobs.map((j) => (
                     <div
                       key={j.id}
-                      className="p-4 rounded-xl border border-sb-border bg-white/70 hover:bg-white hover:border-sb-blue/40 transition-all space-y-2.5"
+                      className="p-4 rounded-xl border border-sb-border bg-white/70 hover:bg-white hover:border-sb-blue/40 transition-ui space-y-2.5"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="space-y-0.5">

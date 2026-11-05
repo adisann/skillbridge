@@ -409,7 +409,7 @@ export function JobChatAssistant({
                       href={actionUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-sb-sky hover:bg-sb-sky-hover text-sb-navy font-semibold text-xs shadow-xs hover:shadow-sm transition-all duration-150 cursor-pointer group"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-sb-sky hover:bg-sb-sky-hover text-sb-navy font-semibold text-xs shadow-xs hover:shadow-sm transition-ui duration-150 cursor-pointer group"
                     >
                       <span>{actionLabel}</span>
                       <ExternalLink className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
@@ -417,7 +417,7 @@ export function JobChatAssistant({
                   ) : (
                     <Link
                       href={actionUrl}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-sb-sky hover:bg-sb-sky-hover text-sb-navy font-semibold text-xs shadow-xs hover:shadow-sm transition-all duration-150 cursor-pointer group"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-sb-sky hover:bg-sb-sky-hover text-sb-navy font-semibold text-xs shadow-xs hover:shadow-sm transition-ui duration-150 cursor-pointer group"
                     >
                       <span>{actionLabel}</span>
                       <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
@@ -489,7 +489,7 @@ export function JobChatAssistant({
           type="button"
           onClick={() => setIsOpen(true)}
           aria-label="Tanya Asisten AI"
-          className="fixed right-4 bottom-6 sm:right-6 sm:bottom-6 z-40 inline-flex items-center gap-2.5 px-4 py-2.5 sm:px-5 sm:py-3 rounded-full bg-sb-sky text-sb-navy shadow-xl hover:bg-sb-sky-hover hover:scale-105 active:scale-95 transition-all duration-200 border border-sb-border cursor-pointer group focus:outline-none focus:ring-2 focus:ring-sb-blue focus:ring-offset-2 font-bold"
+          className="fixed right-4 bottom-6 sm:right-6 sm:bottom-6 z-40 inline-flex items-center gap-2.5 px-4 py-2.5 sm:px-5 sm:py-3 rounded-full bg-sb-sky text-sb-navy shadow-xl hover:bg-sb-sky-hover hover:scale-105 active:scale-[0.97] transition-ui border border-sb-border cursor-pointer group focus:outline-none focus:ring-2 focus:ring-sb-blue focus:ring-offset-2 font-bold"
         >
           <div className="w-6 h-6 rounded-lg bg-white/80 text-sb-navy flex items-center justify-center shrink-0 group-hover:rotate-12 transition-transform shadow-2xs">
             <Bot className="w-4 h-4 text-sb-blue" />
@@ -507,7 +507,7 @@ export function JobChatAssistant({
           role="dialog"
           aria-label={`Asisten AI Lowongan - ${jobTitle}`}
           className={cn(
-            "fixed z-50 flex flex-col overflow-hidden bg-white/95 backdrop-blur-md border border-sb-border shadow-2xl transition-all duration-200 animate-in fade-in zoom-in-95",
+            "fixed z-50 flex flex-col overflow-hidden bg-white/95 backdrop-blur-md border border-sb-border shadow-2xl animate-pop-in origin-bottom-right",
             isMaximized
               ? "inset-2 sm:inset-6 md:inset-10 rounded-2xl"
               : "right-3 bottom-3 sm:right-6 sm:bottom-6 w-[calc(100vw-1.5rem)] sm:w-[440px] h-[580px] sm:h-[620px] max-h-[88vh] rounded-2xl"
@@ -604,7 +604,7 @@ export function JobChatAssistant({
                         type="button"
                         onClick={() => handleSendMessage(question)}
                         disabled={isStreaming || isAnalyzing}
-                        className="text-left text-xs px-3 py-1.5 rounded-lg border border-sb-border bg-white hover:bg-sb-mist-soft hover:text-sb-navy transition-all cursor-pointer shadow-2xs active:scale-[0.98] text-sb-navy disabled:opacity-50 font-medium"
+                        className="text-left text-xs px-3 py-1.5 rounded-lg border border-sb-border bg-white hover:bg-sb-mist-soft hover:text-sb-navy transition-ui cursor-pointer shadow-2xs active:scale-[0.97] text-sb-navy disabled:opacity-50 font-medium"
                       >
                         {question}
                       </button>
@@ -651,7 +651,7 @@ export function JobChatAssistant({
 
             {/* Initial Analyzing Indicator (Before First Token Arrives) */}
             {isAnalyzing && (
-              <div className="flex items-center gap-2.5 text-xs text-sb-text-2 py-2 animate-in fade-in duration-150">
+              <div className="flex items-center gap-2.5 text-xs text-sb-text-2 py-2 animate-fade-in">
                 <div className="w-7 h-7 rounded-lg bg-sb-sky text-sb-navy flex items-center justify-center shrink-0 animate-pulse border border-sb-border">
                   <Bot className="w-4 h-4" />
                 </div>
@@ -723,7 +723,7 @@ export function JobChatAssistant({
                       ? "Asisten AI sedang menyusun jawaban..."
                       : "Ketik pertanyaan seputar lowongan ini..."
                   }
-                  className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl border border-sb-border bg-sb-mist-faint/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue focus:border-transparent transition-all pr-14 disabled:opacity-60 text-sb-navy placeholder:text-sb-text-2"
+                  className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl border border-sb-border bg-sb-mist-faint/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue focus:border-transparent transition-ui pr-14 disabled:opacity-60 text-sb-navy placeholder:text-sb-text-2"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-sb-text-2 font-mono">
                   {inputValue.length}/300

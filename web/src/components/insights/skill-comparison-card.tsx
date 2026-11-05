@@ -29,7 +29,7 @@ interface SkillRowProps {
 
 function SkillRow({ item, isGuest, sampleSizeN, onClaim, onAddLearning }: SkillRowProps) {
   return (
-    <div className="p-4 rounded-xl border border-sb-border bg-white/70 hover:bg-white hover:border-sb-blue/30 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+    <div className="p-4 rounded-xl border border-sb-border bg-white/70 hover:bg-white hover:border-sb-blue/30 transition-ui flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
       <div className="flex items-start gap-3">
         {!isGuest && <StatusIcon status={item.cvStatus} />}
         <div>

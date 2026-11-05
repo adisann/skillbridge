@@ -134,12 +134,12 @@ function MobileFilterSheet({ fields, isFiltered, onSelect, onReset, onClose }: M
   return (
     <div className="fixed inset-0 z-50 md:hidden flex flex-col justify-end">
       <div
-        className="fixed inset-0 bg-black/30 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 bg-black/30 backdrop-blur-xs animate-fade-in"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      <div className="relative glass-panel rounded-t-[28px] border-t border-sb-border p-6 shadow-2xl max-h-[85vh] overflow-y-auto space-y-4 animate-in slide-in-from-bottom-5 duration-200">
+      <div className="relative glass-panel rounded-t-[28px] border-t border-sb-border p-6 shadow-2xl max-h-[85vh] overflow-y-auto space-y-4 animate-sheet-in">
         <div className="flex items-center justify-between pb-3 border-b border-sb-border">
           <div className="flex items-center gap-2">
             <SlidersHorizontal className="w-4 h-4 text-sb-blue" />
@@ -177,7 +177,7 @@ function MobileFilterSheet({ fields, isFiltered, onSelect, onReset, onClose }: M
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-3 rounded-full bg-sb-sky hover:bg-sb-sky-hover text-sb-navy text-xs font-bold transition-all cursor-pointer shadow-xs"
+            className="flex-1 py-3 rounded-full bg-sb-sky hover:bg-sb-sky-hover text-sb-navy text-xs font-bold transition-ui cursor-pointer shadow-xs"
           >
             Terapkan Filter
           </button>
@@ -197,7 +197,7 @@ interface DesktopFilterPanelProps {
 
 function DesktopFilterPanel({ fields, isFiltered, onSelect, onReset, className }: DesktopFilterPanelProps) {
   return (
-    <div className={cn("hidden md:block p-5 rounded-[20px] glass space-y-4 animate-in fade-in slide-in-from-top-1 duration-150", className)}>
+    <div className={cn("hidden md:block p-5 rounded-[20px] glass space-y-4 animate-drop-in", className)}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-xs font-bold text-sb-navy uppercase tracking-wider">
           <Filter className="w-4 h-4 text-sb-blue" />

@@ -12,7 +12,7 @@ function BreakdownItem({ entry }: { entry: ScoreBreakdownEntry }) {
   return (
     <div
       className={cn(
-        "p-3.5 rounded-xl border border-sb-border space-y-1.5 transition-all",
+        "p-3.5 rounded-xl border border-sb-border space-y-1.5 transition-ui",
         isAvailable ? "bg-white/70" : "bg-sb-mist-faint/40 opacity-75"
       )}
     >
@@ -39,7 +39,7 @@ function BreakdownItem({ entry }: { entry: ScoreBreakdownEntry }) {
       </div>
       <div className="w-full bg-sb-mist-soft rounded-full h-1.5 overflow-hidden">
         <div
-          className={cn("h-1.5 rounded-full transition-all duration-500", isAvailable ? "bg-sb-sky" : "bg-sb-border")}
+          className={cn("h-1.5 rounded-full transition-[width] duration-300 ease-out-strong", isAvailable ? "bg-sb-sky" : "bg-sb-border")}
           style={{ width: isAvailable ? `${displayScore}%` : "0%" }}
         />
       </div>

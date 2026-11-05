@@ -58,7 +58,7 @@ export function LandingFields({ jobCounts }: LandingFieldsProps) {
               <Link
                 key={cat.slug}
                 href={`/lowongan?bidang=${cat.slug}`}
-                className="p-5 rounded-2xl border border-sb-border bg-white hover:border-sb-blue/30 hover:shadow-2xs transition-all flex flex-col justify-between space-y-4 group"
+                className="p-5 rounded-2xl border border-sb-border bg-white hover:border-sb-blue/30 hover:shadow-2xs transition-ui flex flex-col justify-between space-y-4 group"
               >
                 <div className="space-y-3">
                   <div className="w-11 h-11 rounded-xl bg-sb-mist-soft flex items-center justify-center text-sb-navy group-hover:bg-sb-sky group-hover:text-sb-navy transition-colors">
@@ -82,7 +82,7 @@ export function LandingFields({ jobCounts }: LandingFieldsProps) {
                   ) : (
                     <span className="text-sb-text-2">{UI_COPY.landing.fieldsViewPositions}</span>
                   )}
-                  <ArrowRight className="w-4 h-4 text-sb-text-2 group-hover:text-sb-blue group-hover:translate-x-0.5 transition-all" />
+                  <ArrowRight className="w-4 h-4 text-sb-text-2 group-hover:text-sb-blue group-hover:translate-x-0.5 transition-ui" />
                 </div>
               </Link>
             );

@@ -62,7 +62,7 @@ export function Navbar() {
     <>
       <header
         className={cn(
-          "w-full z-40 transition-all duration-200 ease-in-out",
+          "w-full z-40 transition-[background-color,border-color,box-shadow,height] duration-200 ease-out-strong",
           isLanding
             ? cn(
                 "fixed top-0 left-0 right-0",

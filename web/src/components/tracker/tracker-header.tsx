@@ -105,7 +105,7 @@ export function TrackerHeader({
                 key={stage.id}
                 type="button"
                 onClick={() => onStageFilterChange(stage.id)}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-ui ${
                   isActive
                     ? "bg-sb-sky text-sb-navy shadow-xs"
                     : "text-sb-text-2 hover:bg-white/70 hover:text-sb-navy"
@@ -160,7 +160,7 @@ export function TrackerHeader({
             <button
               type="button"
               onClick={() => onViewModeChange("table")}
-              className={`p-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`p-1.5 rounded-lg text-xs font-bold transition-ui ${
                 viewMode === "table" ? "bg-white text-sb-blue shadow-2xs" : "text-sb-text-2 hover:text-sb-navy"
               }`}
               title="Tampilan Tabel & Perbandingan"
@@ -170,7 +170,7 @@ export function TrackerHeader({
             <button
               type="button"
               onClick={() => onViewModeChange("board")}
-              className={`p-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`p-1.5 rounded-lg text-xs font-bold transition-ui ${
                 viewMode === "board" ? "bg-white text-sb-blue shadow-2xs" : "text-sb-text-2 hover:text-sb-navy"
               }`}
               title="Tampilan Kanban Board Pipeline"

@@ -27,7 +27,7 @@ export function LearningRecommendations({ recommendations, onAdd }: LearningReco
         {recommendations.map((rec) => (
           <div
             key={rec.skillName}
-            className="p-4 rounded-xl bg-white/80 border border-sb-border hover:border-sb-blue/30 shadow-2xs space-y-3 flex flex-col justify-between transition-all"
+            className="p-4 rounded-xl bg-white/80 border border-sb-border hover:border-sb-blue/30 shadow-2xs space-y-3 flex flex-col justify-between transition-ui"
           >
             <div className="space-y-2">
               <div className="flex items-center justify-between">

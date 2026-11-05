@@ -36,6 +36,21 @@
   --foreground: var(--sb-text);
 }
 
+@theme {
+  /* Easing kuat (lebih bertenaga dari bawaan CSS) */
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Transisi UI standar: hanya properti yang berubah saat interaksi (bukan "all"), ease-out kuat, 160ms.
+   Durasi/easing bisa ditimpa dengan duration-* dan ease-*. */
+@utility transition-ui {
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+  transition-duration: var(--tw-duration, 160ms);
+  transition-timing-function: var(--tw-ease, var(--ease-out-strong));
+}
+
 @theme inline {
   --color-sb-navy: var(--sb-navy);
   --color-sb-blue: var(--sb-blue);
@@ -193,7 +208,7 @@ a.sb-link:hover {
 
 /* Animations & Transitions */
 .page-transition {
-  animation: page-in 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: page-in 220ms var(--ease-out-strong) both;
 }
 
 @keyframes page-in {
@@ -219,8 +234,25 @@ a.sb-link:hover {
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: fadeInUp 300ms var(--ease-out-strong) both;
 }
+
+/* Animasi masuk (hanya transform + opacity). */
+@keyframes sb-page-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes sb-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes sb-pop-in { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+@keyframes sb-drop-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes sb-sheet-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes sb-slide-in-right { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@keyframes sb-slide-in-left { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+
+.animate-page-enter { animation: sb-page-enter 220ms var(--ease-out-strong) both; }
+.animate-fade-in { animation: sb-fade-in 150ms ease-out both; }
+.animate-pop-in { animation: sb-pop-in 180ms var(--ease-out-strong) both; }
+.animate-drop-in { animation: sb-drop-in 160ms var(--ease-out-strong) both; }
+.animate-sheet-in { animation: sb-sheet-in 280ms var(--ease-drawer) both; }
+.animate-slide-in-right { animation: sb-slide-in-right 260ms var(--ease-drawer) both; }
+.animate-slide-in-left { animation: sb-slide-in-left 260ms var(--ease-drawer) both; }
 
 /* Floating cards animation */
 @keyframes sb-float {
