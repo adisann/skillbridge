@@ -254,6 +254,22 @@ a.sb-link:hover {
 .animate-slide-in-right { animation: sb-slide-in-right 260ms var(--ease-drawer) both; }
 .animate-slide-in-left { animation: sb-slide-in-left 260ms var(--ease-drawer) both; }
 
+
+/* Kedalaman hero: tiap lapisan bergerak dengan laju berbeda terhadap pointer (--k) dan scroll (--ks). */
+.depth-layer {
+  --k: 0;
+  --ks: 0;
+  transform: translate3d(
+    calc(var(--hd-x, 0) * var(--k) * 1px),
+    calc(var(--hd-y, 0) * var(--k) * 0.6px + var(--hd-s, 0) * var(--ks) * 1px),
+    0
+  );
+  will-change: transform;
+}
+.depth-back { --k: -8; --ks: 70; }
+.depth-mid { --k: 16; --ks: 24; }
+.depth-front { --k: 34; --ks: -34; }
+
 /* Floating cards animation */
 @keyframes sb-float {
   0%, 100% {
@@ -424,7 +440,8 @@ html.js-ready .reveal-item.is-revealed {
     transform: none !important;
   }
 
-  .parallax-layer {
+  .parallax-layer,
+  .depth-layer {
     transform: none !important;
   }
 }
