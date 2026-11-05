@@ -84,7 +84,7 @@ export function HeroSkillChips({ chips }: HeroSkillChipsProps) {
               className={cn(
                 "relative inline-flex h-4 w-4 items-center justify-center rounded-full text-sb-text-2 cursor-pointer before:absolute before:-inset-2 before:content-['']",
                 "transition-transform duration-150 ease-out-strong",
-                "hover:rotate-90 hover:scale-125 active:scale-90",
+                "hover:scale-125 active:scale-90",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sb-blue"
               )}
             >
