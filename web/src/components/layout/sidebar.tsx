@@ -89,7 +89,7 @@ export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: Sideba
                 }}
                 title={collapsed ? item.label : undefined}
                 className={cn(
-                  "flex items-center gap-3 px-3.5 py-2.5 rounded-full text-xs transition-all relative group",
+                  "flex items-center gap-3 px-3.5 py-2.5 rounded-full text-xs transition-ui relative group",
                   isActive
                     ? "bg-sb-mist-soft text-sb-navy font-bold shadow-2xs border border-sb-border"
                     : "text-sb-text-2 hover:bg-white/70 hover:text-sb-navy font-semibold"
@@ -125,7 +125,7 @@ export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: Sideba
             }}
             title={collapsed ? "Profil Saya" : undefined}
             className={cn(
-              "flex items-center gap-3 px-3.5 py-2.5 rounded-full text-xs transition-all relative group",
+              "flex items-center gap-3 px-3.5 py-2.5 rounded-full text-xs transition-ui relative group",
               pathname === "/profile"
                 ? "bg-sb-mist-soft text-sb-navy font-bold shadow-2xs border border-sb-border"
                 : "text-sb-text-2 hover:bg-white/70 hover:text-sb-navy font-semibold"
@@ -154,7 +154,7 @@ export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: Sideba
               }}
               title={collapsed ? "Admin Panel" : undefined}
               className={cn(
-                "flex items-center gap-3 px-3.5 py-2.5 rounded-full text-xs transition-all relative group",
+                "flex items-center gap-3 px-3.5 py-2.5 rounded-full text-xs transition-ui relative group",
                 pathname.startsWith("/admin")
                   ? "bg-amber-50 text-amber-800 font-bold shadow-2xs border border-amber-200"
                   : "text-sb-text-2 hover:bg-white/70 hover:text-sb-navy font-semibold"
@@ -196,7 +196,7 @@ export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: Sideba
           ) : user ? (
             <div
               className={cn(
-                "flex items-center justify-between gap-2 p-2 rounded-2xl bg-white/70 border border-sb-border hover:bg-white transition-all shadow-2xs",
+                "flex items-center justify-between gap-2 p-2 rounded-2xl bg-white/70 border border-sb-border hover:bg-white transition-ui shadow-2xs",
                 pathname === "/profile" ? "ring-2 ring-sb-blue/30 border-sb-blue bg-sb-mist-soft" : "",
                 collapsed ? "justify-center p-1.5 flex-col gap-1.5" : ""
               )}
@@ -212,7 +212,7 @@ export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: Sideba
                 )}
                 title={collapsed ? `${user.fullName} (Profil Saya)` : "Buka Profil Saya"}
               >
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-sb-sky to-sb-mist text-sb-navy font-bold text-xs flex items-center justify-center shrink-0 shadow-xs group-hover:shadow-sm transition-all">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-sb-sky to-sb-mist text-sb-navy font-bold text-xs flex items-center justify-center shrink-0 shadow-xs group-hover:shadow-sm transition-ui">
                   {getUserInitials(user.fullName)}
                 </div>
 
@@ -252,7 +252,7 @@ export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: Sideba
               }}
               title={collapsed ? "Masuk" : undefined}
               className={cn(
-                "w-full flex items-center gap-2 px-3 py-2.5 rounded-full text-xs font-bold bg-sb-sky text-sb-navy hover:bg-sb-sky-hover transition-all shadow-xs",
+                "w-full flex items-center gap-2 px-3 py-2.5 rounded-full text-xs font-bold bg-sb-sky text-sb-navy hover:bg-sb-sky-hover transition-ui shadow-xs",
                 collapsed ? "justify-center px-2" : ""
               )}
             >
@@ -272,7 +272,7 @@ export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: Sideba
       {/* ------------------------------------------------------------------- */}
       <aside
         className={cn(
-          "hidden md:flex flex-col h-screen sticky top-0 z-40 glass-header border-r border-sb-border transition-all duration-250 ease-in-out shrink-0 select-none",
+          "hidden md:flex flex-col h-screen sticky top-0 z-40 glass-header border-r border-sb-border transition-[width] duration-200 ease-in-out-strong shrink-0 select-none",
           isCollapsed ? "w-[76px]" : "w-64"
         )}
       >
@@ -327,13 +327,13 @@ export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: Sideba
         <div className="fixed inset-0 z-50 md:hidden flex">
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/30 backdrop-blur-xs transition-opacity duration-200"
+            className="fixed inset-0 bg-black/30 backdrop-blur-xs animate-fade-in"
             onClick={onCloseMobile}
             aria-hidden="true"
           />
 
           {/* Drawer content */}
-          <div className="relative w-72 max-w-[80vw] glass-panel h-full shadow-2xl flex flex-col z-50 animate-fade-in border-r border-sb-border">
+          <div className="relative w-72 max-w-[80vw] glass-panel h-full shadow-2xl flex flex-col z-50 animate-slide-in-left border-r border-sb-border">
             <div className="h-18 px-5 border-b border-sb-border flex items-center justify-between">
               <SkillBridgeLogo size="sm" href="/dashboard" />
               <button

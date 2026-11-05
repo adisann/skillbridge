@@ -69,7 +69,7 @@ export function SkillBridgeLogo({
     return (
       <Link
         href={href}
-        className="focus:outline-none focus-visible:ring-2 focus-visible:ring-sb-blue rounded-xl transition-transform active:scale-95 inline-flex"
+        className="focus:outline-none focus-visible:ring-2 focus-visible:ring-sb-blue rounded-xl transition-transform duration-150 ease-out-strong active:scale-[0.97] inline-flex"
       >
         {content}
       </Link>

@@ -37,7 +37,7 @@ export function MarketSkillsCard({ totalJobsCount, topMarketSkills, targetRole }
                   </div>
                   <div className="w-full bg-sb-mist-soft rounded-full h-1.5 overflow-hidden">
                     <div
-                      className="bg-sb-sky h-full rounded-full transition-all"
+                      className="bg-sb-sky h-full rounded-full transition-[width] duration-300 ease-out-strong"
                       style={{ width: `${formatPercent(item.percentage)}%` }}
                     />
                   </div>

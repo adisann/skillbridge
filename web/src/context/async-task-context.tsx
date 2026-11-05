@@ -238,7 +238,7 @@ function AsyncTaskToastContainer({
   return (
     <div
       aria-live="polite"
-      className="fixed top-5 right-5 z-[9999] flex flex-col gap-3 max-w-sm sm:max-w-md w-full pointer-events-none transition-all duration-300"
+      className="fixed top-5 right-5 z-[9999] flex flex-col gap-3 max-w-sm sm:max-w-md w-full pointer-events-none"
     >
       {tasks.map((task) => (
         <AsyncTaskToastItem key={task.id} task={task} onDismiss={onDismiss} />
@@ -263,7 +263,7 @@ function AsyncTaskToastItem({
 
   return (
     <div
-      className={`pointer-events-auto rounded-2xl border p-4 shadow-xl backdrop-blur-md transition-all duration-300 transform translate-y-0 ${
+      className={`pointer-events-auto rounded-2xl border p-4 shadow-xl backdrop-blur-md transition-[transform,opacity] duration-300 ease-out-strong ${
         isRunning
           ? "bg-white/95 border-sb-border shadow-sb-blue/10"
           : isSuccess

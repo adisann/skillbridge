@@ -96,7 +96,7 @@ export function SearchableJobCombobox({
 
       {selectedJob ? (
         /* Selected State Card */
-        <div className="p-3 rounded-xl border border-sb-border bg-sb-mist-soft flex items-start justify-between gap-3 transition-all shadow-2xs">
+        <div className="p-3 rounded-xl border border-sb-border bg-sb-mist-soft flex items-start justify-between gap-3 transition-ui shadow-2xs">
           <div className="space-y-1 min-w-0">
             <div className="flex items-center gap-1.5">
               <span className="w-4 h-4 rounded-full bg-sb-sky text-sb-navy flex items-center justify-center shrink-0">

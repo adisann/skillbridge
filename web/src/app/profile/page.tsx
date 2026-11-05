@@ -217,7 +217,7 @@ function ProfileContent() {
                       type="button"
                       onClick={() => handleFieldChange(cat.label)}
                       className={cn(
-                        "p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between",
+                        "p-3.5 rounded-xl border text-left transition-ui cursor-pointer flex flex-col justify-between",
                         isSelected
                           ? "border-sb-sky bg-sb-mist-soft shadow-2xs font-bold"
                           : "border-sb-border hover:border-sb-blue/40 bg-white/70"
@@ -360,7 +360,7 @@ function ProfileContent() {
           {/* Card: Ringkasan Aktivitas & Tautan Cepat */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Link href="/progress" className="block group">
-              <Card className="h-full group-hover:border-sb-blue/40 transition-all">
+              <Card className="h-full group-hover:border-sb-blue/40 transition-ui">
                 <CardContent className="p-4 flex items-center justify-between">
                   <div className="space-y-1">
                     <span className="text-xs text-sb-text-2 flex items-center gap-1.5">
@@ -369,13 +369,13 @@ function ProfileContent() {
                     </span>
                     <p className="text-xl font-bold text-sb-navy font-mono-metric">{learningCount} Target</p>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-sb-text-2 group-hover:text-sb-blue group-hover:translate-x-1 transition-all" />
+                  <ArrowRight className="w-4 h-4 text-sb-text-2 group-hover:text-sb-blue group-hover:translate-x-1 transition-ui" />
                 </CardContent>
               </Card>
             </Link>
 
             <Link href="/progress" className="block group">
-              <Card className="h-full group-hover:border-sb-blue/40 transition-all">
+              <Card className="h-full group-hover:border-sb-blue/40 transition-ui">
                 <CardContent className="p-4 flex items-center justify-between">
                   <div className="space-y-1">
                     <span className="text-xs text-sb-text-2 flex items-center gap-1.5">
@@ -384,13 +384,13 @@ function ProfileContent() {
                     </span>
                     <p className="text-xl font-bold text-sb-navy font-mono-metric">{savedJobsCount} Lowongan</p>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-sb-text-2 group-hover:text-sb-blue group-hover:translate-x-1 transition-all" />
+                  <ArrowRight className="w-4 h-4 text-sb-text-2 group-hover:text-sb-blue group-hover:translate-x-1 transition-ui" />
                 </CardContent>
               </Card>
             </Link>
 
             <Link href="/tracker" className="block group">
-              <Card className="h-full group-hover:border-sb-blue/40 transition-all">
+              <Card className="h-full group-hover:border-sb-blue/40 transition-ui">
                 <CardContent className="p-4 flex items-center justify-between">
                   <div className="space-y-1">
                     <span className="text-xs text-sb-text-2 flex items-center gap-1.5">
@@ -399,7 +399,7 @@ function ProfileContent() {
                     </span>
                     <p className="text-xs font-semibold text-sb-blue mt-1">Buka Pipeline</p>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-sb-text-2 group-hover:text-sb-blue group-hover:translate-x-1 transition-all" />
+                  <ArrowRight className="w-4 h-4 text-sb-text-2 group-hover:text-sb-blue group-hover:translate-x-1 transition-ui" />
                 </CardContent>
               </Card>
             </Link>

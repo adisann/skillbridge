@@ -39,7 +39,7 @@ export function ApplicationStagesCard({ stageCounts, totalTracked }: Application
           <Link
             key={stage.key}
             href={`/tracker?stage=${stage.key}`}
-            className="p-3.5 rounded-xl border border-sb-border bg-white/70 hover:bg-white hover:border-sb-blue hover:shadow-2xs transition-all flex flex-col justify-between"
+            className="p-3.5 rounded-xl border border-sb-border bg-white/70 hover:bg-white hover:border-sb-blue hover:shadow-2xs transition-ui flex flex-col justify-between"
           >
             <p className="text-xs font-bold uppercase tracking-wider text-sb-text-2 truncate">
               {stage.label}

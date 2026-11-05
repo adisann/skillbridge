@@ -40,7 +40,7 @@ export function RecommendedJobsCard({ jobs, wide }: RecommendedJobsCardProps) {
           {jobs.slice(0, SHOWN_JOBS).map((job) => (
             <div
               key={job.id}
-              className="p-4 rounded-xl border border-sb-border bg-white/70 hover:bg-white hover:border-sb-blue transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+              className="p-4 rounded-xl border border-sb-border bg-white/70 hover:bg-white hover:border-sb-blue transition-ui flex flex-col sm:flex-row sm:items-center justify-between gap-3"
             >
               <div className="space-y-1.5 min-w-0">
                 <div className="flex flex-wrap items-center gap-2">

@@ -544,7 +544,7 @@ export default function CVPage() {
                     <span
                       key={s}
                       className={cn(
-                        "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold shadow-2xs transition-all",
+                        "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold shadow-2xs transition-ui",
                         isManual
                           ? "border-sb-warning/30 bg-sb-warning/10 text-sb-warning"
                           : "border-sb-border bg-white/90 text-sb-navy hover:border-sb-blue"

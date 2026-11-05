@@ -29,7 +29,7 @@ export function MissingSkillsCard({ missingSkills, priorityJobs }: MissingSkills
             {missingSkills.map((rec) => (
               <div
                 key={rec.skillName}
-                className="p-3.5 rounded-xl border border-sb-border bg-white/70 space-y-1 hover:border-sb-blue/40 transition-all"
+                className="p-3.5 rounded-xl border border-sb-border bg-white/70 space-y-1 hover:border-sb-blue/40 transition-ui"
               >
                 <div className="flex items-center justify-between text-xs font-bold">
                   <span className="text-sb-navy">{rec.skillName}</span>
@@ -53,7 +53,7 @@ export function MissingSkillsCard({ missingSkills, priorityJobs }: MissingSkills
                 <Link
                   key={j.id}
                   href="/tracker"
-                  className="p-2.5 rounded-xl bg-white/70 border border-sb-border hover:border-sb-blue/40 hover:bg-white transition-all flex items-center justify-between"
+                  className="p-2.5 rounded-xl bg-white/70 border border-sb-border hover:border-sb-blue/40 hover:bg-white transition-ui flex items-center justify-between"
                 >
                   <div className="min-w-0 pr-2">
                     <p className="font-bold text-sb-navy truncate text-xs">{j.title}</p>

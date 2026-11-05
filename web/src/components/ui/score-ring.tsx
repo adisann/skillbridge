@@ -72,7 +72,7 @@ export function ScoreRing({
             strokeDasharray={circumference}
             strokeDashoffset={offset}
             strokeLinecap="round"
-            className="transition-all duration-700 ease-out"
+            className="transition-[stroke-dashoffset] duration-500 ease-out-strong"
           />
         )}
       </svg>
