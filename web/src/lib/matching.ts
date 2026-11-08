@@ -1,3 +1,4 @@
+import { formatExperience } from "./experience.ts";
 import {
   DEFAULT_MATCHING_WEIGHTS,
   DEFAULT_MATCHING_THRESHOLDS,
@@ -55,7 +56,10 @@ export function getDisplayScore(result: Pick<MatchResult, "score" | "matchStatus
 
 interface CandidateProfileInput {
   skills: string[];
-  experienceYears: number;
+  experienceYears: number | null;
+  claimedSkills?: string[];
+  reviewSkills?: string[];
+  evidence?: Record<string, string>;
   education?: string | null;
   gpa?: number | null;
   targetRole?: string | null;
@@ -90,7 +94,7 @@ export function calculateJobMatch(
 ): MatchResult {
   // Normalisasi argumen untuk mendukung signature lama (skills, years, education, job)
   let candidateSkills: string[] = [];
-  let candidateYears = 0;
+  let candidateYears: number | null = null;
   let candidateEdu = "Sarjana (S1)";
   let candidateGpa: number | null = null;
   let candidateTargetRole = "Data Analyst";
@@ -103,7 +107,7 @@ export function calculateJobMatch(
     job = (jobInput || {}) as JobProfileInput;
   } else {
     candidateSkills = candidate.skills || [];
-    candidateYears = candidate.experienceYears || 0;
+    candidateYears = candidate.experienceYears ?? null;
     candidateEdu = candidate.education || "Sarjana (S1)";
     candidateGpa = candidate.gpa ?? null;
     candidateTargetRole = candidate.targetRole || "Data Analyst";
@@ -120,7 +124,7 @@ export function calculateJobMatch(
   // Evaluasi Insufficient Evidence di awal
   const isCandidateEmpty =
     candidateSkills.length === 0 ||
-    (candidateSkills.length < customThresholds.insufficientEvidenceMinSkills && candidateYears === 0);
+    (candidateSkills.length < customThresholds.insufficientEvidenceMinSkills && (candidateYears == null || candidateYears === 0));
 
   // ---------------------------------------------------------------------------
   // 1. Evaluasi Persyaratan Wajib (Mandatory Skills) & AC-02
@@ -240,10 +244,10 @@ export function calculateJobMatch(
   // 3. Evaluasi Pengalaman Kerja (Experience)
   // ---------------------------------------------------------------------------
   const minYears = job.experienceYearsMin || 0;
-  const isExpAvailable = minYears > 0;
+  const isExpAvailable = minYears > 0 && candidateYears != null;
   let expScore = 1.0;
 
-  if (isExpAvailable) {
+  if (isExpAvailable && candidateYears != null) {
     if (candidateYears >= minYears) {
       expScore = 1.0;
     } else {
@@ -271,10 +275,10 @@ export function calculateJobMatch(
     }
 
     let seniorityComponent = 1.0;
-    if (job.seniority) {
+    if (job.seniority && candidateYears != null) {
       const jSen = job.seniority.toLowerCase();
       if (jSen.includes("senior") || jSen.includes("lead")) {
-        seniorityComponent = candidateYears >= 4 ? 1.0 : candidateYears >= 2 ? 0.65 : 0.40;
+        seniorityComponent = (candidateYears ?? 0) >= 4 ? 1.0 : (candidateYears ?? 0) >= 2 ? 0.65 : 0.40;
       } else if (jSen.includes("junior") || jSen.includes("entry")) {
         seniorityComponent = 1.0;
       }
@@ -343,7 +347,7 @@ export function calculateJobMatch(
       score: Math.min(expScore, 1.0),
       baseWeight: customWeights.experience,
       available: isExpAvailable,
-      notes: isExpAvailable ? `Syarat: ${minYears} thn, CV: ${candidateYears} thn` : "Tidak mensyaratkan durasi minimum",
+      notes: isExpAvailable ? `Syarat: ${formatExperience(minYears)}, CV: ${formatExperience(candidateYears)}` : minYears > 0 ? "Pengalaman relevan belum diisi untuk target aktif" : "Tidak mensyaratkan durasi minimum",
     },
     {
       key: "educationSeniority",
@@ -413,15 +417,34 @@ export function calculateJobMatch(
   const factorsSupporting: string[] = [];
   const factorsLimiting: string[] = [];
 
+  if (!Array.isArray(candidate)) {
+    const claimed = new Set((candidate.claimedSkills || []).map(getCanonicalSkill));
+    const review = new Set((candidate.reviewSkills || []).map(getCanonicalSkill));
+    for (const req of requirementsEvaluation) {
+      if (req.status !== "cocok") continue;
+      const key = getCanonicalSkill(req.skill);
+      if (claimed.has(key) || review.has(key)) {
+        req.status = "belum_cukup_bukti";
+        req.statusLabel = "Belum cukup bukti";
+        req.evidence = claimed.has(key) ? "Ditambahkan oleh pengguna (pengakuan mandiri); bukan bukti tercantum di CV atau verifikasi independen." : "Perlu verifikasi: hasil ekstraksi belum ditinjau. Tinjau cuplikan pada koreksi CV.";
+        const matchedIndex = matchedSkills.indexOf(req.skill);
+        if (matchedIndex !== -1) matchedSkills.splice(matchedIndex, 1);
+        if (!unprovenSkills.includes(req.skill)) unprovenSkills.push(req.skill);
+      } else {
+        const entry = Object.entries(candidate.evidence || {}).find(([name]) => getCanonicalSkill(name) === key);
+        req.evidence = entry ? `Cuplikan CV: ${entry[1]}` : "Skill tersimpan sebagai hasil CV; cuplikan bukti belum tersedia.";
+      }
+    }
+  }
   // Faktor Pendukung
   if (matchedSkills.length > 0) {
     factorsSupporting.push(
       `Memenuhi ${matchedSkills.length} kualifikasi skill utama yang tercantum di lowongan (${matchedSkills.slice(0, 3).join(", ")})`
     );
   }
-  if (isExpAvailable && candidateYears >= minYears) {
+  if (isExpAvailable && candidateYears != null && candidateYears >= minYears) {
     factorsSupporting.push(
-      `Pengalaman kerja (${candidateYears} tahun) memenuhi kualifikasi minimum yang disyaratkan (${minYears} tahun)`
+      `Pengalaman kerja (${formatExperience(candidateYears)}) memenuhi kualifikasi minimum yang disyaratkan (${formatExperience(minYears)})`
     );
   }
   if (gpaFit === "meets") {
@@ -448,12 +471,12 @@ export function calculateJobMatch(
   }
   if (unprovenSkills.length > 0) {
     factorsLimiting.push(
-      `Skill ${unprovenSkills.slice(0, 3).join(", ")} belum memuat bukti spesifik (hanya ditemukan kompetensi serumpun)`
+      `Skill ${unprovenSkills.slice(0, 3).join(", ")} belum memuat bukti spesifik (hasil ekstraksi belum ditinjau, klaim mandiri, atau kompetensi serumpun)`
     );
   }
-  if (isExpAvailable && candidateYears < minYears) {
+  if (isExpAvailable && candidateYears != null && candidateYears < minYears) {
     factorsLimiting.push(
-      `Pengalaman kerja (${candidateYears} tahun) belum mencapai kualifikasi minimum lowongan (${minYears} tahun)`
+      `Pengalaman kerja (${formatExperience(candidateYears)}) belum mencapai kualifikasi minimum lowongan (${formatExperience(minYears)})`
     );
   }
 
@@ -471,12 +494,12 @@ export function calculateJobMatch(
     }
   } else if (
     isExpAvailable &&
-    candidateYears >= minYears + customThresholds.overqualifiedMinExperienceDiff &&
+    candidateYears != null && candidateYears >= minYears + customThresholds.overqualifiedMinExperienceDiff &&
     finalScore >= 65
   ) {
     matchStatus = "potentially_overqualified";
     factorsSupporting.push(
-      `Pengalaman kerja (${candidateYears} tahun) melampaui level kualifikasi peran ini (${minYears} tahun) — indikasi overkualifikasi tentatif`
+      `Pengalaman kerja (${formatExperience(candidateYears)}) melampaui level kualifikasi peran ini (${formatExperience(minYears)}) — indikasi overkualifikasi tentatif`
     );
   } else if (
     finalScore >= customThresholds.matchScoreMin &&

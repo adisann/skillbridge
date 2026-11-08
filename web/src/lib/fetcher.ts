@@ -10,6 +10,7 @@ interface CacheEntry<T> {
 }
 
 const inFlightRequests = new Map<string, Promise<unknown>>();
+let cacheGeneration = 0;
 const clientCache = new Map<string, CacheEntry<unknown>>();
 
 /**
@@ -33,6 +34,7 @@ export async function fetchDeduped<T = unknown>(
       const errBody = await res.json().catch(() => ({}));
       throw new Error(errBody.error || `HTTP error ${res.status}`);
     }
+    clearDedupedCache(url.split("?")[0]);
     return (await res.json()) as T;
   }
 
@@ -52,6 +54,7 @@ export async function fetchDeduped<T = unknown>(
   }
 
   // 3. Buat in-flight promise baru
+  const generation = cacheGeneration;
   const fetchPromise = (async () => {
     try {
       const res = await fetch(url, {
@@ -66,10 +69,10 @@ export async function fetchDeduped<T = unknown>(
       }
 
       const data = (await res.json()) as T;
-      clientCache.set(cacheKey, { data, timestamp: Date.now() });
+      if (generation === cacheGeneration) clientCache.set(cacheKey, { data, timestamp: Date.now() });
       return data;
     } finally {
-      inFlightRequests.delete(cacheKey);
+      if (generation === cacheGeneration) inFlightRequests.delete(cacheKey);
     }
   })();
 
@@ -81,6 +84,8 @@ export async function fetchDeduped<T = unknown>(
  * Menghapus cache client untuk url tertentu atau seluruh cache jika tanpa parameter.
  */
 export function clearDedupedCache(prefix?: string) {
+  cacheGeneration++;
+  inFlightRequests.clear();
   if (!prefix) {
     clientCache.clear();
     return;

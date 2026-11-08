@@ -1,3 +1,4 @@
+import { formatExperience } from "../experience.ts";
 import { formatGpa } from "../gpa.ts";
 import { formatSalaryRange } from "../salary.ts";
 import type { ActiveJobContext, CandidateCVContext, ChatMessage } from "./types";
@@ -17,9 +18,11 @@ export function buildSystemInstruction(
 === KONTEKS CV PENGGUNA TERAUTORISASI ===
 - Nama Pelamar: ${cv.fullName}
 - Target Role: ${cv.targetRole}
-- Total Pengalaman Terdeteksi: ${cv.experienceYears} tahun
+- Total Pengalaman Terdeteksi: ${formatExperience(cv.experienceYears)}
 - Pendidikan Terdeteksi: ${cv.education || "Tidak tertulis spesifik"}
 - IPK Tercantum: ${cv.gpa != null ? `${formatGpa(cv.gpa)} (skala 4,00)` : "Tidak tercantum di CV"}
+- Pengakuan mandiri (bukan bukti CV atau verifikasi independen): ${cv.claimedSkills?.join(", ") || "Tidak ada"}
+- Hasil ekstraksi perlu ditinjau: ${cv.reviewSkills?.join(", ") || "Tidak ada"}
 - Keterampilan Tercantum di CV: ${cv.skills.length > 0 ? cv.skills.join(", ") : "Belum ada skill terdaftar"}
 ${
   cv.matchScore != null

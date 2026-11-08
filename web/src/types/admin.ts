@@ -10,7 +10,8 @@ export interface AdminJob {
   salaryMax?: number | null;
   salaryCurrency?: string | null;
   salaryPeriod?: string | null;
-  experienceYearsMin?: number;
+  experienceYearsMin?: number | null;
+  isActive?: boolean;
   education?: string;
   description?: string;
   sourceName: string;

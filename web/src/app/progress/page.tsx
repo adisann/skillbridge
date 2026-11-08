@@ -1,37 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import {
-  CheckCircle2,
-  Circle,
-  Trash2,
-  ExternalLink,
-  Plus,
-  BookOpen,
-  Bookmark,
-  Check,
-  BarChart2,
-  ArrowRight,
-} from "lucide-react";
+import { ArrowRight, Check, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { TextInput } from "@/components/ui/input";
 import { MatchBadge } from "@/components/ui/badge";
-import { AlertBanner } from "@/components/ui/error";
-import { SkeletonCard } from "@/components/ui/loading";
 import { ProtectedRoute } from "@/components/layout/protected-route";
-import { useAuth } from "@/lib/supabase/auth-context";
+import { SkeletonCard } from "@/components/ui/loading";
+import { LearningItemEditor } from "@/components/learning-item-editor";
+import { useLearning } from "@/context/learning-context";
+import { LEARNING_PRIORITIES, normalizeSkillName } from "@/lib/learning";
 import { fetchDeduped } from "@/lib/fetcher";
-
-interface LearningItem {
-  id: string;
-  skillName: string;
-  reason: string;
-  resourceSuggestion: string;
-  isDone: boolean;
-  priority: string;
-}
 
 interface SavedJobItem {
   id: string;
@@ -47,340 +26,86 @@ interface SavedJobItem {
 }
 
 export default function ProgressPage() {
-  return (
-    <ProtectedRoute>
-      <ProgressContent />
-    </ProtectedRoute>
-  );
+  return <ProtectedRoute><ProgressContent /></ProtectedRoute>;
 }
 
 function ProgressContent() {
-  const { user } = useAuth();
-  const [learningList, setLearningList] = useState<LearningItem[]>([]);
+  const learning = useLearning();
   const [savedJobs, setSavedJobs] = useState<SavedJobItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [tab, setTab] = useState("learning");
   const [newTitle, setNewTitle] = useState("");
-  const [newPriority, setNewPriority] = useState("Tinggi");
-  const [notification, setNotification] = useState<string | null>(null);
-
+  const [priority, setPriority] = useState("Tinggi");
+  const [feedback, setFeedback] = useState("");
+  const [error, setError] = useState("");
+  const [savedLoading, setSavedLoading] = useState(true);
+  const addLock = useRef(false);
+  const [adding, setAdding] = useState(false);
+  const [removing, setRemoving] = useState<string[]>([]);
+  const removeLocks = useRef(new Set<string>());
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   useEffect(() => {
-    let isMounted = true;
-    const loadProgress = async () => {
-      try {
-        const [jData, lData] = await Promise.all([
-          fetchDeduped<{ savedJobs?: SavedJobItem[] }>("/api/saved-jobs").catch(() => ({ savedJobs: [] as SavedJobItem[] })),
-          fetchDeduped<{ learningItems?: LearningItem[] }>("/api/learning-items").catch(() => ({ learningItems: [] as LearningItem[] })),
-        ]);
-
-        if (isMounted) {
-          if (jData.savedJobs) setSavedJobs(jData.savedJobs);
-          if (lData.learningItems) setLearningList(lData.learningItems);
-        }
-      } catch (err) {
-        console.error("Gagal memuat data progress:", err);
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    loadProgress();
-    return () => {
-      isMounted = false;
-    };
-  }, [user]);
-
-  const toggleDone = async (id: string, currentStatus: boolean) => {
-    const nextStatus = !currentStatus;
-    // Optimistic UI update
-    setLearningList((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, isDone: nextStatus } : item))
-    );
-
+    let live = true;
+    fetchDeduped<{ savedJobs: SavedJobItem[] }>("/api/saved-jobs").then((data) => { if (live) setSavedJobs(data.savedJobs); })
+      .catch((e: Error) => { if (live) setError(e.message); }).finally(() => { if (live) setSavedLoading(false); });
+    return () => { live = false; };
+  }, []);
+  const add = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (addLock.current || !newTitle.trim()) return;
+    addLock.current = true; setAdding(true); setError(""); setFeedback("");
     try {
-      await fetchDeduped("/api/learning-items", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, isDone: nextStatus }),
-      });
-    } catch (err) {
-      console.error("Gagal memperbarui status belajar:", err);
-      // Rollback jika gagal
-      setLearningList((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, isDone: currentStatus } : item))
-      );
-    }
+      const result = await learning.add(newTitle, "Ditambahkan oleh pengguna.", priority);
+      if (result) setFeedback(`${result.skillName}: sudah ditambahkan. Prioritas dan catatan yang sudah ada dipertahankan.`);
+    } catch (e) { setError((e as Error).message); }
+    finally { addLock.current = false; setAdding(false); }
   };
-
-  const handleAddItem = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!newTitle.trim()) return;
-
+  const handleUnsaveJob = async (id: string) => {
+    if (removeLocks.current.has(id)) return;
+    removeLocks.current.add(id); setRemoving((p) => [...p, id]);
     try {
-      const data = await fetchDeduped<{ item?: LearningItem }>("/api/learning-items", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          skillName: newTitle.trim(),
-          reason: "Ditambahkan mandiri oleh pengguna berdasarkan analisis kebutuhan lowongan.",
-          priority: newPriority,
-          resourceSuggestion: "Dokumentasi resmi dan latihan studi kasus mandiri.",
-        }),
-      });
-
-      if (data.item) {
-        setLearningList([data.item, ...learningList]);
-        setNewTitle("");
-        setNotification(`'${data.item.skillName}' berhasil ditambahkan ke daftar target belajar.`);
-      }
-    } catch {
-      setNotification("Gagal menambahkan target belajar.");
-    }
-    setTimeout(() => setNotification(null), 3500);
+      await fetchDeduped("/api/saved-jobs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jobId: id }) });
+      setSavedJobs((p) => p.filter((j) => j.id !== id));
+    } catch (e) { setError((e as Error).message); }
+    finally { removeLocks.current.delete(id); setRemoving((p) => p.filter((v) => v !== id)); }
   };
-
-  const handleRemoveItem = async (id: string) => {
-    try {
-      await fetchDeduped(`/api/learning-items?id=${id}`, { method: "DELETE" });
-      setLearningList((prev) => prev.filter((item) => item.id !== id));
-      setNotification("Target belajar berhasil dihapus.");
-    } catch {
-      setNotification("Gagal menghapus target belajar.");
-    }
-    setTimeout(() => setNotification(null), 3000);
-  };
-
-  const handleUnsaveJob = async (jobId: string) => {
-    try {
-      await fetchDeduped("/api/saved-jobs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobId }),
-      });
-      setSavedJobs((prev) => prev.filter((j) => j.id !== jobId));
-      setNotification("Lowongan dihapus dari daftar simpanan.");
-    } catch {
-      setNotification("Gagal mengubah status simpanan lowongan.");
-    }
-    setTimeout(() => setNotification(null), 3000);
-  };
-
-  const doneCount = learningList.filter((i) => i.isDone).length;
-  const progressPercent = learningList.length > 0 ? Math.min(100, Math.max(0, Math.round((doneCount / learningList.length) * 100))) : 0;
-
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* ------------------------------------------------------------------- */}
-      {/* Page Banner (Sky-Blue Light Gradient, No Eyebrows)                 */}
-      {/* ------------------------------------------------------------------- */}
-      <div className="page-banner rounded-3xl p-6 sm:p-8 text-sb-navy relative overflow-hidden border border-sb-border shadow-2xs">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-sb-border">
-          <div className="space-y-2 max-w-2xl">
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-sb-navy">
-              Rencana Belajar
-            </h1>
-            <p className="text-sb-text-2 text-sm leading-relaxed">
-              Centang skill yang sudah kamu pelajari.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <Link href="/insights">
-              <Button variant="secondary" size="sm">
-                <BarChart2 className="w-4 h-4 mr-1 text-sb-blue" />
-                Lihat Tren Skill
-              </Button>
-            </Link>
-          </div>
+  const uniqueItems = learning.items.filter((it) => !it.duplicateOf);
+  const done = uniqueItems.filter((it) => it.isDone).length;
+  const sortedItems = [...uniqueItems].sort((a,b) => Number(a.isDone)-Number(b.isDone) || LEARNING_PRIORITIES.indexOf(a.priority as typeof LEARNING_PRIORITIES[number])-LEARNING_PRIORITIES.indexOf(b.priority as typeof LEARNING_PRIORITIES[number]) || a.skillName.localeCompare(b.skillName));
+  return <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="page-banner rounded-3xl p-6 sm:p-8 border border-sb-border space-y-3">
+      <h1 className="text-2xl sm:text-3xl font-extrabold text-sb-navy">Rencana Belajar</h1>
+      <p className="text-sm text-sb-text-2">{done} dari {uniqueItems.length} skill selesai dipelajari. Status belajar tidak otomatis mengubah isi CV.</p>
+      <Link className="text-sb-blue text-sm underline" href="/insights">Lihat Tren Skill</Link>
+    </div>
+    <div role="tablist" aria-label="Rencana belajar dan lowongan" className="flex border-b border-sb-border gap-2">
+      {[{ id: "learning", label: "Target Belajar" }, { id: "saved", label: "Lowongan Tersimpan" }].map((t,i) => <button key={t.id} ref={(el) => { tabRefs.current[i] = el; }} type="button" id={`tab-${t.id}`} role="tab" aria-selected={tab === t.id} aria-controls={`panel-${t.id}`} tabIndex={tab === t.id ? 0 : -1}
+        className={`px-3 py-3 text-sm font-bold border-b-2 focus-visible:outline-2 focus-visible:outline-sb-blue ${tab === t.id ? "border-sb-blue text-sb-blue" : "border-transparent text-sb-text-2"}`}
+        onClick={() => setTab(t.id)} onKeyDown={(e) => {
+          if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) {
+            e.preventDefault(); const next = e.key === "Home" ? 0 : e.key === "End" ? 1 : 1-i;
+            setTab(next === 0 ? "learning" : "saved"); tabRefs.current[next]?.focus();
+          }
+        }}>{t.label}</button>)}
+    </div>
+    <section role="tabpanel" id="panel-learning" aria-labelledby="tab-learning" hidden={tab !== "learning"} tabIndex={0} className="space-y-4">
+      <form onSubmit={add} className="rounded-2xl border border-sb-border bg-white/80 p-4 space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+          <label className="flex-1 text-sm font-semibold text-sb-navy">Skill yang ingin dipelajari
+            <input className="block w-full border border-sb-border rounded-xl p-3 mt-1" value={newTitle} maxLength={200} onChange={(e) => { setNewTitle(e.target.value); setFeedback(""); }} placeholder="cth. SQL, React, Teamwork" />
+          </label>
+          <label className="text-sm font-semibold text-sb-navy">Prioritas belajar
+            <select className="block border border-sb-border rounded-xl p-3 mt-1 bg-white" value={priority} onChange={(e) => setPriority(e.target.value)}>{LEARNING_PRIORITIES.map((p) => <option key={p}>{p}</option>)}</select>
+          </label>
+          <Button type="submit" isLoading={adding} disabled={!normalizeSkillName(newTitle) || !!learning.find(newTitle) || learning.isLoading || !!learning.loadError}>{learning.find(newTitle) ? "Sudah ditambahkan" : adding ? "Menambahkan…" : "Tambah"}</Button>
         </div>
-
-        {/* Hero Progress Metrics */}
-        <div className="relative z-10 pt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <h2 className="text-xl sm:text-2xl font-bold text-sb-navy">
-              {doneCount} dari {learningList.length} Skill Selesai Dipelajari
-            </h2>
-            <p className="text-xs text-sb-text-2">
-              Pelajari skill yang sering dibutuhkan di lowongan incaranmu.
-            </p>
-          </div>
-          <div className="text-3xl sm:text-4xl font-extrabold text-sb-blue font-mono-metric shrink-0">
-            {progressPercent}%
-          </div>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="relative z-10 w-full bg-sb-mist-soft rounded-full h-3 p-0.5 border border-sb-border mt-4 overflow-hidden">
-          <div
-            className="bg-sb-sky h-full rounded-full transition-[width] duration-300 ease-out-strong"
-            style={{ width: `${progressPercent}%` }}
-          />
-        </div>
-      </div>
-
-      {notification && (
-        <AlertBanner
-          type="success"
-          title="Pembaruan Rencana Belajar"
-          message={notification}
-        />
-      )}
-
-      {isLoading ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
-          <div className="xl:col-span-2 space-y-4">
-            <SkeletonCard />
-            <SkeletonCard />
-          </div>
-          <div>
-            <SkeletonCard />
-          </div>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
-          {/* Kolom Kiri: Target Belajar (2 Cols pada xl, 1 Col pada lg) */}
-          <div className="xl:col-span-2 space-y-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-3">
-                <div>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <BookOpen className="w-4 h-4 text-sb-blue" />
-                    Target Belajar
-                  </CardTitle>
-                  <CardDescription className="text-xs">
-                    Centang skill yang sudah kamu pelajari untuk memantau kemajuanmu.
-                  </CardDescription>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Form Tambah Target Baru */}
-                <form onSubmit={handleAddItem} className="flex flex-col sm:flex-row lg:flex-col xl:flex-row gap-2">
-                  <div className="flex-1 min-w-0">
-                    <TextInput
-                      placeholder="Tambah target skill baru (cth. SQL, React, Excel)..."
-                      value={newTitle}
-                      onChange={(e) => setNewTitle(e.target.value)}
-                    />
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <select
-                      value={newPriority}
-                      onChange={(e) => setNewPriority(e.target.value)}
-                      className="text-xs font-semibold px-3 py-2 rounded-xl border border-sb-border bg-white text-sb-navy focus:outline-none focus:ring-1 focus:ring-sb-blue"
-                    >
-                      <option value="Tinggi">Tinggi</option>
-                      <option value="Menengah">Menengah</option>
-                      <option value="Dasar">Dasar</option>
-                    </select>
-                    <Button type="submit" variant="primary" size="md" className="whitespace-nowrap shrink-0">
-                      <Plus className="w-4 h-4 mr-1 shrink-0" />
-                      Tambah
-                    </Button>
-                  </div>
-                </form>
-
-                {/* List Item Belajar */}
-                {learningList.length === 0 ? (
-                  <div className="py-10 text-center text-xs text-sb-text-2 border border-dashed rounded-2xl border-sb-border bg-white/40">
-                    Belum ada target belajar. Buka{" "}
-                    <Link href="/insights" className="text-sb-blue font-semibold hover:underline">
-                      Tren Skill
-                    </Link>{" "}
-                    untuk menambahkan skill yang sering dicari.
-                  </div>
-                ) : (
-                  <div className="space-y-3 pt-2">
-                    {learningList.map((item) => (
-                      <div
-                        key={item.id}
-                        className={`p-4 rounded-xl border transition-ui duration-150 flex items-start justify-between gap-3 ${
-                          item.isDone
-                            ? "bg-white/40 border-sb-border opacity-70"
-                            : "bg-white/80 border-sb-border hover:border-sb-blue/40 hover:shadow-2xs"
-                        }`}
-                      >
-                        <div className="flex items-start gap-3">
-                          <button
-                            type="button"
-                            onClick={() => toggleDone(item.id, item.isDone)}
-                            className="mt-0.5 text-sb-text-2 hover:text-sb-good transition-colors shrink-0"
-                            aria-label={item.isDone ? "Tandai belum selesai" : "Tandai selesai"}
-                          >
-                            {item.isDone ? (
-                              <CheckCircle2 className="w-5 h-5 text-sb-good" />
-                            ) : (
-                              <Circle className="w-5 h-5 text-sb-text-2" />
-                            )}
-                          </button>
-                          <div className="space-y-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span
-                                className={`font-bold text-sm ${
-                                  item.isDone ? "line-through text-sb-text-2" : "text-sb-navy"
-                                }`}
-                              >
-                                {item.skillName}
-                              </span>
-                              <span
-                                className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
-                                  item.priority === "Tinggi"
-                                    ? "bg-sb-critical/10 text-sb-critical border-sb-critical/30"
-                                    : "bg-sb-mist-soft text-sb-navy border border-sb-border"
-                                }`}
-                              >
-                                Prioritas {item.priority}
-                              </span>
-                            </div>
-                            <p className="text-xs text-sb-text-2 leading-relaxed">
-                              {item.reason}
-                            </p>
-                            {item.resourceSuggestion && (
-                              <div className="text-[11px] text-sb-text-2 bg-sb-mist-soft p-2.5 rounded-xl border border-sb-border flex items-center gap-1.5 mt-1.5">
-                                <BookOpen className="w-3.5 h-3.5 text-sb-blue shrink-0" />
-                                <span>Rekomendasi: {item.resourceSuggestion}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveItem(item.id)}
-                          className="text-sb-text-2 hover:text-sb-critical p-1.5 rounded-lg hover:bg-sb-critical/10 transition-colors shrink-0"
-                          title="Hapus target belajar"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Kolom Kanan: Lowongan Tersimpan (1 Col) */}
-          <div>
-            <Card>
-              <CardHeader className="pb-3 space-y-1.5">
-                <div className="flex items-center justify-between gap-2">
-                  <CardTitle className="text-base flex items-center gap-2 min-w-0">
-                    <Bookmark className="w-4 h-4 text-sb-blue shrink-0" />
-                    <span className="truncate">Lowongan Tersimpan ({savedJobs.length})</span>
-                  </CardTitle>
-                  <Link
-                    href="/jobs"
-                    className="text-xs font-semibold text-sb-blue hover:underline whitespace-nowrap shrink-0"
-                  >
-                    Cari Lagi
-                  </Link>
-                </div>
-                <CardDescription className="text-xs">
-                  Lowongan yang kamu simpan dari Cari Lowongan.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
+        <p className="text-xs text-sb-text-2">Prioritas menentukan urutan fokus belajar, bukan tingkat penguasaan skill. Prioritas otomatis dapat kamu ubah.</p>
+        <p role="status" className="text-xs text-sb-good">{feedback}</p>
+      </form>
+      {learning.loadError && <p role="alert" className="text-sm text-sb-critical">{learning.loadError} <button onClick={() => void learning.reload()} className="underline">Coba lagi</button></p>}
+      {learning.isLoading ? <SkeletonCard /> : sortedItems.length ? sortedItems.map((item) => <div key={item.id} className="space-y-2"><LearningItemEditor item={item} />{learning.items.some(it => it.duplicateOf === item.id) && <details className="rounded-xl border border-sb-border bg-white/60 p-3"><summary className="cursor-pointer text-sm text-sb-text-2">Tinjau {learning.items.filter(it => it.duplicateOf === item.id).length} salinan lama {item.skillName}</summary><p className="text-xs text-sb-text-2 my-3">Catatan dan progres salinan tetap disimpan. Salin informasi yang diperlukan sebelum menghapus salinan.</p><div className="space-y-3">{learning.items.filter(it => it.duplicateOf === item.id).map(it => <LearningItemEditor key={it.id} item={it} />)}</div></details>}</div>) : <p className="text-sm text-sb-text-2 p-6">Belum ada target belajar. Tambahkan skill di atas atau dari Tren Skill dan detail lowongan.</p>}
+    </section>
+    <section role="tabpanel" id="panel-saved" aria-labelledby="tab-saved" hidden={tab !== "saved"} tabIndex={0} className="space-y-4">
+      {savedLoading ? <SkeletonCard /> : <div className="space-y-3">
                 {/* Tracker CTA Callout */}
                 <div className="p-3.5 glass-panel border border-sb-border rounded-xl space-y-2.5">
                   <div className="space-y-0.5">
@@ -449,6 +174,7 @@ function ProgressContent() {
                       <div className="pt-2 border-t border-sb-border flex items-center justify-between text-xs">
                         <button
                           type="button"
+                          disabled={removing.includes(j.id)}
                           onClick={() => handleUnsaveJob(j.id)}
                           className="text-sb-text-2 hover:text-sb-critical text-[11px] hover:underline"
                         >
@@ -473,11 +199,8 @@ function ProgressContent() {
                     </div>
                   ))
                 )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+      </div>}
+    </section>
+    {error && <p role="alert" className="text-sm text-sb-critical">{error}</p>}
+  </div>;
 }

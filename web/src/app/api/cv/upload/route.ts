@@ -122,7 +122,9 @@ export async function POST(req: NextRequest) {
     // Taksonomi aturan regex dengan boundary kata (mencegah salah deteksi huruf tunggal seperti 'r')
     const SKILL_RULES = [
       { name: "Python", regex: /\b(python|python3|py)\b/i },
-      { name: "SQL", regex: /\b(sql|mysql|postgresql|postgres|pl\/sql|sqlite)\b/i },
+      { name: "SQL", regex: /\b(sql|pl\/sql)\b/i },
+      { name: "PostgreSQL", regex: /\b(postgresql|postgres)\b/i },
+      { name: "MySQL", regex: /\bmysql\b/i },
       { name: "JavaScript", regex: /\b(javascript|js|ecmascript|node\.?js)\b/i },
       { name: "PHP", regex: /\b(php|mvc\s*php)\b/i },
       { name: "Laravel", regex: /\b(laravel)\b/i },
@@ -197,16 +199,16 @@ export async function POST(req: NextRequest) {
 
     const gpa = extractGpaFromText(extractedText);
 
-    // Ekstraksi pengalaman
-    let experienceYears = 0;
-    const expMatch = lowerText.match(/(\d+)\+?\s*(?:tahun|thn|years?|yrs?)\b/);
-    if (expMatch) {
-      experienceYears = parseInt(expMatch[1], 10);
-    } else if (lowerText.includes("fresh graduate") || lowerText.includes("lulusan baru")) {
-      experienceYears = 0;
-    } else if (lowerText.includes("pkl") || lowerText.includes("magang") || lowerText.includes("internship")) {
-      experienceYears = 1;
-    }
+    // A mentioned duration is a draft, to be reviewed for relevance to the target.
+    const yearMatch = lowerText.match(/(\d+)\+?\s*(?:tahun|thn|years?|yrs?)\b/);
+    const monthMatch = lowerText.match(/(\d+)\s*(?:bulan|months?|mos?)\b/);
+    const experienceYears = yearMatch || monthMatch
+      ? Number(yearMatch?.[1] || 0) + Number(monthMatch?.[1] || 0) / 12
+      : /fresh graduate|lulusan baru/.test(lowerText) ? 0 : null;
+    const skillDetails = SKILL_RULES.filter((r) => detectedSkills.includes(r.name)).map((rule) => ({
+      name: rule.name, needsReview: true, claimed: false,
+      evidence: lines.find((line) => rule.regex.test(line))?.slice(0, 500) || null,
+    }));
 
     const summary =
       detectedSkills.length > 0
@@ -224,6 +226,7 @@ export async function POST(req: NextRequest) {
       experienceYears,
       summary,
       skills: finalSkills,
+      skillDetails,
     });
   } catch (error: unknown) {
     const err = error as Error;

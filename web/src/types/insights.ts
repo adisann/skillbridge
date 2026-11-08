@@ -3,7 +3,7 @@ export interface TopSkillInsight {
   category: string;
   frequencyCount: number;
   percentage: number;
-  cvStatus: "tercantum" | "belum_ditemukan" | "perlu_verifikasi";
+  cvStatus: "tercantum" | "belum_ditemukan" | "perlu_verifikasi" | "ditambahkan_pengguna";
   statusLabel: string;
   exampleRequirement: string;
 }

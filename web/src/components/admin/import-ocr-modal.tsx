@@ -44,21 +44,21 @@ export function ImportOcrModal({ isExtracting, onSubmit, onClose }: ImportOcrMod
       type="file"
       accept="image/*,application/pdf"
       onChange={handleFileChange}
-      className="hidden"
+      className="sr-only"
       disabled={isExtracting}
     />
   );
 
   return (
-    <ModalShell size="compact">
+    <ModalShell size="compact" onClose={onClose}>
       <ModalHeader onClose={onClose}>
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-sb-mist-faint text-sb-blue flex items-center justify-center">
             <ScanText className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-sb-navy">Impor Lowongan via OCR (Flyer / Poster)</h3>
-            <p className="text-xs text-sb-text-2">Multi-Tier OCR (Gemini Vision • Groq Vision • LlamaParse)</p>
+            <h3 className="text-base font-bold text-sb-navy">Impor dari poster</h3>
+            <p className="text-xs text-sb-text-2">Baca informasi dari poster atau dokumen.</p>
           </div>
         </div>
       </ModalHeader>
@@ -66,7 +66,7 @@ export function ImportOcrModal({ isExtracting, onSubmit, onClose }: ImportOcrMod
       <div className="p-2.5 rounded-lg bg-sb-mist-soft border border-sb-border text-[11px] text-sb-navy flex items-center gap-2">
         <CheckCircle2 className="w-4 h-4 text-sb-good shrink-0" />
         <span>
-          Didukung multi-layer OCR: <strong>Gemini Vision</strong> &rarr; <strong>Groq Vision (Qwen 3.8-27B)</strong> &rarr; <strong>LlamaParse v2</strong> dengan fallback otomatis saat server padat.
+          Periksa kembali judul, perusahaan, dan persyaratan hasil pembacaan sebelum menyimpan.
         </span>
       </div>
 
@@ -98,7 +98,7 @@ export function ImportOcrModal({ isExtracting, onSubmit, onClose }: ImportOcrMod
                 </div>
                 <div>
                   <span className="text-xs font-bold text-sb-navy">Klik untuk memilih flyer/poster</span>
-                  <span className="text-xs text-sb-text-2"> atau seret file ke sini</span>
+                  <span className="text-xs text-sb-text-2"></span>
                 </div>
                 <p className="text-[11px] text-sb-text-2">
                   Mendukung PNG, JPG, WEBP, atau PDF (Maks. 10 MB)
@@ -121,7 +121,7 @@ export function ImportOcrModal({ isExtracting, onSubmit, onClose }: ImportOcrMod
             disabled={isExtracting || !file}
             leftIcon={isExtracting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ScanText className="w-3.5 h-3.5" />}
           >
-            {isExtracting ? "Membaca Teks (OCR)..." : "Baca & Ekstrak OCR"}
+            {isExtracting ? "Membaca Teks (OCR)..." : "Baca poster"}
           </Button>
         </ModalFooter>
       </form>

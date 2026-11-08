@@ -4,6 +4,8 @@ import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { RootShell } from "@/components/layout/root-shell";
 import { AuthProvider } from "@/lib/supabase/auth-context";
+import { CareerProvider, CareerContent } from "@/context/career-context";
+import { LearningProvider } from "@/context/learning-context";
 import { AsyncTaskProvider } from "@/context/async-task-context";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -44,7 +46,7 @@ export default function RootLayout({
         <AuthProvider>
           <AsyncTaskProvider>
             <Suspense fallback={<div className="min-h-screen bg-sb-mist-faint/50" />}>
-              <RootShell>{children}</RootShell>
+              <CareerProvider><LearningProvider><CareerContent><RootShell>{children}</RootShell></CareerContent></LearningProvider></CareerProvider>
             </Suspense>
           </AsyncTaskProvider>
         </AuthProvider>

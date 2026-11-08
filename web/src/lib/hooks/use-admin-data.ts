@@ -3,10 +3,11 @@ import type { AdminJob, AdminNotification, JobSourceItem, SkillItem, WorkerRunRe
 
 async function fetchAdminData() {
   const [jobsRes, runsRes, skillsRes] = await Promise.all([
-    fetch("/api/jobs"),
+    fetch("/api/admin/jobs"),
     fetch("/api/admin/worker-runs"),
     fetch("/api/admin/skills"),
   ]);
+  if (![jobsRes, runsRes, skillsRes].every(r => r.ok)) throw new Error("Gagal memuat data admin");
   const [jobsData, runsData, skillsData] = await Promise.all([jobsRes.json(), runsRes.json(), skillsRes.json()]);
   return { jobsData, runsData, skillsData };
 }

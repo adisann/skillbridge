@@ -1,3 +1,4 @@
+import { jobExperienceYears } from "@/lib/job-experience";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser, getAuthenticatedAdmin, getServiceSupabase } from "@/lib/supabase/server";
 import { calculateJobMatch, getDisplayScore } from "@/lib/matching";
@@ -51,6 +52,7 @@ export async function GET(req: NextRequest) {
       years: candidateYears,
       education: candidateEdu,
       gpa: candidateGpa,
+      targetRole, claimedSkills, reviewSkills, evidence,
     } = await loadCandidateProfile(supabase, user?.id ?? null);
 
     // Format lowongan dengan perhitungan hybrid matching
@@ -71,7 +73,7 @@ export async function GET(req: NextRequest) {
       // Jika ada resume aktif, hitung secara dinamis
       if (activeResume) {
         const liveMatch = calculateJobMatch(
-          { skills: candidateSkills, experienceYears: candidateYears, education: candidateEdu, gpa: candidateGpa },
+          { skills: candidateSkills, experienceYears: candidateYears, education: candidateEdu, gpa: candidateGpa, targetRole, claimedSkills, reviewSkills, evidence },
           {
             title: j.title,
             canonicalTitle:
@@ -80,7 +82,7 @@ export async function GET(req: NextRequest) {
             : j.canonical_title,
             requiredSkills: reqSkills,
             preferredSkills: prefSkills,
-            experienceYearsMin: j.experience_years_min || null,
+            experienceYearsMin: jobExperienceYears(j.experience_years_min, j.description),
             education: j.education || null,
             minGpa: j.min_gpa ?? null,
             seniority: j.seniority || null,
@@ -121,7 +123,7 @@ export async function GET(req: NextRequest) {
         location: j.location,
         employmentType: j.employment_type,
         seniority: j.seniority || "Mid",
-        experienceYearsMin: j.experience_years_min ?? null,
+        experienceYearsMin: jobExperienceYears(j.experience_years_min, j.description),
         education: j.education || "Bachelor",
         salaryMin: j.salary_min ?? null,
         salaryMax: j.salary_max ?? null,
@@ -233,13 +235,13 @@ export async function POST(req: NextRequest) {
         external_id: externalId,
         source_url: (sourceUrl && typeof sourceUrl === "string") ? sourceUrl.trim() : "",
         title: title.trim(),
-        canonical_title: resolveCanonicalTitle(title, canonicalTitle),
+        canonical_title: canonicalTitle === null ? null : resolveCanonicalTitle(title, canonicalTitle),
         company: company.trim(),
-        location: location || "Indonesia (Remote / Hybrid)",
+        location: location || null,
         employment_type: "Full-time",
-        seniority: seniority || "Mid",
-        experience_years_min: Number(experienceYearsMin) || 1,
-        education: education || "Bachelor",
+        seniority: seniority || null,
+        experience_years_min: experienceYearsMin == null || experienceYearsMin === "" ? null : Number(experienceYearsMin),
+        education: education || null,
         ...salary.data,
         description: cleanedDesc,
         content_hash: contentHash,
@@ -307,9 +309,9 @@ export async function POST(req: NextRequest) {
             title,
             requiredSkills: requiredSkills || [],
             preferredSkills: preferredSkills || [],
-            experienceYearsMin: Number(experienceYearsMin) || 1,
-            education: education || "Bachelor",
-            seniority: seniority || "Mid",
+            experienceYearsMin: experienceYearsMin == null || experienceYearsMin === "" ? null : Number(experienceYearsMin),
+            education: education || null,
+            seniority: seniority || null,
           }
         );
 
@@ -365,11 +367,11 @@ export async function PUT(req: NextRequest) {
       .update({
         title: title.trim(),
         company: company.trim(),
-        location: location || "Indonesia (Remote / Hybrid)",
-        canonical_title: resolveCanonicalTitle(title, canonicalTitle),
-        seniority: seniority || "Mid",
-        experience_years_min: Number(experienceYearsMin) || 1,
-        education: education || "Bachelor",
+        location: location || null,
+        canonical_title: canonicalTitle || null,
+        seniority: seniority || null,
+        experience_years_min: experienceYearsMin == null || experienceYearsMin === "" ? null : Number(experienceYearsMin),
+        education: education || null,
         ...salary.data,
         description: cleanedDesc,
         updated_at: new Date().toISOString(),
@@ -422,9 +424,9 @@ export async function PUT(req: NextRequest) {
               canonicalTitle: canonicalTitle || (title.toLowerCase().includes("bi") ? "BI Analyst" : "Data Analyst"),
               requiredSkills: requiredSkills || [],
               preferredSkills: preferredSkills || [],
-              experienceYearsMin: Number(experienceYearsMin) || 1,
-              education: education || "Bachelor",
-              seniority: seniority || "Mid",
+              experienceYearsMin: experienceYearsMin == null || experienceYearsMin === "" ? null : Number(experienceYearsMin),
+              education: education || null,
+              seniority: seniority || null,
             }
           );
 

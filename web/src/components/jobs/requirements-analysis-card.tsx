@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { LearningButton } from "@/components/learning-button";
 import { CheckCircle2, MinusCircle, HelpCircle } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -15,11 +17,11 @@ function StatusIcon({ status }: { status: RequirementEvaluation["status"] }) {
   return <MinusCircle className="w-3.5 h-3.5 text-sb-text-2" />;
 }
 
-function RequirementRow({ req }: { req: RequirementEvaluation }) {
+function RequirementRow({ req, jobId }: { req: RequirementEvaluation; jobId?: string }) {
   return (
-    <tr className="hover:bg-sb-mist-faint/50 transition-colors">
-      <td className="py-3 px-3 font-bold text-sb-navy">{req.skill}</td>
-      <td className="py-3 px-3">
+    <tr className="block sm:table-row py-3 sm:py-0 hover:bg-sb-mist-faint/50 transition-colors">
+      <td className="block sm:table-cell py-2 sm:py-3 px-3 font-bold text-sb-navy">{req.skill}</td>
+      <td className="inline-block sm:table-cell py-2 sm:py-3 px-3">
         <span
           className={cn(
             "px-2 py-0.5 rounded text-[11px] font-bold",
@@ -31,7 +33,7 @@ function RequirementRow({ req }: { req: RequirementEvaluation }) {
           {req.isMandatory ? "Wajib" : "Tambahan"}
         </span>
       </td>
-      <td className="py-3 px-3">
+      <td className="inline-block sm:table-cell py-2 sm:py-3 px-3">
         <span
           className={cn(
             "inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-semibold text-[11px] border",
@@ -42,13 +44,16 @@ function RequirementRow({ req }: { req: RequirementEvaluation }) {
           {req.statusLabel}
         </span>
       </td>
-      <td className="py-3 px-3 text-sb-text-2 italic">{req.evidence}</td>
+      <td className="block sm:table-cell py-2 sm:py-3 px-3 text-sb-text-2"><p className="italic mb-2">{req.evidence}</p>
+        {req.status === "belum_ditemukan" && <LearningButton skillName={req.skill} sourceJobId={jobId} reason="Belum ditemukan di CV saat meninjau persyaratan lowongan." />}
+        {req.status === "belum_cukup_bukti" && <Link className="text-sb-blue underline" href={`/cv?skill=${encodeURIComponent(req.skill)}#review-skills`}>Tinjau skill</Link>}
+      </td>
     </tr>
   );
 }
 
 /** Evaluasi persyaratan: cocok, belum ditemukan, atau belum cukup bukti. */
-export function RequirementsAnalysisCard({ evaluations }: { evaluations: RequirementEvaluation[] }) {
+export function RequirementsAnalysisCard({ evaluations, jobId }: { evaluations: RequirementEvaluation[]; jobId?: string }) {
   return (
     <Card>
       <CardHeader>
@@ -60,7 +65,7 @@ export function RequirementsAnalysisCard({ evaluations }: { evaluations: Require
       <CardContent>
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
-            <thead>
+            <thead className="hidden sm:table-header-group">
               <tr className="border-b border-sb-border text-sb-text-2 font-bold uppercase tracking-wider text-[11px]">
                 <th className="py-3 px-3">Kualifikasi</th>
                 <th className="py-3 px-3">Tipe</th>
@@ -68,7 +73,7 @@ export function RequirementsAnalysisCard({ evaluations }: { evaluations: Require
                 <th className="py-3 px-3">Bukti dari Dokumen</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-sb-border">
+            <tbody className="block sm:table-row-group divide-y divide-sb-border">
               {evaluations.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="py-6 text-center text-sb-text-2">
@@ -76,7 +81,7 @@ export function RequirementsAnalysisCard({ evaluations }: { evaluations: Require
                   </td>
                 </tr>
               ) : (
-                evaluations.map((req) => <RequirementRow key={req.id} req={req} />)
+                evaluations.map((req) => <RequirementRow key={req.id} req={req} jobId={jobId} />)
               )}
             </tbody>
           </table>

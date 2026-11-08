@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { CareerContextBar } from "@/components/career-context-bar";
+import { useCareer } from "@/context/career-context";
+import { experienceParts, experienceInYears, formatExperience } from "@/lib/experience";
 import Link from "next/link";
 import {
   Plus,
@@ -13,7 +16,7 @@ import {
   UploadCloud,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { TextInput, Select } from "@/components/ui/input";
+import { TextInput } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { AlertBanner } from "@/components/ui/error";
 import { ProtectedRoute } from "@/components/layout/protected-route";
@@ -24,7 +27,11 @@ import { cn } from "@/lib/utils";
 import { fetchDeduped, clearDedupedCache } from "@/lib/fetcher";
 import { formatGpa, parseGpaValue } from "@/lib/gpa";
 
+interface SkillDetail { name: string; evidence: string | null; needsReview: boolean; claimed?: boolean }
+
 interface ExtractedResumeState {
+  id?: string;
+  experienceTargetRole?: string | null;
   candidateName: string;
   filename: string;
   fileUrl: string | null;
@@ -32,7 +39,7 @@ interface ExtractedResumeState {
   education: string;
   /** IPK sebagai teks input (cth. "3,75"); kosong jika tidak dicantumkan. */
   gpa: string;
-  experienceYears: number;
+  experienceYears: number | null;
   summary: string;
   skills: string[];
 }
@@ -44,13 +51,15 @@ const EMPTY_RESUME: ExtractedResumeState = {
   r2Key: null,
   education: "",
   gpa: "",
-  experienceYears: 0,
+  experienceYears: null,
   summary: "",
   skills: [],
 };
 
 export default function CVPage() {
   const { user } = useAuth();
+  const career = useCareer();
+  const targetRole = career.targetRole || user?.targetRole || "";
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Persetujuan aktif (opt-in explicit, default false)
@@ -59,9 +68,10 @@ export default function CVPage() {
   const [skills, setSkills] = useState<string[]>([]);
   const [manualSkills, setManualSkills] = useState<string[]>([]);
   const [newSkillInput, setNewSkillInput] = useState("");
-  const [targetRole, setTargetRole] = useState("Data Analyst");
+  const [skillDetails, setSkillDetails] = useState<SkillDetail[]>([]);
 
   const [isLoading, setIsLoading] = useState(false);
+  const saveLock = useRef(false);
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedDraft, setHasUnsavedDraft] = useState(false);
   const { runTask } = useAsyncTask();
@@ -74,32 +84,40 @@ export default function CVPage() {
       try {
         const data = await fetchDeduped<{
           resume?: {
+            id?: string;
+            manualSkills?: string[];
+            skillDetails?: SkillDetail[];
+            experienceTargetRole?: string | null;
             filename?: string;
             fileUrl?: string;
             education?: string;
             gpa?: number | null;
-            experienceYears?: number;
+            experienceYears?: number | null;
             summary?: string;
             skills?: string[];
           };
         }>("/api/cv/save");
 
-        if (isMounted && data.resume && data.resume.skills && data.resume.skills.length > 0) {
+        if (isMounted && data.resume) {
           setCurrentResume({
+            id: data.resume.id,
+            experienceTargetRole: data.resume.experienceTargetRole,
             candidateName: data.resume.filename?.replace(/\.[^/.]+$/, "").replace(/_/g, " ") || "Profil Pengguna",
             filename: data.resume.filename || "CV_Aktif.pdf",
             fileUrl: data.resume.fileUrl || null,
             r2Key: null,
             education: data.resume.education || "Sarjana (S1)",
             gpa: data.resume.gpa != null ? formatGpa(data.resume.gpa) : "",
-            experienceYears: data.resume.experienceYears || 0,
+            experienceYears: data.resume.experienceYears ?? null,
             summary: data.resume.summary || "",
             skills: data.resume.skills || [],
           });
           setSkills(data.resume.skills || []);
+          setManualSkills(data.resume.manualSkills || []);
+          setSkillDetails(data.resume.skillDetails || []);
         }
-      } catch {
-        // Fallback default
+      } catch (e) {
+        if (isMounted) setNotification({ type: "error", message: (e as Error).message });
       }
     };
     loadSavedCV();
@@ -153,6 +171,8 @@ export default function CVPage() {
 
           setCurrentResume(uploadedState);
           setSkills(data.skills);
+          setManualSkills([]);
+          setSkillDetails(data.skillDetails || []);
           setHasUnsavedDraft(true);
           setNotification({
             type: "info",
@@ -176,6 +196,7 @@ export default function CVPage() {
     if (trimmed && !skills.map((s) => s.toLowerCase()).includes(trimmed.toLowerCase())) {
       setSkills([...skills, trimmed]);
       setManualSkills((prev) => [...prev, trimmed]);
+      setSkillDetails((prev) => [...prev, { name: trimmed, evidence: null, needsReview: false, claimed: true }]);
       setNewSkillInput("");
       setHasUnsavedDraft(true);
     }
@@ -184,12 +205,15 @@ export default function CVPage() {
   const handleRemoveSkill = (skillToRemove: string) => {
     setSkills(skills.filter((s) => s !== skillToRemove));
     setManualSkills((prev) => prev.filter((s) => s !== skillToRemove));
+    setSkillDetails((prev) => prev.filter((s) => s.name !== skillToRemove));
     setHasUnsavedDraft(true);
   };
 
   const handleSaveAndMatch = async () => {
     const payload = {
-      userId: user?.id,
+      resumeId: currentResume.id || null,
+      experienceTargetRole: currentResume.experienceTargetRole || null,
+      skillDetails,
       targetRole,
       filename: currentResume.filename,
       fileUrl: currentResume.fileUrl,
@@ -202,6 +226,8 @@ export default function CVPage() {
       manualSkills,
     };
 
+    if (saveLock.current) return;
+    saveLock.current = true;
     runTask({
       type: "cv_save_match",
       title: "Sinkronisasi CV & Pencocokan Lowongan",
@@ -210,19 +236,22 @@ export default function CVPage() {
         setIsSaving(true);
         try {
           clearDedupedCache();
-          const data = await fetchDeduped<{ error?: string; message?: string }>("/api/cv/save", {
+          const data = await fetchDeduped<{ resumeId: string; error?: string; message?: string }>("/api/cv/save", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
           });
 
+          setCurrentResume((prev) => ({ ...prev, id: data.resumeId }));
           setHasUnsavedDraft(false);
+          await career.refresh();
           setNotification({
             type: "success",
-            message: `Berhasil disubmit! ${data.message} Seluruh data profil dan kalkulasi kecocokan selesai diproses.`,
+            message: `Berhasil disubmit! ${data.message} Profil siap digunakan untuk analisis lowongan.`,
           });
           return data;
         } finally {
+          saveLock.current = false;
           setIsSaving(false);
         }
       },
@@ -234,6 +263,7 @@ export default function CVPage() {
   };
 
   const handleDeleteResume = async () => {
+    if (!currentResume.id) return;
     if (!confirm("Apakah kamu yakin ingin menghapus dokumen CV, hasil ekstraksi, dan seluruh kalkulasi match secara permanen?")) {
       return;
     }
@@ -245,12 +275,14 @@ export default function CVPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          r2Key: currentResume.r2Key,
+          resumeId: currentResume.id,
         }),
       });
 
       if (data.success) {
         setSkills([]);
+        setManualSkills([]); setSkillDetails([]);
+        await career.refresh();
         setCurrentResume({
           candidateName: "Dokumen Telah Dihapus",
           filename: "-",
@@ -258,7 +290,7 @@ export default function CVPage() {
           r2Key: null,
           education: "-",
           gpa: "",
-          experienceYears: 0,
+          experienceYears: null,
           summary: "Seluruh data CV telah dibersihkan secara permanen dari server dan basis data.",
           skills: [],
         });
@@ -288,7 +320,7 @@ export default function CVPage() {
                 CV & Profil Keahlian
               </h1>
               <p className="text-sb-text-2 text-sm leading-relaxed">
-                Unggah berkas CV untuk mengekstrak dan memverifikasi keterampilan kerjamu sebelum dianalisis kecocokannya.
+                Unggah berkas CV untuk mengekstrak dan meninjau keterampilan kerjamu sebelum dianalisis kecocokannya.
               </p>
             </div>
 
@@ -314,8 +346,10 @@ export default function CVPage() {
           />
         )}
 
+        <CareerContextBar beforeChange={() => !hasUnsavedDraft || window.confirm("Perubahan CV belum disimpan. Ganti konteks dan tinggalkan draft ini?")} />
+
         {/* Section 1: Unggah CV & Persetujuan Privasi */}
-        <Card>
+        <Card id="upload">
           <CardHeader>
             <CardTitle>1. Unggah Dokumen CV Baru (PDF / DOCX)</CardTitle>
             <CardDescription>
@@ -342,7 +376,7 @@ export default function CVPage() {
                 type="file"
                 accept=".pdf,.docx,.doc"
                 onChange={handleFileUpload}
-                className="hidden"
+                className="sr-only"
                 id="cv-file-upload"
                 disabled={isLoading || !consentGiven}
               />
@@ -362,39 +396,14 @@ export default function CVPage() {
                   Format yang didukung: .PDF, .DOCX (Maksimal 4 MB)
                 </span>
               </label>
+              <Button type="button" variant="outline" size="sm" disabled={isLoading || !consentGiven} onClick={() => fileInputRef.current?.click()} className="mt-3">Pilih berkas CV</Button>
             </div>
           </CardContent>
         </Card>
 
         {/* Section 2: Role Target & Ringkasan Profil */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="md:col-span-1">
-            <CardHeader>
-              <CardTitle>Role Target</CardTitle>
-              <CardDescription>Menentukan acuan perhitungan gap</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Select
-                label="Role Pekerjaan"
-                value={targetRole}
-                onChange={(e) => setTargetRole(e.target.value)}
-                options={[
-                  { label: "Data Analyst", value: "Data Analyst" },
-                  { label: "Business Intelligence (BI) Analyst", value: "BI Analyst" },
-                  { label: "Software Engineer", value: "Software Engineer" },
-                  { label: "Frontend Developer", value: "Frontend Developer" },
-                  { label: "Backend Developer", value: "Backend Developer" },
-                  { label: "Product Manager", value: "Product Manager" },
-                  { label: "UI/UX Designer", value: "UI/UX Designer" },
-                  { label: "Digital Marketing Specialist", value: "Digital Marketing Specialist" },
-                  { label: "Financial Analyst", value: "Financial Analyst" },
-                  { label: "Operations Specialist", value: "Operations Specialist" },
-                  { label: "Cybersecurity Analyst", value: "Cybersecurity Analyst" },
-                  { label: "Lainnya (Umum)", value: "General" },
-                ]}
-              />
-            </CardContent>
-          </Card>
+          <Card className="md:col-span-1"><CardHeader><CardTitle>Target aktif</CardTitle></CardHeader><CardContent><p className="font-bold text-sb-navy">{targetRole || "Belum dipilih"}</p><p className="text-xs text-sb-text-2 mt-2">Gunakan pemilih di atas untuk menyimpan atau mengganti target karier. CV baru disimpan terpisah dari CV sebelumnya.</p></CardContent></Card>
 
           <Card className="md:col-span-2">
             <CardHeader>
@@ -407,11 +416,12 @@ export default function CVPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
                 {/* Editor Pendidikan */}
                 <div className="p-3.5 rounded-xl border border-sb-border bg-white/70 shadow-2xs space-y-1.5">
-                  <label className="flex items-center gap-1.5 text-xs font-bold text-sb-navy">
+                  <label htmlFor="cv-education" className="flex items-center gap-1.5 text-xs font-bold text-sb-navy">
                     <GraduationCap className="w-4 h-4 text-sb-blue" />
                     Pendidikan Terakhir
                   </label>
                   <input
+                    id="cv-education"
                     type="text"
                     value={currentResume.education}
                     onChange={(e) => {
@@ -462,28 +472,30 @@ export default function CVPage() {
                     Pengalaman Kerja Relevan
                   </label>
                   <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min={0}
-                      max={35}
-                      value={currentResume.experienceYears}
-                      onChange={(e) => {
-                        const val = Math.max(0, parseInt(e.target.value, 10) || 0);
-                        setCurrentResume((prev) => ({ ...prev, experienceYears: val }));
-                        setHasUnsavedDraft(true);
-                      }}
-                      className="w-24 text-xs font-semibold px-3 py-1.5 rounded-lg border border-sb-border focus:outline-none focus:ring-1 focus:ring-sb-blue bg-white font-mono-metric text-sb-navy"
-                    />
-                    <span className="text-xs text-sb-text-2 font-semibold">Tahun Relevan</span>
+                    {(["years", "months"] as const).map((part) => <label key={part} className="text-xs min-w-0">{part === "years" ? "Tahun" : "Bulan"}
+                      <input type="number" min={0} max={part === "years" ? 80 : 11} step={1} value={experienceParts(currentResume.experienceYears)[part]}
+                        onChange={(e) => {
+                          const parts = experienceParts(currentResume.experienceYears);
+                          try {
+                            const years = experienceInYears(part === "years" ? e.target.value : parts.years, part === "months" ? e.target.value : parts.months);
+                            setCurrentResume((prev) => ({ ...prev, experienceYears: years, experienceTargetRole: targetRole }));
+                            setHasUnsavedDraft(true);
+                          } catch (err) { setNotification({ type: "error", message: (err as Error).message }); }
+                        }} className="block w-full max-w-28 px-3 py-2 rounded-lg border border-sb-border bg-white" />
+                    </label>)}
                   </div>
-                  <span className="text-xs text-sb-text-2 block">Durasi kumulatif pengalaman di role target.</span>
+                  <button type="button" className="text-xs text-sb-blue underline" onClick={() => { setCurrentResume((prev) => ({ ...prev, experienceYears: null, experienceTargetRole: targetRole })); setHasUnsavedDraft(true); }}>Kosongkan pengalaman</button>
+                  <p className="text-xs text-sb-text-2">{formatExperience(currentResume.experienceYears)}. Nol berarti belum berpengalaman; kosong berarti belum diisi.</p>
+                  <p className="text-xs text-sb-text-2">Pengalaman relevan untuk: <strong>{currentResume.experienceTargetRole || "Target pada profil sebelumnya (belum ditandai)"}</strong>. Tinjau relevansinya terhadap {targetRole}.</p>
+                  <button type="button" className="text-xs text-sb-blue underline" onClick={() => { setCurrentResume((prev) => ({ ...prev, experienceTargetRole: targetRole })); setHasUnsavedDraft(true); }}>Gunakan durasi ini sebagai pengalaman relevan untuk {targetRole}</button>
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-sb-text-2">Ringkasan Profil Dokumen:</label>
+                <label htmlFor="cv-summary" className="text-[11px] font-semibold text-sb-text-2">Ringkasan Profil Dokumen:</label>
                 <input
                   type="text"
+                  id="cv-summary"
                   value={currentResume.summary}
                   onChange={(e) => {
                     setCurrentResume((prev) => ({ ...prev, summary: e.target.value }));
@@ -498,11 +510,11 @@ export default function CVPage() {
         </div>
 
         {/* Section 3: Koreksi Skill Pengguna */}
-        <Card>
+        <Card id="review-skills">
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>3. Tinjau & Koreksi Daftar Skill</span>
+                <span>2. Tinjau & Koreksi Daftar Skill</span>
                 <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-sb-mist-soft text-sb-blue border border-sb-border font-mono-metric">
                   {skills.length} Skill Terdaftar
                 </span>
@@ -512,7 +524,7 @@ export default function CVPage() {
                   </span>
                 ) : (
                   <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sb-good/10 text-sb-good border border-sb-good/30">
-                    Tersimpan di Database
+                    {currentResume.id ? "Tersimpan" : "Belum ada CV tersimpan"}
                   </span>
                 )}
               </CardTitle>
@@ -523,6 +535,7 @@ export default function CVPage() {
             <Button
               variant="outline"
               size="sm"
+              disabled={!currentResume.id || isLoading || isSaving}
               onClick={handleDeleteResume}
               leftIcon={<Trash2 className="w-3.5 h-3.5" />}
               className="text-xs text-sb-critical hover:bg-sb-critical/10 hover:border-sb-critical/30"
@@ -531,48 +544,29 @@ export default function CVPage() {
             </Button>
           </CardHeader>
           <CardContent className="space-y-5">
-            {/* Skill Badges */}
-            <div className="flex flex-wrap items-center gap-2 min-h-12 p-3.5 rounded-xl border border-sb-border bg-white/60">
-              {skills.length === 0 ? (
-                <span className="text-xs text-sb-text-2 italic">
-                  Belum ada skill yang ditambahkan. Gunakan kolom input di bawah untuk menambahkan.
-                </span>
-              ) : (
-                skills.map((s) => {
-                  const isManual = manualSkills.includes(s);
-                  return (
-                    <span
-                      key={s}
-                      className={cn(
-                        "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold shadow-2xs transition-ui",
-                        isManual
-                          ? "border-sb-warning/30 bg-sb-warning/10 text-sb-warning"
-                          : "border-sb-border bg-white/90 text-sb-navy hover:border-sb-blue"
-                      )}
-                    >
-                      <span>{s}</span>
-                      {isManual && (
-                        <span className="text-xs font-bold px-1.5 py-0.2 rounded-full bg-sb-warning/20 text-sb-warning">
-                          Klaim Mandiri
-                        </span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveSkill(s)}
-                        className="text-sb-text-2 hover:text-sb-critical p-0.5 rounded transition-colors"
-                        title={`Hapus skill ${s}`}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </span>
-                  );
-                })
-              )}
+            <p className="text-xs text-sb-text-2">Perlu verifikasi berarti hasil ekstraksi belum ditinjau. Periksa cuplikan dokumen, konfirmasikan hasil yang benar, atau tandai sebagai pengakuan mandiri. Pengakuan mandiri bukan verifikasi independen.</p>
+            <div className="space-y-3">
+              {skills.length === 0 && <p className="text-sm text-sb-text-2">Belum ada skill. Tambahkan pengakuan mandiri di bawah.</p>}
+              {skills.map((name) => {
+                const detail = skillDetails.find((s) => s.name === name);
+                const manual = manualSkills.includes(name);
+                const review = !manual && detail?.needsReview;
+                return <div key={name} className="rounded-xl border border-sb-border bg-white/70 p-3 space-y-2">
+                  <div className="flex flex-wrap justify-between gap-2"><strong className="text-sm text-sb-navy">{name}</strong><span className="text-xs text-sb-text-2">{manual ? "Ditambahkan oleh pengguna" : review ? "Perlu verifikasi" : "Tercantum di CV"}</span></div>
+                  <p className="text-xs text-sb-text-2 whitespace-pre-wrap break-words">{detail?.evidence ? `Cuplikan CV: ${detail.evidence}` : "Cuplikan bukti dari CV belum tersedia."}</p>
+                  <div className="flex flex-wrap items-center gap-3 text-xs">
+                    {review && <button type="button" className="text-sb-blue underline" onClick={() => { setSkillDetails((p) => p.map((s) => s.name === name ? { ...s, needsReview: false } : s)); setHasUnsavedDraft(true); }}>Konfirmasi hasil ekstraksi</button>}
+                    {!manual && <button type="button" className="text-sb-blue underline" onClick={() => { setManualSkills((p) => [...p, name]); setSkillDetails((p) => p.map((s) => s.name === name ? { ...s, needsReview: false, claimed: true } : s)); setHasUnsavedDraft(true); }}>Tandai sebagai pengakuan mandiri</button>}
+                    <button type="button" className="text-sb-critical underline" onClick={() => handleRemoveSkill(name)}>Hapus {name}</button>
+                  </div>
+                </div>;
+              })}
             </div>
 
             {/* Add Skill Input */}
             <div className="flex items-center gap-2 max-w-md">
               <TextInput
+                label="Tambahkan skill sebagai pengakuan mandiri"
                 placeholder="Tambah skill baru (cth. SQL, Python, Tableau)..."
                 value={newSkillInput}
                 onChange={(e) => setNewSkillInput(e.target.value)}
@@ -595,17 +589,17 @@ export default function CVPage() {
               ) : (
                 <>
                   <Check className="w-3.5 h-3.5 text-sb-good shrink-0" />
-                  <span>Profil dan kecocokan lowongan tersimpan.</span>
+                  <span>{currentResume.id ? "Profil CV tersimpan." : "Unggah CV atau isi profil sebelum menyimpan."}</span>
                 </>
               )}
             </span>
-            <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
               <Button
                 variant={hasUnsavedDraft ? "primary" : "outline"}
                 size="md"
                 className="w-full sm:w-auto"
                 onClick={handleSaveAndMatch}
-                disabled={isSaving || skills.length === 0}
+                disabled={isSaving || isLoading || skills.length === 0 || !targetRole}
               >
                 {isSaving ? (
                   <>

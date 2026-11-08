@@ -21,7 +21,7 @@ interface AuthContextType {
   login: (email: string, pass: string) => Promise<{ success: boolean; error?: string; role?: "user" | "admin" }>;
   logout: () => Promise<void>;
   resetDemoState: () => Promise<void>;
-  updateUserTargetRole: (newRole: string) => void;
+  updateUserTargetRole: (newRole: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -167,20 +167,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Sesi tetap sama (sudah login); halaman memuat ulang datanya setelah reset.
   };
 
-  const updateUserTargetRole = (newRole: string) => {
-    if (user) {
-      const updated: AuthProfile = { ...user, targetRole: newRole };
-      setUser(updated);
-      clearDedupedCache();
-      // Simpan perubahan ke database profile bila bukan offline
-      const supabase = createClient();
-      Promise.resolve(
-        supabase
-          .from("profiles")
-          .update({ target_role: newRole })
-          .eq("id", user.id)
-      ).catch(() => {});
-    }
+  const updateUserTargetRole = async (newRole: string) => {
+    if (!user) return;
+    await fetch("/api/career-context", {
+      method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ targetRole: newRole }),
+    }).then(async (res) => { if (!res.ok) throw new Error((await res.json()).error || "Gagal menyimpan target."); });
+    clearDedupedCache();
+    setUser({ ...user, targetRole: newRole.trim() });
   };
 
   const isAuthenticated = !!user;

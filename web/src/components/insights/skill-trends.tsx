@@ -1,7 +1,10 @@
 "use client";
 
+import { CareerContextBar } from "@/components/career-context-bar";
+import { useCareer } from "@/context/career-context";
 import React, { useState } from "react";
 import { FilterBar } from "@/components/ui/filter";
+import { careerTargetFilter } from "@/lib/job-categories";
 import type { FilterState } from "@/lib/job-filters";
 import { MarketSkillBarChart } from "@/components/ui/chart";
 import { AlertBanner } from "@/components/ui/error";
@@ -20,9 +23,10 @@ interface SkillTrendsProps {
   mode?: "guest" | "user";
 }
 
-const CHART_STATUS: Record<TopSkillInsight["cvStatus"], "found" | "needs_verification" | "missing"> = {
+const CHART_STATUS: Record<TopSkillInsight["cvStatus"], "found" | "needs_verification" | "missing" | "user_added"> = {
   tercantum: "found",
   perlu_verifikasi: "needs_verification",
+  ditambahkan_pengguna: "user_added",
   belum_ditemukan: "missing",
 };
 
@@ -30,14 +34,15 @@ export function SkillTrends({ mode = "user" }: SkillTrendsProps) {
   const isGuest = mode === "guest";
   const { isAuthenticated } = useAuth();
 
+  const career = useCareer();
   const [filters, setFilters] = useState<FilterState>({
-    role: "all",
+    role: isGuest ? "all" : careerTargetFilter(career.targetRole),
     workType: "all",
     seniority: "all",
   });
   const { sampleSizeN, lastUpdatedDate, topSkills, learningRecs, isLoading, errorMsg, refresh } =
     useSkillInsights(filters);
-  const { notice, addLearning, claimSkill } = useSkillActions({
+  const { notice, claimSkill } = useSkillActions({
     isGuest,
     role: filters.role,
     onSkillClaimed: refresh,
@@ -46,6 +51,8 @@ export function SkillTrends({ mode = "user" }: SkillTrendsProps) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       <SkillTrendsBanner isGuest={isGuest} sampleSizeN={sampleSizeN} lastUpdatedDate={lastUpdatedDate} />
+
+      {!isGuest && <CareerContextBar />}
 
       {errorMsg && <AlertBanner type="error" title="Gangguan Memuat Data" message={errorMsg} />}
 
@@ -87,13 +94,14 @@ export function SkillTrends({ mode = "user" }: SkillTrendsProps) {
             isLoggedIn={!isGuest && isAuthenticated}
           />
 
-          <SkillComparisonCard
+          <details className="rounded-2xl border border-sb-border bg-white/60 p-4">
+            <summary className="cursor-pointer font-semibold text-sb-navy">Tinjau skill & tambahkan target belajar</summary>
+            <div className="mt-4"><SkillComparisonCard
             skills={topSkills}
             isGuest={isGuest}
             sampleSizeN={sampleSizeN}
             onClaim={claimSkill}
-            onAddLearning={(skillName) => addLearning(skillName)}
-          />
+          /></div></details>
 
           {isGuest && (
             <GuestComparePrompt />
@@ -102,7 +110,6 @@ export function SkillTrends({ mode = "user" }: SkillTrendsProps) {
           {!isGuest && learningRecs.length > 0 && (
             <LearningRecommendations
               recommendations={learningRecs}
-              onAdd={(rec) => addLearning(rec.skillName, rec.reason, rec.priority)}
             />
           )}
         </div>

@@ -1,3 +1,4 @@
+import { careerTargetFilter } from "@/lib/job-categories";
 import { useEffect, useState } from "react";
 import { fetchDeduped } from "@/lib/fetcher";
 import { mergeServerAndLocalJobs, type ServerSavedJob } from "@/lib/tracker-storage";
@@ -28,7 +29,7 @@ export function useDashboardData(userId?: string, targetRole?: string) {
       setIsLoading(true);
       try {
         const queryParams = new URLSearchParams();
-        if (targetRole) queryParams.append("role", targetRole);
+        if (targetRole) queryParams.append("role", careerTargetFilter(targetRole));
 
         const [jobsData, insightsData, savedData, cvData] = await Promise.all([
           fetchDeduped<{ jobs: DashboardJob[]; total: number }>(`/api/jobs?${queryParams.toString()}`),

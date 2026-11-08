@@ -1,5 +1,6 @@
 "use client";
 
+import { CareerContextBar } from "@/components/career-context-bar";
 import { useMemo } from "react";
 import { SkeletonCard } from "@/components/ui/loading";
 import { ProtectedRoute } from "@/components/layout/protected-route";
@@ -45,6 +46,7 @@ function DashboardContent() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+      <CareerContextBar />
       <DashboardBanner fullName={user?.fullName} targetRole={user?.targetRole} />
 
       {isLoading ? (

@@ -90,15 +90,15 @@ function ProfileContent() {
     };
   }, [user]);
 
-  const handleFieldChange = (fieldLabel: string) => {
-    updateUserTargetRole(fieldLabel);
+  const handleFieldChange = async (fieldLabel: string) => {
+    try { await updateUserTargetRole(fieldLabel); } catch (e) { setNotification((e as Error).message); return; }
     setNotification(`Target bidang kerja berhasil diperbarui menjadi ${fieldLabel}.`);
     setTimeout(() => setNotification(null), 3000);
   };
 
-  const handleSpecificPositionSave = () => {
+  const handleSpecificPositionSave = async () => {
     if (!specificPosition.trim()) return;
-    updateUserTargetRole(specificPosition.trim());
+    try { await updateUserTargetRole(specificPosition.trim()); } catch (e) { setNotification((e as Error).message); return; }
     setNotification(`Target posisi berhasil disimpan: ${specificPosition.trim()}`);
     setSpecificPosition("");
     setTimeout(() => setNotification(null), 3000);

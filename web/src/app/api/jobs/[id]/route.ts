@@ -1,3 +1,4 @@
+import { jobExperienceYears } from "@/lib/job-experience";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 import { calculateJobMatch, getDisplayScore } from "@/lib/matching";
@@ -31,6 +32,7 @@ export async function GET(
       years: candidateYears,
       education: candidateEdu,
       gpa: candidateGpa,
+      targetRole, claimedSkills, reviewSkills, evidence,
     } = await loadCandidateProfile(supabase, user?.id ?? null);
 
     const { required: reqSkills, preferred: prefSkills } = splitJobSkills(
@@ -39,13 +41,13 @@ export async function GET(
 
     // Hitung live hybrid matching
     const liveMatch = calculateJobMatch(
-      { skills: candidateSkills, experienceYears: candidateYears, education: candidateEdu, gpa: candidateGpa },
+      { skills: candidateSkills, experienceYears: candidateYears, education: candidateEdu, gpa: candidateGpa, targetRole, claimedSkills, reviewSkills, evidence },
       {
         title: job.title,
         canonicalTitle: job.canonical_title,
         requiredSkills: reqSkills,
         preferredSkills: prefSkills,
-        experienceYearsMin: job.experience_years_min || null,
+        experienceYearsMin: jobExperienceYears(job.experience_years_min, job.description),
         education: job.education || null,
         minGpa: job.min_gpa ?? null,
         seniority: job.seniority || null,
@@ -70,7 +72,7 @@ export async function GET(
         location: job.location,
         employmentType: job.employment_type,
         seniority: job.seniority || "Mid",
-        experienceYearsMin: job.experience_years_min || 1,
+        experienceYearsMin: jobExperienceYears(job.experience_years_min, job.description),
         education: job.education || "Bachelor",
         salaryMin: job.salary_min ?? null,
         salaryMax: job.salary_max ?? null,

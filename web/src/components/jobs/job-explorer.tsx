@@ -1,5 +1,6 @@
 "use client";
 
+import { CareerContextBar } from "@/components/career-context-bar";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { SearchInput } from "@/components/ui/input";
@@ -114,6 +115,7 @@ export function JobExplorer({ mode = "user" }: JobExplorerProps) {
 
   return (
     <div className="max-w-[1380px] mx-auto px-4 sm:px-8 lg:px-12 py-8 space-y-8">
+      {!isGuest && <CareerContextBar />}
       <JobExplorerBanner isGuest={isGuest} isLoggedIn={!!user} role={filters.role} />
 
       {errorMsg && <AlertBanner type="error" title="Gagal Memuat Lowongan" message={errorMsg} />}

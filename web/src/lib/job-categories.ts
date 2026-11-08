@@ -247,3 +247,10 @@ export function getCategoryBySlug(slug?: string | null): JobCategory | undefined
   return JOB_CATEGORIES.find((c) => c.slug.toLowerCase() === slug.toLowerCase());
 }
 
+
+/** Exact category labels from older profiles remain valid; specific roles stay specific. */
+export function careerTargetFilter(target?: string | null): string {
+  if (!target) return "all";
+  const category = JOB_CATEGORIES.find((c) => c.slug.toLowerCase() === target.toLowerCase() || c.label.toLowerCase() === target.toLowerCase());
+  return category?.slug || target;
+}

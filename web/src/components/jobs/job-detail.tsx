@@ -1,5 +1,6 @@
 "use client";
 
+import { CareerContextBar } from "@/components/career-context-bar";
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -66,6 +67,7 @@ export function JobDetail({ jobId, mode = "user" }: JobDetailProps) {
         </Link>
       </div>
 
+      {!isGuest && <CareerContextBar />}
       <JobDetailHeader
         job={job}
         isGuest={isGuest}
@@ -82,7 +84,7 @@ export function JobDetail({ jobId, mode = "user" }: JobDetailProps) {
       ) : (
         <>
           {job.scoreBreakdown && job.scoreBreakdown.length > 0 && <ScoreBreakdownCard breakdown={job.scoreBreakdown} />}
-          <RequirementsAnalysisCard evaluations={resolveRequirementEvaluations(job)} />
+          <RequirementsAnalysisCard jobId={job.id} evaluations={resolveRequirementEvaluations(job)} />
           <MatchFactors supporting={job.factorsSupporting || []} limiting={job.factorsLimiting || []} />
         </>
       )}

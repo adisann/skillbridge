@@ -1,3 +1,4 @@
+import { jobExperienceYears } from "@/lib/job-experience";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 import {
@@ -16,7 +17,7 @@ import {
 } from "@/lib/ai/cache";
 import { ActiveJobContext, CandidateCVContext, ChatMessage } from "@/lib/ai/types";
 import { calculateJobMatch, getDisplayScore } from "@/lib/matching";
-import { parseGpaValue } from "@/lib/gpa";
+import { loadCandidateProfile } from "@/lib/candidate-profile";
 import { splitJobSkills, type JobSkillRow } from "@/lib/job-skills";
 
 const MAX_MESSAGE_CHARS = 500;
@@ -131,7 +132,7 @@ export async function POST(
       location: job.location,
       employmentType: job.employment_type || "Full-time",
       seniority: job.seniority || "Tidak dirinci",
-      experienceYearsMin: job.experience_years_min,
+      experienceYearsMin: jobExperienceYears(job.experience_years_min, job.description),
       education: job.education,
       minGpa: job.min_gpa ?? null,
       salaryMin: job.salary_min ?? null,
@@ -180,15 +181,8 @@ export async function POST(
         );
       }
 
-      const { data: resumeRows } = await supabase
-        .from("resumes")
-        .select("id, user_id, experience_years, education, gpa, updated_at, resume_skills(skills(name))")
-        .eq("user_id", user.id)
-        .eq("is_active", true)
-        .order("created_at", { ascending: false })
-        .limit(1);
-
-      const activeResume = resumeRows && resumeRows.length > 0 ? resumeRows[0] : null;
+      const candidate = await loadCandidateProfile(supabase, user.id);
+      const activeResume = candidate.activeResume;
 
       if (!activeResume) {
         return createInstantStreamResponse(
@@ -202,35 +196,23 @@ export async function POST(
         );
       }
 
-      const candidateSkills: string[] = [];
-      if (activeResume.resume_skills) {
-        for (const rs of activeResume.resume_skills as unknown as Array<{
-          skills: { name: string };
-        }>) {
-          if (rs.skills?.name) candidateSkills.push(rs.skills.name);
-        }
-      }
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name, target_role")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      const candidateGpa = parseGpaValue(activeResume.gpa);
+      const candidateSkills = candidate.skills;
+      const candidateGpa = candidate.gpa;
+      const { data: profile } = await supabase.from("profiles").select("full_name").eq("id", user.id).maybeSingle();
       const liveMatch = calculateJobMatch(
         {
           skills: candidateSkills,
-          experienceYears: Number(activeResume.experience_years) || 0,
-          education: activeResume.education || "Sarjana (S1)",
+          experienceYears: candidate.years,
+          education: candidate.education,
           gpa: candidateGpa,
+          targetRole: candidate.targetRole, claimedSkills: candidate.claimedSkills, reviewSkills: candidate.reviewSkills, evidence: candidate.evidence,
         },
         {
           title: job.title,
           canonicalTitle: job.canonical_title,
           requiredSkills: reqSkills,
           preferredSkills: prefSkills,
-          experienceYearsMin: job.experience_years_min || null,
+          experienceYearsMin: jobExperienceYears(job.experience_years_min, job.description),
           education: job.education || null,
           minGpa: job.min_gpa ?? null,
           seniority: job.seniority || null,
@@ -239,26 +221,27 @@ export async function POST(
 
       candidateCv = {
         userId: user.id,
-        resumeId: activeResume.id,
+        resumeId: String(activeResume.id),
         fullName: profile?.full_name || "Pelamar",
-        targetRole: profile?.target_role || job.canonical_title,
-        experienceYears: Number(activeResume.experience_years) || 0,
-        education: activeResume.education || "Sarjana (S1)",
+        targetRole: candidate.targetRole,
+        experienceYears: candidate.years,
+        education: candidate.education,
         gpa: candidateGpa,
-        skills: candidateSkills,
+        skills: candidateSkills.filter((s) => !candidate.claimedSkills.includes(s) && !candidate.reviewSkills.includes(s)),
+        claimedSkills: candidate.claimedSkills, reviewSkills: candidate.reviewSkills,
         matchScore: getDisplayScore(liveMatch) ?? undefined,
         matchStatus: liveMatch.matchStatus,
         matchedSkills: liveMatch.matchedSkills,
         missingSkills: liveMatch.missingSkills,
-        updatedAt: activeResume.updated_at,
+        updatedAt: String(activeResume.updated_at || ""),
       };
 
       // 4A. Check CV Analysis Cache
       const cachedCvResponse = await getCvAnalysisCache(
         user.id,
-        activeResume.id,
+        String(activeResume.id),
         job.id,
-        jobContext.contentHash,
+        `${jobContext.contentHash}:${activeResume.id}:${activeResume.updated_at}:${candidate.targetRole}`,
         trimmedMessage
       );
 
@@ -363,7 +346,7 @@ export async function POST(
                   candidateCv.userId,
                   candidateCv.resumeId,
                   job.id,
-                  jobContext.contentHash,
+                  `${jobContext.contentHash}:${candidateCv.resumeId}:${candidateCv.updatedAt}:${candidateCv.targetRole}`,
                   trimmedMessage,
                   fullText,
                   finalProvider

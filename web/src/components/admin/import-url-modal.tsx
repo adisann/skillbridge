@@ -26,7 +26,7 @@ export function ImportUrlModal({ isExtracting, onSubmit, onClose }: ImportUrlMod
   };
 
   return (
-    <ModalShell size="compact">
+    <ModalShell size="compact" onClose={onClose}>
       <ModalHeader onClose={onClose}>
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-sb-mist-faint text-sb-blue flex items-center justify-center">
@@ -34,7 +34,7 @@ export function ImportUrlModal({ isExtracting, onSubmit, onClose }: ImportUrlMod
           </div>
           <div>
             <h3 className="text-base font-bold text-sb-navy">Impor Lowongan via Tautan (URL)</h3>
-            <p className="text-xs text-sb-text-2">AI Scraper & Structured Extractor</p>
+            <p className="text-xs text-sb-text-2">Ambil informasi lowongan, lalu periksa sebelum disimpan.</p>
           </div>
         </div>
       </ModalHeader>

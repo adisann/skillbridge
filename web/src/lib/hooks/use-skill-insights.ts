@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { fetchDeduped } from "@/lib/fetcher";
+import { fetchDeduped, clearDedupedCache } from "@/lib/fetcher";
 import type { FilterState } from "@/lib/job-filters";
 import type { InsightsResponse, LearningRec, TopSkillInsight } from "@/types/insights";
 
-const DEFAULT_UPDATED_DATE = "4 November 2026";
+const DEFAULT_UPDATED_DATE = "Belum tersedia";
 
 function buildInsightsQuery(filters: FilterState): string {
   const params = new URLSearchParams();
@@ -17,7 +17,7 @@ function buildInsightsQuery(filters: FilterState): string {
 
 /** Memuat insight skill pasar sesuai filter; `refresh` memuat ulang dengan filter yang sama. */
 export function useSkillInsights(filters: FilterState) {
-  const [sampleSizeN, setSampleSizeN] = useState<number>(1);
+  const [sampleSizeN, setSampleSizeN] = useState<number>(0);
   const [lastUpdatedDate, setLastUpdatedDate] = useState<string>(DEFAULT_UPDATED_DATE);
   const [topSkills, setTopSkills] = useState<TopSkillInsight[]>([]);
   const [learningRecs, setLearningRecs] = useState<LearningRec[]>([]);
@@ -29,6 +29,7 @@ export function useSkillInsights(filters: FilterState) {
   useEffect(() => {
     let isMounted = true;
     const fetchInsights = async () => {
+      setIsLoading(true); setTopSkills([]); setLearningRecs([]); setSampleSizeN(0);
       try {
         const data = await fetchDeduped<InsightsResponse>(`/api/insights?${query}`);
 
@@ -62,6 +63,6 @@ export function useSkillInsights(filters: FilterState) {
     learningRecs,
     isLoading,
     errorMsg,
-    refresh: () => setRefreshTrigger((prev) => prev + 1),
+    refresh: () => (clearDedupedCache("/api/insights"), setRefreshTrigger((prev) => prev + 1)),
   };
 }

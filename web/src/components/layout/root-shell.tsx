@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/lib/supabase/auth-context";
 import { Menu } from "lucide-react";
 import { Navbar } from "./navbar";
 import { Footer } from "./footer";
@@ -10,6 +11,7 @@ import { SkillBridgeLogo } from "../ui/logo";
 
 export function RootShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { isAdmin } = useAuth();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -58,7 +60,7 @@ export function RootShell({ children }: { children: React.ReactNode }) {
             <Menu className="w-5 h-5" />
           </button>
 
-          <SkillBridgeLogo size="sm" href="/dashboard" />
+          <SkillBridgeLogo size="sm" href={isAdmin ? "/admin" : "/dashboard"} />
 
           {/* Spacer for symmetrical layout */}
           <div className="w-8" />

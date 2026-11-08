@@ -98,7 +98,7 @@ interface AggregatedSkillInsight {
   frequencyCount: number;
   mandatoryCount: number;
   percentage: number;
-  cvStatus: "tercantum" | "belum_ditemukan" | "perlu_verifikasi";
+  cvStatus: "tercantum" | "belum_ditemukan" | "perlu_verifikasi" | "ditambahkan_pengguna";
   statusLabel: string;
   exampleRequirement: string;
 }
@@ -126,7 +126,7 @@ interface MarketAggregationResult {
 export function aggregateMarketData(
   allJobs: RawPublicJob[],
   filters: MarketFilterInput,
-  userCvSkills: { verified: string[]; claimed?: string[] } = { verified: [], claimed: [] }
+  userCvSkills: { verified: string[]; claimed?: string[]; review?: string[] } = { verified: [], claimed: [] }
 ): MarketAggregationResult {
   const role = filters.role && filters.role !== "all" ? filters.role.toLowerCase() : "all";
   const location = filters.location && filters.location !== "all" ? filters.location.toLowerCase() : "all";
@@ -231,6 +231,7 @@ export function aggregateMarketData(
   // 3. Normalisasi himpunan skill CV kandidat
   const verifiedSet = new Set((userCvSkills.verified || []).map((s) => s.trim().toLowerCase()));
   const canonicalVerifiedSet = new Set((userCvSkills.verified || []).map((s) => getCanonicalSkill(s)));
+  const reviewSet = new Set((userCvSkills.review || []).map((s) => getCanonicalSkill(s)));
   const claimedSet = new Set((userCvSkills.claimed || []).map((s) => s.trim().toLowerCase()));
   const canonicalClaimedSet = new Set((userCvSkills.claimed || []).map((s) => getCanonicalSkill(s)));
 
@@ -242,15 +243,17 @@ export function aggregateMarketData(
       const lower = name.toLowerCase();
       const canon = getCanonicalSkill(name);
 
-      let cvStatus: "tercantum" | "belum_ditemukan" | "perlu_verifikasi" = "belum_ditemukan";
+      let cvStatus: "tercantum" | "belum_ditemukan" | "perlu_verifikasi" | "ditambahkan_pengguna" = "belum_ditemukan";
       let statusLabel = "Belum ada di CV-mu";
 
-      if (verifiedSet.has(lower) || canonicalVerifiedSet.has(canon)) {
+      if (reviewSet.has(canon)) {
+        cvStatus = "perlu_verifikasi"; statusLabel = "Perlu verifikasi";
+      } else if (verifiedSet.has(lower) || canonicalVerifiedSet.has(canon)) {
         cvStatus = "tercantum";
         statusLabel = "Tercantum di CV";
       } else if (claimedSet.has(lower) || canonicalClaimedSet.has(canon)) {
-        cvStatus = "perlu_verifikasi";
-        statusLabel = "Perlu verifikasi (klaim mandiri)";
+        cvStatus = "ditambahkan_pengguna";
+        statusLabel = "Ditambahkan oleh pengguna";
       }
 
       return {

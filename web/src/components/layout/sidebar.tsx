@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   LayoutDashboard,
   FileUp,
@@ -15,7 +15,8 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   X,
-  Shield,
+  History,
+  Layers,
 } from "lucide-react";
 import { SkillBridgeLogo } from "../ui/logo";
 import { useAuth } from "@/lib/supabase/auth-context";
@@ -44,6 +45,7 @@ const PRIMARY_NAV_ITEMS: NavItem[] = [
 
 export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: SidebarProps) {
   const pathname = usePathname();
+  const params = useSearchParams();
   const { user, isLoading, isAdmin, logout } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
@@ -74,10 +76,14 @@ export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: Sideba
       <div className="flex-1 flex flex-col justify-between py-3 overflow-y-auto overflow-x-hidden">
         {/* Navigation links */}
         <div className="space-y-1.5 px-3">
-          {PRIMARY_NAV_ITEMS.map((item) => {
+          {(isAdmin ? [
+            { label: "Lowongan", href: "/admin?tab=jobs", icon: Briefcase },
+            { label: "Skill & Sumber", href: "/admin?tab=skills", icon: Layers },
+            { label: "Riwayat", href: "/admin?tab=runs", icon: History },
+          ] : PRIMARY_NAV_ITEMS).map((item) => {
             const Icon = item.icon;
             const isActive =
-              pathname === item.href ||
+              (isAdmin && pathname === "/admin" ? item.href === `/admin?tab=${params.get("tab") || "jobs"}` : pathname === item.href) ||
               (item.href !== "/dashboard" && pathname.startsWith(item.href));
 
             return (
@@ -145,35 +151,7 @@ export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: Sideba
             {!collapsed && <span className="truncate whitespace-nowrap">Profil Saya</span>}
           </Link>
 
-          {/* Optional Admin Link if isAdmin */}
-          {isAdmin && (
-            <Link
-              href="/admin"
-              onClick={() => {
-                if (isMobile && onCloseMobile) onCloseMobile();
-              }}
-              title={collapsed ? "Admin Panel" : undefined}
-              className={cn(
-                "flex items-center gap-3 px-3.5 py-2.5 rounded-full text-xs transition-ui relative group",
-                pathname.startsWith("/admin")
-                  ? "bg-amber-50 text-amber-800 font-bold shadow-2xs border border-amber-200"
-                  : "text-sb-text-2 hover:bg-white/70 hover:text-sb-navy font-semibold"
-              )}
-            >
-              {pathname.startsWith("/admin") && (
-                <span className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-amber-600 shrink-0" />
-              )}
-              <Shield
-                className={cn(
-                  "w-4 h-4 shrink-0 transition-colors",
-                  pathname.startsWith("/admin")
-                    ? "text-amber-700"
-                    : "text-sb-text-2 group-hover:text-amber-700"
-                )}
-              />
-              {!collapsed && <span className="truncate whitespace-nowrap">Admin Panel</span>}
-            </Link>
-          )}
+
         </div>
 
         {/* User profile & Logout or Login Button at bottom */}
@@ -284,9 +262,9 @@ export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: Sideba
           )}
         >
           {isCollapsed ? (
-            <SkillBridgeLogo size="sm" showText={false} href="/dashboard" />
+            <SkillBridgeLogo size="sm" showText={false} href={isAdmin ? "/admin" : "/dashboard"} />
           ) : (
-            <SkillBridgeLogo size="sm" showText={true} href="/dashboard" />
+            <SkillBridgeLogo size="sm" showText={true} href={isAdmin ? "/admin" : "/dashboard"} />
           )}
 
           <button
@@ -335,7 +313,7 @@ export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: Sideba
           {/* Drawer content */}
           <div className="relative w-72 max-w-[80vw] glass-panel h-full shadow-2xl flex flex-col z-50 animate-slide-in-left border-r border-sb-border">
             <div className="h-18 px-5 border-b border-sb-border flex items-center justify-between">
-              <SkillBridgeLogo size="sm" href="/dashboard" />
+              <SkillBridgeLogo size="sm" href={isAdmin ? "/admin" : "/dashboard"} />
               <button
                 type="button"
                 onClick={onCloseMobile}

@@ -1,7 +1,7 @@
+import { cvEvidence } from "@/lib/cv-evidence";
 import { ownedResumeKey } from "@/lib/r2";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
-import { calculateJobMatch } from "@/lib/matching";
 import { parseGpaValue } from "@/lib/gpa";
 
 export async function POST(req: NextRequest) {
@@ -38,170 +38,33 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const effectiveUserId = user.id;
     const gpa = parseGpaValue(rawGpa);
-
-    // 0. Update target_role di tabel `profiles` (FR-01)
-    if (targetRole) {
-      await supabase
-        .from("profiles")
-        .update({ target_role: targetRole })
-        .eq("id", effectiveUserId);
+    const years = experienceYears == null || experienceYears === "" ? null : Number(experienceYears);
+    if (years !== null && (!Number.isFinite(years) || years < 0 || years > 81)) {
+      return NextResponse.json({ error: "Durasi pengalaman tidak valid." }, { status: 400 });
     }
-
-    // 1. Simpan atau perbarui resume di tabel `resumes` (FR-02 & NFR-02)
-    // File hanya boleh menunjuk ke objek milik pengguna ini; URL/key buatan klien diabaikan.
     const ownedKey = ownedResumeKey(user.id, r2Key) ?? ownedResumeKey(user.id, fileUrl);
-    const persistentFileUrl = ownedKey ? `r2://${ownedKey}` : null;
-    const fileUrlPatch = persistentFileUrl ? { file_url: persistentFileUrl } : {};
-
-    const { data: existingResume } = await supabase
-      .from("resumes")
-      .select("id")
-      .eq("user_id", effectiveUserId)
-      .eq("is_active", true)
-      .limit(1);
-
-    let resumeId: string;
-
-    if (existingResume && existingResume.length > 0) {
-      resumeId = existingResume[0].id;
-      await supabase
-        .from("resumes")
-        .update({
-          filename: filename || "CV_Terunggah.pdf",
-          ...fileUrlPatch,
-          parsed_text: summary || "Ringkasan profil kompetensi",
-          education: education || "Sarjana (S1)",
-          gpa,
-          experience_years: Number(experienceYears) || 0,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", resumeId);
-    } else {
-      const { data: newResume, error: resumeErr } = await supabase
-        .from("resumes")
-        .insert({
-          user_id: effectiveUserId,
-          filename: filename || "CV_Terunggah.pdf",
-          file_url: persistentFileUrl,
-          parsed_text: summary || "Ringkasan profil kompetensi",
-          education: education || "Sarjana (S1)",
-          gpa,
-          experience_years: Number(experienceYears) || 0,
-          is_active: true,
-        })
-        .select("id")
-        .single();
-
-      if (resumeErr || !newResume) {
-        throw new Error("Gagal menyimpan resume: " + resumeErr?.message);
-      }
-      resumeId = newResume.id;
-    }
-
-    // 2. Hubungkan skill pengguna ke tabel `resume_skills`
-    await supabase.from("resume_skills").delete().eq("resume_id", resumeId);
-
-    for (const skillName of skills || []) {
-      let skillId: string | null = null;
-      const { data: foundSkill } = await supabase
-        .from("skills")
-        .select("id")
-        .ilike("name", skillName.trim())
-        .limit(1);
-
-      if (foundSkill && foundSkill.length > 0) {
-        skillId = foundSkill[0].id;
-      } else {
-        const { data: createdSkill } = await supabase
-          .from("skills")
-          .insert({ name: skillName.trim(), category: "Umum & Terkait" })
-          .select("id")
-          .single();
-        if (createdSkill) skillId = createdSkill.id;
-      }
-
-      if (skillId) {
-        const isManual = Array.isArray(manualSkills) && manualSkills.includes(skillName);
-        await supabase.from("resume_skills").upsert({
-          resume_id: resumeId,
-          skill_id: skillId,
-          is_claimed_by_user: isManual,
-          evidence: isManual
-            ? "Ditambahkan secara mandiri oleh pelamar pada form koreksi."
-            : "Hasil ekstraksi dokumen CV yang dikonfirmasi oleh pengguna.",
-        }, { onConflict: "resume_id,skill_id" });
-      }
-    }
-
-    // 3. Kalkulasi Kecocokan dengan Seluruh Lowongan Aktif
-    const { data: activeJobs } = await supabase
-      .from("jobs")
-      .select("id, title, canonical_title, company, location, experience_years_min, education, min_gpa, seniority, job_skills(is_mandatory, skills(name))")
-      .eq("is_active", true);
-
-    let matchCount = 0;
-    if (activeJobs && activeJobs.length > 0) {
-      for (const job of activeJobs) {
-        const reqSkills: string[] = [];
-        const prefSkills: string[] = [];
-
-        for (const js of (job.job_skills as unknown as Array<{ is_mandatory: boolean; skills: { name: string } }>) || []) {
-          const sName = js.skills?.name;
-          if (sName) {
-            if (js.is_mandatory) reqSkills.push(sName);
-            else prefSkills.push(sName);
-          }
-        }
-
-        const matchResult = calculateJobMatch(
-          {
-            skills: skills || [],
-            experienceYears: Number(experienceYears) || 0,
-            education: education || "Sarjana (S1)",
-            gpa,
-            targetRole: targetRole || "Umum",
-          },
-          {
-            title: job.title,
-            canonicalTitle: job.canonical_title,
-            requiredSkills: reqSkills,
-            preferredSkills: prefSkills,
-            experienceYearsMin: job.experience_years_min,
-            education: job.education,
-            minGpa: job.min_gpa ?? null,
-            seniority: job.seniority,
-          }
-        );
-
-        await supabase.from("matches").upsert({
-          user_id: effectiveUserId,
-          resume_id: resumeId,
-          job_id: job.id,
-          match_status: matchResult.matchStatus,
-          score: matchResult.score,
-          score_breakdown: {
-            breakdown: matchResult.breakdown,
-            requirementsEvaluation: matchResult.requirementsEvaluation,
-            matchedSkills: matchResult.matchedSkills,
-            missingSkills: matchResult.missingSkills,
-            unprovenSkills: matchResult.unprovenSkills,
-          },
-          factors_supporting: matchResult.factorsSupporting,
-          factors_limiting: matchResult.factorsLimiting,
-        }, { onConflict: "resume_id,job_id" });
-
-        matchCount++;
-      }
-    }
+    const skillDetails = Array.isArray(body.skillDetails) ? body.skillDetails : [];
+    const { data: resumeId, error: saveError } = await supabase.rpc("save_resume_profile", {
+      p_resume_id: body.resumeId || null,
+      p_filename: filename || "CV_Terunggah.pdf",
+      p_file_url: ownedKey ? `r2://${ownedKey}` : null,
+      p_education: education || null, p_gpa: gpa, p_years: years,
+      p_experience_target: body.experienceTargetRole || null,
+      p_summary: summary || "", p_target: targetRole || null,
+      p_skills: cleanSkills.map((name) => {
+        const detail = skillDetails.find((s: { name: string }) => s.name === name);
+        return { name, claimed: manualSkills.includes(name), needsReview: detail?.needsReview ?? false,
+          evidence: typeof detail?.evidence === "string" ? detail.evidence : null };
+      }),
+    });
+    if (saveError) throw new Error(saveError.message);
 
     return NextResponse.json({
       success: true,
       resumeId,
-      matchCount,
       r2Key,
-      message: `CV berhasil disimpan dan ${matchCount} kecocokan lowongan berhasil dihitung.`,
+      message: "CV berhasil disimpan. Kecocokan dihitung dari CV dan target aktif saat membuka lowongan.",
     });
   } catch (error: unknown) {
     const err = error as Error;
@@ -224,7 +87,7 @@ export async function GET(req: NextRequest) {
 
     const { data: resumes, error } = await supabase
       .from("resumes")
-      .select("id, filename, file_url, education, gpa, experience_years, parsed_text, resume_skills(skills(name))")
+      .select("id, filename, file_url, education, gpa, experience_years, parsed_text, experience_target_role, resume_skills(is_claimed_by_user, needs_review, evidence, skills(name))")
       .eq("user_id", user.id)
       .eq("is_active", true)
       .limit(1);
@@ -235,12 +98,8 @@ export async function GET(req: NextRequest) {
     }
 
     const r = resumes[0];
-    const skills: string[] = [];
-    if (r.resume_skills) {
-      for (const rs of r.resume_skills as unknown as Array<{ skills: { name: string } }>) {
-        if (rs.skills?.name) skills.push(rs.skills.name);
-      }
-    }
+    const details = (r.resume_skills as unknown as Array<{ skills: { name: string }; is_claimed_by_user: boolean; needs_review: boolean; evidence: string | null }> || [])
+      .filter((rs) => rs.skills?.name).map((rs) => ({ name: rs.skills.name, claimed: rs.is_claimed_by_user, needsReview: rs.needs_review, evidence: cvEvidence(rs.evidence) }));
 
     const headers = new Headers();
     headers.set("Cache-Control", "private, no-store, must-revalidate");
@@ -255,7 +114,10 @@ export async function GET(req: NextRequest) {
           gpa: parseGpaValue(r.gpa),
           experienceYears: r.experience_years,
           summary: r.parsed_text,
-          skills,
+          skills: details.map((s) => s.name),
+          manualSkills: details.filter((s) => s.claimed).map((s) => s.name),
+          skillDetails: details,
+          experienceTargetRole: r.experience_target_role,
         },
       },
       { headers }

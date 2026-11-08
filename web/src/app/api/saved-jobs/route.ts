@@ -1,4 +1,8 @@
+import { jobExperienceYears } from "@/lib/job-experience";
 import { NextRequest, NextResponse } from "next/server";
+import { loadCandidateProfile } from "@/lib/candidate-profile";
+import { calculateJobMatch, getDisplayScore } from "@/lib/matching";
+import { splitJobSkills, type JobSkillRow } from "@/lib/job-skills";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 
 export async function GET(req: NextRequest) {
@@ -31,64 +35,19 @@ export async function GET(req: NextRequest) {
     // 2. Ambil detail lowongan terkait
     const { data: jobs, error: jobsErr } = await supabase
       .from("jobs")
-      .select("id, title, company, location, employment_type, seniority, source_name, source_url, job_skills(is_mandatory, skills(name))")
+      .select("id, title, company, location, employment_type, seniority, source_name, source_url, canonical_title, description, experience_years_min, education, min_gpa, job_skills(is_mandatory, skills(name))")
       .in("id", jobIds);
 
     if (jobsErr) throw new Error(jobsErr.message);
 
-    // 3. Ambil data match dan resume aktif untuk evaluasi akurat
-    const [{ data: matches }, { data: userResumes }] = await Promise.all([
-      supabase
-        .from("matches")
-        .select("job_id, match_status, score, factors_supporting, factors_limiting, score_breakdown")
-        .eq("user_id", effectiveUserId)
-        .in("job_id", jobIds),
-      supabase
-        .from("resumes")
-        .select("id, resume_skills(skills(name))")
-        .eq("user_id", effectiveUserId)
-        .eq("is_active", true)
-        .limit(1),
-    ]);
-
-    const userSkillSet = new Set<string>();
-    if (userResumes && userResumes.length > 0) {
-      for (const rs of (userResumes[0].resume_skills as unknown as Array<{ skills: { name: string } }>) || []) {
-        if (rs.skills?.name) userSkillSet.add(rs.skills.name.toLowerCase());
-      }
-    }
-
-    const matchMap = new Map();
-    if (matches) {
-      for (const m of matches) {
-        matchMap.set(m.job_id, m);
-      }
-    }
-
+    const candidate = await loadCandidateProfile(supabase, effectiveUserId);
     const savedJobs = (jobs || []).map((j: Record<string, unknown>) => {
-      const m = matchMap.get(j.id as string);
-      const reqSkills: string[] = [];
-
-      for (const js of (j.job_skills as unknown as Array<{ is_mandatory: boolean; skills: { name: string } }>) || []) {
-        if (js.skills?.name && js.is_mandatory) {
-          reqSkills.push(js.skills.name);
-        }
-      }
-
-      let matchedSkills: string[] = [];
-      let missingSkills: string[] = [];
-
-      const breakdownData = m?.score_breakdown as { matchedSkills?: string[]; missingSkills?: string[] } | undefined;
-      if (breakdownData?.matchedSkills) {
-        matchedSkills = breakdownData.matchedSkills;
-        missingSkills = breakdownData.missingSkills || [];
-      } else if (userSkillSet.size > 0) {
-        matchedSkills = reqSkills.filter((s) => userSkillSet.has(s.toLowerCase()));
-        missingSkills = reqSkills.filter((s) => !userSkillSet.has(s.toLowerCase()));
-      } else {
-        matchedSkills = [];
-        missingSkills = reqSkills;
-      }
+      const { required, preferred } = splitJobSkills(j.job_skills as unknown as JobSkillRow[]);
+      const m = candidate.activeResume ? calculateJobMatch({ skills: candidate.skills, experienceYears: candidate.years, education: candidate.education, gpa: candidate.gpa, targetRole: candidate.targetRole,
+        claimedSkills: candidate.claimedSkills, reviewSkills: candidate.reviewSkills, evidence: candidate.evidence }, {
+        title: String(j.title), canonicalTitle: j.canonical_title as string, requiredSkills: required, preferredSkills: preferred,
+        experienceYearsMin: jobExperienceYears(j.experience_years_min as number | null, j.description as string | null), education: j.education as string | null, minGpa: j.min_gpa as number | null, seniority: j.seniority as string | null,
+      }) : null;
 
       return {
         id: j.id,
@@ -99,18 +58,10 @@ export async function GET(req: NextRequest) {
         seniority: j.seniority || "Mid",
         sourceName: j.source_name,
         sourceUrl: j.source_url,
-        matchScore: m
-          ? m.match_status === "insufficient_evidence"
-            ? null
-            : Number(m.score)
-          : userSkillSet.size > 0
-          ? 50
-          : 0,
-        matchStatus: m ? m.match_status : userSkillSet.size > 0 ? "underqualified" : "insufficient_evidence",
-        matchedSkills,
-        missingSkills,
-        factorsSupporting: m ? m.factors_supporting : [],
-        factorsLimiting: m ? m.factors_limiting : [],
+        matchScore: m ? getDisplayScore(m) : null,
+        matchStatus: m?.matchStatus || "insufficient_evidence",
+        matchedSkills: m?.matchedSkills || [], missingSkills: m?.missingSkills || required,
+        factorsSupporting: m?.factorsSupporting || [], factorsLimiting: m?.factorsLimiting || [],
       };
     });
 

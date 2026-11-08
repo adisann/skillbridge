@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { LEARNING_PRIORITIES, learningItemFromRow, normalizeSkillName } from "@/lib/learning";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 
 export async function GET(req: NextRequest) {
@@ -19,20 +20,16 @@ export async function GET(req: NextRequest) {
 
     if (error) throw new Error(error.message);
 
+    const { data: aliasRows, error: aliasError } = await supabase.from("skill_aliases").select("alias, skills(name)");
+    if (aliasError) throw new Error(aliasError.message);
+    const aliases = Object.fromEntries((aliasRows || []).map((row) => [normalizeSkillName(row.alias), normalizeSkillName((row.skills as unknown as { name: string }).name)]));
     const headers = new Headers();
     headers.set("Cache-Control", "private, no-store, must-revalidate");
 
     return NextResponse.json(
       {
-        learningItems: (items || []).map((it) => ({
-          id: it.id,
-          skillName: it.skill_name,
-          reason: it.reason,
-          resourceSuggestion: it.resource_suggestion,
-          isDone: it.is_done,
-          priority: it.priority,
-          createdAt: it.created_at,
-        })),
+        learningItems: (items || []).map(learningItemFromRow),
+        aliases,
       },
       { headers }
     );
@@ -56,39 +53,29 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { skillName, reason, priority, resourceSuggestion } = body;
+    const { skillName, reason, priority = "Tinggi", resourceSuggestion, sourceJobId } = body;
 
-    if (!skillName || !skillName.trim()) {
+    if (typeof skillName !== "string" || !skillName.trim() || skillName.length > 200) {
       return NextResponse.json({ error: "Nama skill wajib diisi" }, { status: 400 });
     }
 
-    const { data: newItem, error } = await supabase
-      .from("learning_items")
-      .insert({
-        user_id: user.id,
-        skill_name: skillName.trim(),
-        reason: reason || "Ditambahkan berdasarkan analisis gap kebutuhan pasar kerja.",
-        priority: priority || "Tinggi",
-        resource_suggestion: resourceSuggestion || "Dokumentasi resmi dan latihan studi kasus praktis.",
-        is_done: false,
-      })
-      .select("*")
-      .single();
+    if (!LEARNING_PRIORITIES.includes(priority)) {
+      return NextResponse.json({ error: "Prioritas belajar tidak valid." }, { status: 400 });
+    }
+    const { data: newItem, error } = await supabase.rpc("add_learning_item", {
+      p_skill_name: skillName,
+      p_reason: typeof reason === "string" ? reason : "Ditambahkan ke rencana belajar.",
+      p_priority: priority,
+      p_resource: typeof resourceSuggestion === "string" ? resourceSuggestion : "",
+      p_job_id: sourceJobId || null,
+    });
 
     if (error) throw new Error(error.message);
 
     return NextResponse.json({
       success: true,
       message: `Skill '${skillName}' berhasil ditambahkan ke rencana belajar.`,
-      item: {
-        id: newItem.id,
-        skillName: newItem.skill_name,
-        reason: newItem.reason,
-        resourceSuggestion: newItem.resource_suggestion,
-        isDone: newItem.is_done,
-        priority: newItem.priority,
-        createdAt: newItem.created_at,
-      },
+      item: learningItemFromRow(newItem),
     });
   } catch (error: unknown) {
     const err = error as Error;
@@ -110,7 +97,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { id, isDone, priority } = body;
+    const { id, isDone, priority, notes } = body;
 
     if (!id) {
       return NextResponse.json({ error: "ID target belajar wajib disertakan" }, { status: 400 });
@@ -118,7 +105,15 @@ export async function PATCH(req: NextRequest) {
 
     const updateData: Record<string, unknown> = {};
     if (typeof isDone === "boolean") updateData.is_done = isDone;
-    if (priority) updateData.priority = priority;
+    if (priority !== undefined) {
+      if (!LEARNING_PRIORITIES.includes(priority)) return NextResponse.json({ error: "Prioritas belajar tidak valid." }, { status: 400 });
+      updateData.priority = priority;
+    }
+    if (notes !== undefined) {
+      if (typeof notes !== "string" || notes.length > 20000) return NextResponse.json({ error: "Catatan maksimal 20.000 karakter." }, { status: 400 });
+      updateData.notes = notes;
+    }
+    if (!Object.keys(updateData).length) return NextResponse.json({ error: "Tidak ada perubahan." }, { status: 400 });
 
     const { data: updated, error } = await supabase
       .from("learning_items")
@@ -132,15 +127,7 @@ export async function PATCH(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      item: {
-        id: updated.id,
-        skillName: updated.skill_name,
-        reason: updated.reason,
-        resourceSuggestion: updated.resource_suggestion,
-        isDone: updated.is_done,
-        priority: updated.priority,
-        createdAt: updated.created_at,
-      },
+      item: learningItemFromRow(updated),
     });
   } catch (error: unknown) {
     const err = error as Error;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AlertBanner } from "@/components/ui/error";
 import { SkeletonTable } from "@/components/ui/loading";
 import { ProtectedRoute } from "@/components/layout/protected-route";
@@ -19,7 +19,10 @@ import type { AdminTab } from "@/types/admin";
 const NOTIFICATION_TITLES = { success: "Berhasil", error: "Gagal", info: "Informasi" } as const;
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState<AdminTab>("jobs");
+  const router = useRouter();
+  const tab = useSearchParams().get("tab");
+  const activeTab: AdminTab = tab === "skills" || tab === "runs" ? tab : "jobs";
+  const setActiveTab = (next: AdminTab) => router.replace(`/admin?tab=${next}`, { scroll: false });
   const { jobs, runs, skills, sources, isLoading, notification, setNotification, refetch } = useAdminData();
   const actions = useAdminJobActions({ refetch, notify: setNotification });
   const { add, edit, url, ocr } = actions;
@@ -74,14 +77,14 @@ export default function AdminPage() {
 
         {add.show && (
           <JobFormModal
-            title="Tambah Lowongan Manual (Pipeline Processing)"
+            title="Tambah lowongan"
             values={add.form}
             onChange={add.setForm}
             onSubmit={add.submit}
             onClose={() => add.setShow(false)}
             isSubmitting={actions.isSubmitting}
             submitLabel="Simpan ke Katalog Lowongan"
-            submittingLabel="Menyimpan & Memproses Pipeline..."
+            submittingLabel="Menyimpan..."
             showSourceUrl
           />
         )}

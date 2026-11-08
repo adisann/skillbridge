@@ -1,14 +1,13 @@
-import { Plus, Target } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Target } from "lucide-react";
+import { LearningButton } from "@/components/learning-button";
 import type { LearningRec } from "@/types/insights";
 
 interface LearningRecommendationsProps {
   recommendations: LearningRec[];
-  onAdd: (rec: LearningRec) => void;
 }
 
 /** Skill dengan permintaan tertinggi yang belum ditemukan di CV pengguna. */
-export function LearningRecommendations({ recommendations, onAdd }: LearningRecommendationsProps) {
+export function LearningRecommendations({ recommendations }: LearningRecommendationsProps) {
   return (
     <div className="glass-panel p-6 rounded-2xl border border-sb-border space-y-4">
       <div className="flex items-center gap-2.5">
@@ -39,15 +38,7 @@ export function LearningRecommendations({ recommendations, onAdd }: LearningReco
               <p className="text-xs text-sb-text-2 leading-relaxed">{rec.reason}</p>
             </div>
             <div className="pt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onAdd(rec)}
-                className="w-full text-xs text-sb-navy hover:text-sb-blue hover:bg-sb-mist-soft border-sb-border"
-              >
-                <Plus className="w-3.5 h-3.5 mr-1" />
-                Tambah ke Target Belajar
-              </Button>
+              <LearningButton skillName={rec.skillName} reason={rec.reason} priority={rec.priority} />
             </div>
           </div>
         ))}

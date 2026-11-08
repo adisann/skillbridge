@@ -8,7 +8,7 @@ export interface MarketSkillItem {
   skillName: string;
   count: number; // n (jumlah lowongan)
   percentage: number; // e.g. 78 -> 78% dari total N
-  status: CVSkillStatus;
+  status: CVSkillStatus | "user_added";
   exampleRequirement?: string;
   isCustomLearned?: boolean;
 }
@@ -78,10 +78,10 @@ export function MarketSkillBarChart({
                         <Check className="w-3 h-3 text-sb-good stroke-[2.5]" />
                         Tercantum di CV
                       </span>
-                    ) : item.status === "needs_verification" ? (
+                    ) : (item.status === "needs_verification" || item.status === "user_added") ? (
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-sb-warning/15 text-sb-warning border border-sb-warning/30">
                         <AlertCircle className="w-3 h-3 text-sb-warning" />
-                        Perlu verifikasi
+                        {item.status === "user_added" ? "Ditambahkan oleh pengguna" : "Perlu verifikasi"}
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-sb-mist-soft text-sb-navy border border-sb-border">

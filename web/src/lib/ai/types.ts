@@ -32,10 +32,12 @@ export interface CandidateCVContext {
   resumeId: string;
   fullName: string;
   targetRole: string;
-  experienceYears: number;
+  experienceYears: number | null;
   education: string;
   gpa?: number | null;
   skills: string[];
+  claimedSkills?: string[];
+  reviewSkills?: string[];
   matchScore?: number;
   matchStatus?: string;
   matchedSkills?: string[];

@@ -1,4 +1,6 @@
-import { Plus, CheckCircle2, MinusCircle, HelpCircle, Check } from "lucide-react";
+import Link from "next/link";
+import { LearningButton } from "@/components/learning-button";
+import { CheckCircle2, MinusCircle, HelpCircle, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -10,6 +12,7 @@ type CvStatus = TopSkillInsight["cvStatus"];
 const STATUS_BADGE_CLASS: Record<CvStatus, string> = {
   tercantum: "bg-emerald-50 text-sb-good border-emerald-200",
   perlu_verifikasi: "bg-amber-50 text-sb-warning border-amber-200",
+  ditambahkan_pengguna: "bg-amber-50 text-sb-warning border-amber-200",
   belum_ditemukan: "bg-sb-mist-faint text-sb-text-2 border-sb-border",
 };
 
@@ -24,10 +27,9 @@ interface SkillRowProps {
   isGuest: boolean;
   sampleSizeN: number;
   onClaim: (skillName: string) => void;
-  onAddLearning: (skillName: string) => void;
 }
 
-function SkillRow({ item, isGuest, sampleSizeN, onClaim, onAddLearning }: SkillRowProps) {
+function SkillRow({ item, isGuest, sampleSizeN, onClaim }: SkillRowProps) {
   return (
     <div className="p-4 rounded-xl border border-sb-border bg-white/70 hover:bg-white hover:border-sb-blue/30 transition-ui flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
       <div className="flex items-start gap-3">
@@ -42,6 +44,7 @@ function SkillRow({ item, isGuest, sampleSizeN, onClaim, onAddLearning }: SkillR
               {item.category}
             </span>
           </div>
+          {!isGuest && (item.cvStatus === "perlu_verifikasi" || item.cvStatus === "ditambahkan_pengguna") && <p className="text-xs text-sb-text-2 mt-1">{item.cvStatus === "perlu_verifikasi" ? "Hasil ekstraksi belum ditinjau. Periksa skill dan cuplikan CV." : "Pengakuan mandiri; bukan verifikasi independen atau bukti tercantum di CV."}</p>}
           <p className="text-sb-text-2 mt-0.5 line-clamp-1 italic text-[11px]">
             Contoh persyaratan: &ldquo;{item.exampleRequirement}&rdquo;
           </p>
@@ -71,18 +74,12 @@ function SkillRow({ item, isGuest, sampleSizeN, onClaim, onAddLearning }: SkillR
                 <Check className="w-3.5 h-3.5 mr-1 text-sb-text-2" />
                 Saya Kuasai
               </Button>
-              <Button variant="primary" size="sm" onClick={() => onAddLearning(item.skillName)} className="text-xs">
-                <Plus className="w-3.5 h-3.5 mr-1" />
-                Pelajari
-              </Button>
+              <LearningButton skillName={item.skillName} />
             </>
           )}
 
-          {item.cvStatus === "perlu_verifikasi" && (
-            <Button variant="outline" size="sm" onClick={() => onAddLearning(item.skillName)} className="text-xs">
-              <Plus className="w-3.5 h-3.5 mr-1 text-sb-blue" />
-              Target Belajar
-            </Button>
+          {(item.cvStatus === "perlu_verifikasi" || item.cvStatus === "ditambahkan_pengguna") && (
+            <Link href={`/cv?skill=${encodeURIComponent(item.skillName)}#review-skills`} className="text-sb-blue underline font-semibold">Tinjau skill</Link>
           )}
         </div>
       )}
@@ -95,11 +92,10 @@ interface SkillComparisonCardProps {
   isGuest: boolean;
   sampleSizeN: number;
   onClaim: (skillName: string) => void;
-  onAddLearning: (skillName: string) => void;
 }
 
 /** Daftar frekuensi skill pasar; untuk pengguna login ditambah status CV dan aksinya. */
-export function SkillComparisonCard({ skills, isGuest, sampleSizeN, onClaim, onAddLearning }: SkillComparisonCardProps) {
+export function SkillComparisonCard({ skills, isGuest, sampleSizeN, onClaim }: SkillComparisonCardProps) {
   return (
     <Card>
       <CardHeader>
@@ -107,7 +103,7 @@ export function SkillComparisonCard({ skills, isGuest, sampleSizeN, onClaim, onA
         <CardDescription>
           {isGuest
             ? "Peringkat skill berdasarkan frekuensi kemunculannya pada persyaratan kualifikasi lowongan."
-            : "Status keahlian dinyatakan secara jelas: Tercantum di CV, Perlu verifikasi, atau Belum ditemukan di CV."}
+            : "Status keahlian dinyatakan secara jelas: Tercantum di CV, Ditambahkan oleh pengguna, Perlu verifikasi, atau Belum ditemukan di CV."}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -118,7 +114,6 @@ export function SkillComparisonCard({ skills, isGuest, sampleSizeN, onClaim, onA
             isGuest={isGuest}
             sampleSizeN={sampleSizeN}
             onClaim={onClaim}
-            onAddLearning={onAddLearning}
           />
         ))}
       </CardContent>

@@ -68,9 +68,9 @@ export function WorkerRunsTab({ runs, isSubmitting, onTrigger }: WorkerRunsTabPr
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Pemicu Sinkronisasi Worker (GitHub Actions & Live Crawler)</CardTitle>
+          <CardTitle>Ambil lowongan terbaru</CardTitle>
           <CardDescription>
-            Pipeline otomatis terjadwal via GitHub Actions (<code className="font-mono text-[11px] bg-sb-mist-soft px-1 py-0.5 rounded">.github/workflows/worker.yml</code>) setiap hari pukul 02:00 UTC dan mendukung pemicu manual <code className="font-mono text-[11px] bg-sb-mist-soft px-1 py-0.5 rounded">workflow_dispatch</code>. Kamu juga dapat memicu sinkronisasi langsung di bawah ini untuk pengujian data.
+            Pengambilan data dijadwalkan setiap hari. Gunakan tombol berikut untuk mengambil lowongan terbaru dari sumber yang dipilih.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -93,9 +93,9 @@ export function WorkerRunsTab({ runs, isSubmitting, onTrigger }: WorkerRunsTabPr
 
       <Card>
         <CardHeader>
-          <CardTitle>Log Audit Riwayat Eksekusi (worker_runs)</CardTitle>
+          <CardTitle>Riwayat pengambilan data</CardTitle>
           <CardDescription>
-            Mencatat data riwayat crawler: jumlah fetch, data baru, deduplikasi, dan isolasi error.
+            Lihat jumlah lowongan yang diambil, ditambahkan, dilewati, atau gagal.
           </CardDescription>
         </CardHeader>
         <CardContent>

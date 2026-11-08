@@ -32,12 +32,13 @@ export function JobFormModal({
     onChange({ ...values, [field]: e.target.value });
 
   return (
-    <ModalShell size="form">
+    <ModalShell size="form" onClose={onClose}>
       <ModalHeader onClose={onClose}>
         <h3 className="text-lg font-bold text-sb-navy">{title}</h3>
       </ModalHeader>
 
       <form onSubmit={onSubmit} className="space-y-4">
+        <p className="text-xs text-sb-text-2">* Wajib diisi. Kolom lain opsional; kosongkan jika belum diketahui.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <TextInput
             label="Judul Pekerjaan *"
@@ -57,18 +58,19 @@ export function JobFormModal({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <TextInput label="Lokasi" value={values.location} onChange={set("location")} />
-          <Select label="Role Target" value={values.role} onChange={set("role")} options={ROLE_OPTIONS} />
+          <Select label="Role Target" value={values.role} onChange={set("role")} options={values.role && !ROLE_OPTIONS.some(o => o.value === values.role) ? [...ROLE_OPTIONS, {label: values.role, value: values.role}] : ROLE_OPTIONS} />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <Select label="Senioritas" value={values.seniority} onChange={set("seniority")} options={SENIORITY_OPTIONS} />
+          <Select label="Senioritas" value={values.seniority} onChange={set("seniority")} options={[...SENIORITY_OPTIONS, ...(!SENIORITY_OPTIONS.some(o => o.value === values.seniority) ? [{label: values.seniority, value: values.seniority}] : [])]} />
           <TextInput
-            label="Min Pengalaman (Tahun)"
+            label="Pengalaman minimum (tahun)"
+            min={0} step={1}
             type="number"
             value={values.experience}
             onChange={set("experience")}
           />
-          <Select label="Pendidikan" value={values.education} onChange={set("education")} options={EDUCATION_OPTIONS} />
+          <Select label="Pendidikan" value={values.education} onChange={set("education")} options={[...EDUCATION_OPTIONS, ...(!EDUCATION_OPTIONS.some(o => o.value === values.education) ? [{label: values.education, value: values.education}] : [])]} />
         </div>
 
         <fieldset className="space-y-3">
@@ -106,7 +108,7 @@ export function JobFormModal({
         {showSourceUrl && (
           <div>
             <TextInput
-              label="Tautan Sumber Asli (Source URL)"
+              label="Tautan sumber asli"
               value={values.sourceUrl}
               onChange={set("sourceUrl")}
               placeholder="https://... (Kosongkan jika dari flyer fisik/poster)"
@@ -118,12 +120,11 @@ export function JobFormModal({
         )}
 
         <Textarea
-          label="Deskripsi Lengkap Lowongan *"
+          label="Deskripsi lengkap lowongan"
           rows={4}
           value={values.description}
           onChange={set("description")}
           placeholder="Tuliskan tanggung jawab dan kualifikasi lowongan..."
-          required
         />
 
         <ModalFooter>
