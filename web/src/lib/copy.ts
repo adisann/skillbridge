@@ -56,7 +56,7 @@ export const UI_COPY = {
     demoProcessTitle: "Membaca CV",
     demoDropHint: "Tarik CV ke sini",
     demoDropFormats: "PDF atau DOCX",
-    demoFileName: "CV_Rina_Putri.pdf",
+    demoFileName: "CV_Jane Doe.pdf",
     demoFileSize: "248 KB",
     demoUploading: "Mengunggah…",
     demoUploaded: "Terunggah",
