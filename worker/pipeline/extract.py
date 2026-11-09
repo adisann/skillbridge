@@ -41,14 +41,27 @@ KNOWN_SKILLS = [
     "A/B Testing", "Statistics", "Machine Learning", "Deep Learning", "Data Science", "DBT", "Airflow", "ETL",
     "Data Modeling", "Data Warehousing", "Data Visualization", "Data Cleaning", "Data Analysis", "Data Analytics",
     "E-Commerce Analytics", "Product Analytics", "Business Analytics", "Git", "Google Analytics", "Web Scraping",
-    "Jira", "Agile", "Scrum", "Business Process Mapping", "Stakeholder Management"
+    "Jira", "Agile", "Scrum", "Business Process Mapping", "Stakeholder Management", "Fivetran"
 ]
+
+# Penyebutan lain yang merujuk ke skill di KNOWN_SKILLS (regex atas teks huruf kecil)
+SKILL_PATTERNS = {
+    "Git": r"\b(?:gitlab|github|version control)\b",
+    "Stakeholder Management": r"\bstakeholder (?:engagement|management)\b",
+    "Airflow": r"\bapache airflow\b",
+}
+
+# Baris syarat pendidikan; nama jurusan di sini bukan skill (mis. "B.S. in Statistics")
+_DEGREE_LINE = re.compile(
+    r"degree|sarjana|\bs[12]\b|bachelor|master'?s|\bb\.?\s?sc?\.|\bm\.?\s?sc?\.|\bbsc\b|\bmsc\b|jurusan|lulusan"
+)
 
 
 def extract_job_details_rule_based(title: str, text: str) -> ExtractedJobDetails:
     """Ekstraksi berbasis aturan/heuristik untuk parsing cepat tanpa memanggil API LLM."""
     lower_title = title.lower()
-    lower_text = text.lower()
+    # Samakan penanda opsional seperti "Nice-to-Have" dengan "nice to have"
+    lower_text = re.sub(r"nice[\s-]+to[\s-]+have", "nice to have", text.lower())
 
     # Tentukan canonical_title
     if re.search(r"\bbi\b", lower_title) or "business intelligence" in lower_title:
@@ -81,9 +94,9 @@ def extract_job_details_rule_based(title: str, text: str) -> ExtractedJobDetails
 
     # Tentukan education
     education = None
-    if any(k in lower_text for k in ["s1", "sarjana", "bachelor"]):
+    if any(k in lower_text for k in ["s1", "sarjana", "bachelor"]) or re.search(r"\bb\.\s?sc?\.?(?=\W)|\bbsc\b", lower_text):
         education = "Bachelor"
-    elif any(k in lower_text for k in ["s2", "magister", "master"]):
+    elif any(k in lower_text for k in ["s2", "magister", "master"]) or re.search(r"\bm\.\s?sc?\.?(?=\W)|\bmsc\b", lower_text):
         education = "Master"
 
     # Deteksi skill
@@ -102,6 +115,19 @@ def extract_job_details_rule_based(title: str, text: str) -> ExtractedJobDetails
                 if only_degree and not has_tech_context:
                     continue
             found_skills.append(skill)
+    for skill, pattern in SKILL_PATTERNS.items():
+        if skill not in found_skills and re.search(pattern, lower_text):
+            found_skills.append(skill)
+
+    def mentions(skill: str, part: str) -> bool:
+        if skill == "Statistics":
+            return bool(re.search(r"\bstatistic(?:s|al)?\b", part))
+        if re.search(r"\b" + re.escape(skill.lower()) + r"\b", part):
+            return True
+        return bool(skill in SKILL_PATTERNS and re.search(SKILL_PATTERNS[skill], part))
+
+    def without_degree_lines(part: str) -> str:
+        return "\n".join(line for line in part.split("\n") if not _DEGREE_LINE.search(line))
 
     # Deteksi baris yang mengindikasikan kualifikasi opsional / nilai plus
     plus_lines = [
@@ -119,9 +145,10 @@ def extract_job_details_rule_based(title: str, text: str) -> ExtractedJobDetails
         pref_part = parts[1] if len(parts) > 1 else ""
 
         for s in found_skills:
-            s_pat = r"\b" + re.escape(s.lower()) + r"\b"
-            is_in_plus_line = bool(re.search(s_pat, plus_text))
-            is_in_pref_part = bool(re.search(s_pat, pref_part)) and not bool(re.search(s_pat, req_part))
+            # Nama jurusan di baris pendidikan tidak menjadikan skill itu wajib
+            req_scope = without_degree_lines(req_part) if s == "Statistics" else req_part
+            is_in_plus_line = mentions(s, plus_text)
+            is_in_pref_part = mentions(s, pref_part) and not mentions(s, req_scope)
 
             if is_in_plus_line or is_in_pref_part:
                 preferred.append(s)
@@ -129,8 +156,7 @@ def extract_job_details_rule_based(title: str, text: str) -> ExtractedJobDetails
                 required.append(s)
     else:
         for s in found_skills:
-            s_pat = r"\b" + re.escape(s.lower()) + r"\b"
-            if re.search(s_pat, plus_text):
+            if mentions(s, plus_text):
                 preferred.append(s)
             else:
                 required.append(s)
