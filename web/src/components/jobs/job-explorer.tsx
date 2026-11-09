@@ -17,14 +17,17 @@ import { cn } from "@/lib/utils";
 import { fetchDeduped } from "@/lib/fetcher";
 import { countJobsByCategory, filterJobs, sortByTargetFit } from "@/lib/job-list";
 import { useJobFeed } from "@/lib/hooks/use-job-feed";
+import type { JobListItem } from "@/types/job";
 import { useExplorerFilters, DEFAULT_FILTERS } from "@/lib/hooks/use-explorer-filters";
 import { useUrlPagination } from "@/lib/hooks/use-url-pagination";
 
 interface JobExplorerProps {
   mode?: "guest" | "user";
+  /** Daftar lowongan yang sudah dirender di server (halaman publik). */
+  initialJobs?: JobListItem[];
 }
 
-export function JobExplorer({ mode = "user" }: JobExplorerProps) {
+export function JobExplorer({ mode = "user", initialJobs }: JobExplorerProps) {
   const isGuest = mode === "guest";
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -48,7 +51,7 @@ export function JobExplorer({ mode = "user" }: JobExplorerProps) {
     setSavedJobIds,
     selectedJobId,
     setSelectedJobId,
-  } = useJobFeed({ role: filters.role, search, userId: user?.id, isGuest });
+  } = useJobFeed({ role: filters.role, search, userId: user?.id, isGuest, initialJobs });
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Scroll panel kembali ke atas saat lowongan aktif berganti

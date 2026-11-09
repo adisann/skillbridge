@@ -26,6 +26,10 @@ const DURATION: Record<Phase, number> = {
   out: 450,
 };
 
+// Hasil pertama (render server) ditahan lebih lama sebelum loop mulai: pengunjung sempat membaca,
+// dan tampilan awal tetap diam selama halaman dimuat (baik untuk Speed Index).
+const FIRST_RESULT_HOLD = 8000;
+
 const NEXT: Record<Phase, Phase> = { idle: "upload", upload: "process", process: "result", result: "out", out: "idle" };
 
 const STEP: Record<Phase, number> = { idle: 0, upload: 0, process: 1, result: 2, out: 2 };
@@ -62,9 +66,9 @@ function useDemoLoop() {
       const next = NEXT[phase];
       if (next === "upload") setCycle((n) => n + 1);
       setPhase(next);
-    }, DURATION[phase]);
+    }, phase === "result" && cycle === 0 ? FIRST_RESULT_HOLD : DURATION[phase]);
     return () => window.clearTimeout(timer);
-  }, [phase, running]);
+  }, [phase, running, cycle]);
 
   return { ref, phase, cycle, running };
 }

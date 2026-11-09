@@ -14,7 +14,7 @@ interface RawPublicJobSkill {
   };
 }
 
-interface RawPublicJob {
+export interface RawPublicJob {
   id: string;
   external_id?: string;
   title: string;

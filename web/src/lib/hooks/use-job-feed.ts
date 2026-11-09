@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { fetchDeduped } from "@/lib/fetcher";
 import type { JobListItem } from "@/types/job";
 
@@ -7,18 +7,30 @@ interface UseJobFeedOptions {
   search: string;
   userId?: string;
   isGuest: boolean;
+  /** Daftar awal dari server (tampilan default tanpa filter bidang/pencarian) agar tidak ada fetch & skeleton saat halaman dibuka. */
+  initialJobs?: JobListItem[];
 }
 
 /** Memuat daftar lowongan beserta lowongan tersimpan, dan menjaga lowongan yang sedang dipilih. */
-export function useJobFeed({ role, search, userId, isGuest }: UseJobFeedOptions) {
-  const [jobs, setJobs] = useState<JobListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export function useJobFeed({ role, search, userId, isGuest, initialJobs }: UseJobFeedOptions) {
+  // Data server hanya berlaku untuk tampilan default (tanpa filter bidang dari URL / pencarian)
+  const canUseInitial = !!initialJobs && role === "all" && !search.trim();
+  const [jobs, setJobs] = useState<JobListItem[]>(canUseInitial ? initialJobs : []);
+  const [isLoading, setIsLoading] = useState(!canUseInitial);
+  const usedInitial = useRef(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [savedJobIds, setSavedJobIds] = useState<string[]>([]);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [referenceTime, setReferenceTime] = useState<number>(0);
 
   useEffect(() => {
+    // Data server sudah cocok untuk tampilan default: lewati fetch pertama
+    if (canUseInitial && !usedInitial.current) {
+      usedInitial.current = true;
+      setReferenceTime(Date.now());
+      return;
+    }
+    usedInitial.current = true;
     const fetchJobs = async () => {
       setIsLoading(true);
       setErrorMsg(null);
@@ -54,6 +66,8 @@ export function useJobFeed({ role, search, userId, isGuest }: UseJobFeedOptions)
     };
 
     fetchJobs();
+    // initialJobs hanya dipakai sekali saat mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [role, search, userId, isGuest]);
 
   return {

@@ -1,18 +1,26 @@
-import { jobExperienceYears } from "@/lib/job-experience";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser, getAuthenticatedAdmin, getServiceSupabase } from "@/lib/supabase/server";
-import { calculateJobMatch, getDisplayScore } from "@/lib/matching";
+import { calculateJobMatch } from "@/lib/matching";
 import { getCachedPublicJobs, revalidateJobsCache } from "@/lib/public-jobs";
 import { getCategoryFromTitle, getCategoryBySlug } from "@/lib/job-categories";
 import { loadCandidateProfile } from "@/lib/candidate-profile";
 import { parseAdminSalary } from "@/lib/admin-salary";
-import { splitJobSkills } from "@/lib/job-skills";
+import { formatJobListItem, countJobsPerCategory } from "@/lib/job-list-format";
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const role = searchParams.get("bidang") || searchParams.get("role");
     const query = searchParams.get("q");
+
+    // Ringkasan ringan untuk landing page: jumlah lowongan & bidang, tanpa daftar lowongan
+    if (searchParams.get("summary") === "1") {
+      const allJobs = await getCachedPublicJobs();
+      return NextResponse.json(
+        { total: allJobs.length, categories: countJobsPerCategory(allJobs) },
+        { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=60" } }
+      );
+    }
 
     const { user, supabase } = await getAuthenticatedUser(req);
 
@@ -45,111 +53,9 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // 2. Ambil resume aktif pengguna jika pengguna terautentikasi
-    const {
-      activeResume,
-      skills: candidateSkills,
-      years: candidateYears,
-      education: candidateEdu,
-      gpa: candidateGpa,
-      targetRole, claimedSkills, reviewSkills, evidence,
-    } = await loadCandidateProfile(supabase, user?.id ?? null);
-
-    // Format lowongan dengan perhitungan hybrid matching
-    const formattedJobs = filteredJobs.map((j) => {
-      const { required: reqSkills, preferred: prefSkills } = splitJobSkills(j.job_skills);
-
-      // Hitung atau ambil data matching
-      let matchScore: number | null = null;
-      let matchStatus = "match";
-      let matchedSkills: string[] = [];
-      let missingSkills: string[] = [];
-      let unprovenSkills: string[] = [];
-      let factorsSupporting: string[] = [];
-      let factorsLimiting: string[] = [];
-      let scoreBreakdown: unknown[] = [];
-      let requirementsEvaluation: unknown[] = [];
-
-      // Jika ada resume aktif, hitung secara dinamis
-      if (activeResume) {
-        const liveMatch = calculateJobMatch(
-          { skills: candidateSkills, experienceYears: candidateYears, education: candidateEdu, gpa: candidateGpa, targetRole, claimedSkills, reviewSkills, evidence },
-          {
-            title: j.title,
-            canonicalTitle:
-          j.canonical_title === "BI Analyst" && /\bbusiness analyst\b/i.test(j.title)
-            ? "Business Analyst"
-            : j.canonical_title,
-            requiredSkills: reqSkills,
-            preferredSkills: prefSkills,
-            experienceYearsMin: jobExperienceYears(j.experience_years_min, j.description),
-            education: j.education || null,
-            minGpa: j.min_gpa ?? null,
-            seniority: j.seniority || null,
-          }
-        );
-
-        matchScore = getDisplayScore(liveMatch);
-        matchStatus = liveMatch.matchStatus;
-        matchedSkills = liveMatch.matchedSkills;
-        missingSkills = liveMatch.missingSkills;
-        unprovenSkills = liveMatch.unprovenSkills;
-        factorsSupporting = liveMatch.factorsSupporting;
-        factorsLimiting = liveMatch.factorsLimiting;
-        scoreBreakdown = liveMatch.breakdown;
-        requirementsEvaluation = liveMatch.requirementsEvaluation;
-      } else {
-        matchScore = null;
-        matchStatus = "insufficient_evidence";
-        factorsLimiting = ["CV belum terunggah. Unggah CV untuk mengevaluasi kecocokan kualifikasi."];
-        factorsSupporting = ["Data lowongan resmi aktif."];
-        scoreBreakdown = [];
-        requirementsEvaluation = [];
-      }
-
-      const jobCategory = getCategoryFromTitle(j.title, j.canonical_title);
-
-      return {
-        id: j.id,
-        externalId: j.external_id,
-        title: j.title,
-        canonicalTitle:
-          j.canonical_title === "BI Analyst" && /\bbusiness analyst\b/i.test(j.title)
-            ? "Business Analyst"
-            : j.canonical_title,
-        category: jobCategory.slug,
-        categoryLabel: jobCategory.label,
-        company: j.company,
-        location: j.location,
-        employmentType: j.employment_type,
-        seniority: j.seniority || "Mid",
-        experienceYearsMin: jobExperienceYears(j.experience_years_min, j.description),
-        education: j.education || "Bachelor",
-        salaryMin: j.salary_min ?? null,
-        salaryMax: j.salary_max ?? null,
-        salaryCurrency: j.salary_currency ?? null,
-        salaryPeriod: j.salary_period ?? null,
-        minGpa: j.min_gpa ?? null,
-        description: j.description,
-        sourceName: j.source_name,
-        sourceUrl: j.source_url,
-        retrievalMethod: j.retrieval_method,
-        retrievedAt: j.retrieved_at,
-        expiresAt: j.expires_at || null,
-        deadline: j.expires_at || null,
-        requiredSkills: reqSkills,
-        preferredSkills: prefSkills,
-        matchScore,
-        matchStatus,
-        matchedSkills,
-        missingSkills,
-        unprovenSkills,
-        factorsSupporting,
-        factorsLimiting,
-        scoreBreakdown,
-        requirementsEvaluation,
-      };
-    });
+    // 2. Ambil profil CV pengguna (kosong untuk tamu), lalu bentuk item daftar
+    const candidate = await loadCandidateProfile(supabase, user?.id ?? null);
+    const formattedJobs = filteredJobs.map((j) => formatJobListItem(j, candidate));
 
     const headers = new Headers();
     headers.set("Vary", "Cookie");

@@ -2,7 +2,7 @@ import { cvEvidence } from "@/lib/cv-evidence";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { parseGpaValue } from "@/lib/gpa";
 
-interface CandidateProfile {
+export interface CandidateProfile {
   activeResume: Record<string, unknown> | null;
   skills: string[];
   claimedSkills: string[];
