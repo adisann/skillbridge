@@ -49,8 +49,15 @@ function CareerStateProvider({ children }: { children: React.ReactNode }) {
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }
 export function CareerProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-  return <CareerStateProvider key={user?.id || "guest"}>{children}</CareerStateProvider>;
+  const { user, isLoading } = useAuth();
+  // Reset state (remount) hanya saat akun berganti atau logout. Sesi yang baru selesai dimuat
+  // (belum diketahui -> akun) tidak me-remount seluruh halaman.
+  const [account, setAccount] = useState<{ id: string | null | undefined; generation: number }>({ id: undefined, generation: 0 });
+  const id = user?.id ?? null;
+  if (!isLoading && id !== account.id) {
+    setAccount({ id, generation: account.id ? account.generation + 1 : account.generation });
+  }
+  return <CareerStateProvider key={account.generation}>{children}</CareerStateProvider>;
 }
 export function useCareer() {
   const value = useContext(Context);
