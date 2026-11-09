@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { Check, X, Layers, Briefcase } from "lucide-react";
+import { SkillChips } from "@/components/ui/skill-chips";
 import { UI_COPY } from "@/lib/copy";
 
 interface FloatingCard {
@@ -120,6 +121,7 @@ export function LandingSolution() {
               isVisible ? "" : "sb-merge-paused"
             }`}
           >
+            <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 500 440" fill="none" aria-hidden="true"><path d="M80 90C80 200 180 220 250 220M420 90C420 200 320 220 250 220M160 360C160 290 220 220 250 220" stroke="var(--sb-blue)" strokeOpacity=".4" strokeWidth="2" strokeLinecap="round"/></svg>
             {/* Kartu kecil mengambang, masuk ke kartu tengah, lalu muncul kembali (loop) */}
             {FLOATING_CARDS.map((card) => (
               <div
@@ -184,6 +186,7 @@ export function LandingSolution() {
                   ))}
                 </div>
               </div>
+              <div className="mt-4"><SkillChips skills={[`${UI_COPY.landing.sceneGap} · ${UI_COPY.landing.sceneMissing}`]} gapClass="gap-2" chipClass="" variant="missing" /></div>
             </div>
           </div>
         </div>

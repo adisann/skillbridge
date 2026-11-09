@@ -15,7 +15,7 @@
 
   /* Teks */
   --sb-text:   var(--sb-navy);                 /* teks utama */
-  --sb-text-2: rgba(27, 54, 93, 0.72);         /* teks sekunder: navy transparan, kontras ~5:1, BUKAN abu */
+  --sb-text-2: rgba(27, 54, 93, 0.88);         /* teks sekunder: navy transparan, kontras ~5:1, BUKAN abu */
 
   --sb-white: #FFFFFF;
   --sb-black: #0A0A0A;                          /* opsional, sangat jarang */
@@ -30,6 +30,8 @@
   /* Status */
   --sb-good:     #15803D;
   --sb-warning:  #B45309;
+  --sb-warning-soft: rgba(180, 83, 9, 0.12);
+  --sb-good-soft: rgba(21, 128, 61, 0.12);
   --sb-critical: #B91C1C;
 
   --background: #FFFFFF;
@@ -66,6 +68,8 @@
   --color-sb-black: var(--sb-black);
   --color-sb-good: var(--sb-good);
   --color-sb-warning: var(--sb-warning);
+  --color-sb-warning-soft: var(--sb-warning-soft);
+  --color-sb-good-soft: var(--sb-good-soft);
   --color-sb-critical: var(--sb-critical);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -434,3 +438,17 @@ html.js-ready .reveal-item.is-revealed {
     transform: none !important;
   }
 }
+
+
+.sb-dialog { border-radius: 24px; border: 1px solid var(--sb-border); font-family: var(--font-sans), sans-serif; color: var(--sb-navy); padding: 1.5rem; }
+.sb-dialog-title { font-size: 1.3rem; line-height: 1.5; }
+.sb-dialog-text { color: var(--sb-navy); font-size: .95rem; }
+.sb-dialog-actions { gap: .75rem; }
+.sb-dialog-confirm,.sb-dialog-danger,.sb-dialog-cancel { border-radius: 999px; padding: .75rem 1.5rem; font-size: .875rem; font-weight: 700; cursor: pointer; }
+.sb-dialog-confirm { background: var(--sb-sky); color: var(--sb-navy); }
+.sb-dialog-danger { background: var(--sb-critical); color: white; }
+.sb-dialog-cancel { background: white; color: var(--sb-blue); border: 1px solid var(--sb-border); }
+.sb-dialog button:focus-visible { outline: 3px solid var(--sb-blue); outline-offset: 3px; }
+.hero-enter { animation: hero-enter 350ms ease-out both; }
+@keyframes hero-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .hero-enter { animation: none; } }

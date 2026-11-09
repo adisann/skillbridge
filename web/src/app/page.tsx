@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { fetchDeduped } from "@/lib/fetcher";
+import { LandingStatsStrip } from "@/components/landing/stats-strip";
 import { LandingHero } from "@/components/landing/hero";
 import { LandingProblem } from "@/components/landing/problem";
 import { LandingSolution } from "@/components/landing/solution";
@@ -12,6 +13,9 @@ import { LandingClosing } from "@/components/landing/closing";
 
 export default function HomePage() {
   const [jobCounts, setJobCounts] = useState<Record<string, number>>({});
+
+  const [statsFailed, setStatsFailed] = useState(false);
+  const [stats, setStats] = useState<number | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -28,9 +32,10 @@ export default function HomePage() {
             counts[cat] = (counts[cat] || 0) + 1;
           });
           setJobCounts(counts);
+          setStats(data.jobs.length);
         }
       } catch {
-        // Fallback silently if offline
+        if (isMounted) setStatsFailed(true);
       }
     };
 
@@ -50,6 +55,7 @@ export default function HomePage() {
       />
 
       <LandingHero />
+      <LandingStatsStrip total={stats} fields={Object.keys(jobCounts).length} failed={statsFailed} />
       <LandingProblem />
       <LandingSolution />
       <LandingHowItWorks />

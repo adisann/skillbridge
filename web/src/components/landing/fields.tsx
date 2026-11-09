@@ -75,7 +75,7 @@ export function LandingFields({ jobCounts }: LandingFieldsProps) {
                 </div>
 
                 <div className="pt-2 border-t border-sb-border flex items-center justify-between text-xs">
-                  {typeof count === "number" && count > 0 ? (
+                  {typeof count === "number" && count >= 10 ? (
                     <span className="font-semibold text-sb-blue font-mono-metric">
                       {count} {UI_COPY.landing.fieldsJobsSuffix}
                     </span>

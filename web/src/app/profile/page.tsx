@@ -1,5 +1,7 @@
 "use client";
 
+import { confirmAction } from "@/lib/dialogs";
+
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
@@ -105,7 +107,7 @@ function ProfileContent() {
   };
 
   const handleResetDemo = async () => {
-    if (!window.confirm("Kembalikan akun demo ke kondisi awal presentasi?")) return;
+    if (!await confirmAction("Kembalikan akun demo ke kondisi awal presentasi?", { destructive: false, confirmText: "Ya, reset" })) return;
     setIsResetting(true);
     try {
       await resetDemoState();

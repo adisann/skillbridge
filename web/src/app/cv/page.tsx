@@ -1,12 +1,17 @@
 "use client";
 
+import { confirmAction } from "@/lib/dialogs";
+
 import React, { useState, useEffect, useRef } from "react";
 import { CareerContextBar } from "@/components/career-context-bar";
 import { useCareer } from "@/context/career-context";
-import { experienceParts, experienceInYears, formatExperience } from "@/lib/experience";
+import { experienceParts, experienceInYears } from "@/lib/experience";
 import Link from "next/link";
 import {
   Plus,
+  X,
+  UserRound,
+  Eraser,
   Trash2,
   ArrowRight,
   Check,
@@ -176,7 +181,7 @@ export default function CVPage() {
           setHasUnsavedDraft(true);
           setNotification({
             type: "info",
-            message: `Berkas '${data.filename}' berhasil diproses. Tinjau dan koreksi keahlian di bawah, lalu klik 'Simpan CV & Hitung Kecocokan'.`,
+            message: `Berkas '${data.filename}' berhasil diproses. Tinjau dan koreksi keahlian di bawah, lalu klik 'Simpan CV & analisis'.`,
           });
 
           return uploadedState;
@@ -213,7 +218,7 @@ export default function CVPage() {
     const payload = {
       resumeId: currentResume.id || null,
       experienceTargetRole: currentResume.experienceTargetRole || null,
-      skillDetails,
+      skillDetails: skillDetails.map(detail => ({ ...detail, needsReview: false })),
       targetRole,
       filename: currentResume.filename,
       fileUrl: currentResume.fileUrl,
@@ -243,6 +248,7 @@ export default function CVPage() {
           });
 
           setCurrentResume((prev) => ({ ...prev, id: data.resumeId }));
+          setSkillDetails(previous => previous.map(detail => ({ ...detail, needsReview: false })));
           setHasUnsavedDraft(false);
           await career.refresh();
           setNotification({
@@ -264,7 +270,7 @@ export default function CVPage() {
 
   const handleDeleteResume = async () => {
     if (!currentResume.id) return;
-    if (!confirm("Apakah kamu yakin ingin menghapus dokumen CV, hasil ekstraksi, dan seluruh kalkulasi match secara permanen?")) {
+    if (!await confirmAction("Hapus CV secara permanen?", { text: "Dokumen CV, hasil ekstraksi, dan hasil kecocokannya akan dihapus." })) {
       return;
     }
 
@@ -346,7 +352,7 @@ export default function CVPage() {
           />
         )}
 
-        <CareerContextBar beforeChange={() => !hasUnsavedDraft || window.confirm("Perubahan CV belum disimpan. Ganti konteks dan tinggalkan draft ini?")} />
+        <CareerContextBar beforeChange={async () => !hasUnsavedDraft || await confirmAction("Tinggalkan perubahan CV yang belum disimpan?", { destructive: false, confirmText: "Ya, lanjutkan" })} />
 
         {/* Section 1: Unggah CV & Persetujuan Privasi */}
         <Card id="upload">
@@ -403,7 +409,7 @@ export default function CVPage() {
 
         {/* Section 2: Role Target & Ringkasan Profil */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="md:col-span-1"><CardHeader><CardTitle>Target aktif</CardTitle></CardHeader><CardContent><p className="font-bold text-sb-navy">{targetRole || "Belum dipilih"}</p><p className="text-xs text-sb-text-2 mt-2">Gunakan pemilih di atas untuk menyimpan atau mengganti target karier. CV baru disimpan terpisah dari CV sebelumnya.</p></CardContent></Card>
+          <Card className="md:col-span-1"><CardHeader><CardTitle>Target aktif</CardTitle></CardHeader><CardContent><p className="font-bold text-sb-navy">{targetRole || "Belum dipilih"}</p><p className="text-xs text-sb-text-2 mt-2">Ubah melalui pemilih CV / target di atas.</p></CardContent></Card>
 
           <Card className="md:col-span-2">
             <CardHeader>
@@ -484,10 +490,13 @@ export default function CVPage() {
                         }} className="block w-full max-w-28 px-3 py-2 rounded-lg border border-sb-border bg-white" />
                     </label>)}
                   </div>
-                  <button type="button" className="text-xs text-sb-blue underline" onClick={() => { setCurrentResume((prev) => ({ ...prev, experienceYears: null, experienceTargetRole: targetRole })); setHasUnsavedDraft(true); }}>Kosongkan pengalaman</button>
-                  <p className="text-xs text-sb-text-2">{formatExperience(currentResume.experienceYears)}. Nol berarti belum berpengalaman; kosong berarti belum diisi.</p>
-                  <p className="text-xs text-sb-text-2">Pengalaman relevan untuk: <strong>{currentResume.experienceTargetRole || "Target pada profil sebelumnya (belum ditandai)"}</strong>. Tinjau relevansinya terhadap {targetRole}.</p>
-                  <button type="button" className="text-xs text-sb-blue underline" onClick={() => { setCurrentResume((prev) => ({ ...prev, experienceTargetRole: targetRole })); setHasUnsavedDraft(true); }}>Gunakan durasi ini sebagai pengalaman relevan untuk {targetRole}</button>
+                  <div className="flex items-center justify-between gap-2 pt-1">
+                    <span className="text-xs text-sb-text-2">{currentResume.experienceTargetRole ? `Untuk ${currentResume.experienceTargetRole}` : "Relevansi belum dipilih"}</span>
+                    <div className="flex items-center gap-1 shrink-0">
+                      {targetRole && currentResume.experienceTargetRole !== targetRole && <button type="button" title={`Gunakan pengalaman ini untuk ${targetRole}`} aria-label={`Gunakan pengalaman ini untuk ${targetRole}`} className="p-2 rounded-lg text-sb-blue hover:bg-sb-mist-soft focus-visible:outline-2 focus-visible:outline-sb-blue" onClick={() => { setCurrentResume(prev => ({ ...prev, experienceTargetRole: targetRole })); setHasUnsavedDraft(true); }}><Check className="w-4 h-4"/></button>}
+                      <button type="button" title="Kosongkan pengalaman" aria-label="Kosongkan pengalaman" disabled={currentResume.experienceYears === null} className="p-2 rounded-lg text-sb-text-2 hover:bg-sb-mist-soft disabled:opacity-30 focus-visible:outline-2 focus-visible:outline-sb-blue" onClick={() => { setCurrentResume(prev => ({ ...prev, experienceYears: null, experienceTargetRole: targetRole })); setHasUnsavedDraft(true); }}><Eraser className="w-4 h-4"/></button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -520,7 +529,7 @@ export default function CVPage() {
                 </span>
                 {hasUnsavedDraft ? (
                   <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sb-warning/15 text-sb-warning border border-sb-warning/30">
-                    Draft Baru (Belum Disubmit)
+                    Belum disimpan
                   </span>
                 ) : (
                   <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sb-good/10 text-sb-good border border-sb-good/30">
@@ -529,7 +538,7 @@ export default function CVPage() {
                 )}
               </CardTitle>
               <CardDescription>
-                Pengguna bebas mengoreksi hasil ekstraksi (menambah atau menghapus) sebelum kecocokan dihitung.
+                Tambahkan atau hapus skill sesuai keahlianmu.
               </CardDescription>
             </div>
             <Button
@@ -544,29 +553,25 @@ export default function CVPage() {
             </Button>
           </CardHeader>
           <CardContent className="space-y-5">
-            <p className="text-xs text-sb-text-2">Perlu verifikasi berarti hasil ekstraksi belum ditinjau. Periksa cuplikan dokumen, konfirmasikan hasil yang benar, atau tandai sebagai pengakuan mandiri. Pengakuan mandiri bukan verifikasi independen.</p>
-            <div className="space-y-3">
-              {skills.length === 0 && <p className="text-sm text-sb-text-2">Belum ada skill. Tambahkan pengakuan mandiri di bawah.</p>}
-              {skills.map((name) => {
-                const detail = skillDetails.find((s) => s.name === name);
-                const manual = manualSkills.includes(name);
-                const review = !manual && detail?.needsReview;
-                return <div key={name} className="rounded-xl border border-sb-border bg-white/70 p-3 space-y-2">
-                  <div className="flex flex-wrap justify-between gap-2"><strong className="text-sm text-sb-navy">{name}</strong><span className="text-xs text-sb-text-2">{manual ? "Ditambahkan oleh pengguna" : review ? "Perlu verifikasi" : "Tercantum di CV"}</span></div>
-                  <p className="text-xs text-sb-text-2 whitespace-pre-wrap break-words">{detail?.evidence ? `Cuplikan CV: ${detail.evidence}` : "Cuplikan bukti dari CV belum tersedia."}</p>
-                  <div className="flex flex-wrap items-center gap-3 text-xs">
-                    {review && <button type="button" className="text-sb-blue underline" onClick={() => { setSkillDetails((p) => p.map((s) => s.name === name ? { ...s, needsReview: false } : s)); setHasUnsavedDraft(true); }}>Konfirmasi hasil ekstraksi</button>}
-                    {!manual && <button type="button" className="text-sb-blue underline" onClick={() => { setManualSkills((p) => [...p, name]); setSkillDetails((p) => p.map((s) => s.name === name ? { ...s, needsReview: false, claimed: true } : s)); setHasUnsavedDraft(true); }}>Tandai sebagai pengakuan mandiri</button>}
-                    <button type="button" className="text-sb-critical underline" onClick={() => handleRemoveSkill(name)}>Hapus {name}</button>
-                  </div>
-                </div>;
-              })}
+            <p className="text-xs text-sb-text-2">Koreksi daftar skill, lalu simpan untuk digunakan dalam analisis. Ikon pengguna menandai skill yang ditambahkan sendiri.</p>
+            <div className="flex flex-wrap gap-2">
+              {skills.length === 0 && <p className="text-sm text-sb-text-2">Belum ada skill. Tambahkan di bawah.</p>}
+              {skills.map(name => <span key={name} className="inline-flex items-center gap-1.5 pl-3 pr-1 py-1 rounded-full bg-sb-mist-soft border border-sb-border text-sm font-semibold text-sb-navy">
+                {manualSkills.includes(name) && <UserRound className="w-3.5 h-3.5 text-sb-blue" aria-label="Ditambahkan sendiri"><title>Ditambahkan sendiri</title></UserRound>}
+                {name}
+                <button type="button" onClick={() => handleRemoveSkill(name)} aria-label={`Hapus ${name}`} title={`Hapus ${name}`} className="p-1.5 rounded-full text-sb-text-2 hover:bg-white hover:text-sb-critical focus-visible:outline-2 focus-visible:outline-sb-blue"><X className="w-3.5 h-3.5"/></button>
+              </span>)}
             </div>
+            {skills.length > 0 && <details className="text-xs text-sb-text-2"><summary className="cursor-pointer text-sb-blue font-semibold">Lihat asal skill</summary><ul className="mt-3 space-y-3">{skills.map(name => {
+              const detail = skillDetails.find(skill => skill.name === name);
+              const manual = manualSkills.includes(name);
+              return <li key={name} className="rounded-lg border border-sb-border p-3 bg-white/60"><div className="flex items-center justify-between gap-2"><strong className="text-sb-navy">{name}</strong><span>{manual ? "Ditambahkan sendiri" : "Hasil CV"}</span></div>{!manual && detail?.evidence && <p className="mt-1 line-clamp-2" title={detail.evidence}>{detail.evidence}</p>}{!manual && <button type="button" className="mt-2 inline-flex items-center gap-1 text-sb-blue underline" onClick={() => { setManualSkills(previous => [...previous, name]); setSkillDetails(previous => previous.map(skill => skill.name === name ? { ...skill, needsReview: false, claimed: true } : skill)); setHasUnsavedDraft(true); }}><UserRound className="w-3.5 h-3.5"/>Tandai ditambahkan sendiri</button>}</li>;
+            })}</ul></details>}
 
             {/* Add Skill Input */}
             <div className="flex items-center gap-2 max-w-md">
               <TextInput
-                label="Tambahkan skill sebagai pengakuan mandiri"
+                label="Tambah skill"
                 placeholder="Tambah skill baru (cth. SQL, Python, Tableau)..."
                 value={newSkillInput}
                 onChange={(e) => setNewSkillInput(e.target.value)}
@@ -584,7 +589,7 @@ export default function CVPage() {
               {hasUnsavedDraft ? (
                 <>
                   <AlertCircle className="w-3.5 h-3.5 text-sb-warning shrink-0" />
-                  <span>Draft baru: Simpan CV untuk memperbarui kalkulasi kecocokan lowongan.</span>
+                  <span>Simpan untuk menggunakan perubahan ini.</span>
                 </>
               ) : (
                 <>
@@ -608,7 +613,7 @@ export default function CVPage() {
                   </>
                 ) : (
                   <>
-                    {hasUnsavedDraft ? "Simpan CV & Hitung Kecocokan" : "Hitung Ulang Kecocokan"}
+                    Simpan CV & analisis
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </>
                 )}

@@ -1,5 +1,7 @@
 "use client";
 
+import { confirmAction, showNotice } from "@/lib/dialogs";
+
 import React, { useState, useEffect, useMemo, useTransition, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
@@ -209,7 +211,7 @@ function TrackerContent() {
   };
 
   const handleDeleteJob = async (jobId: string) => {
-    if (!confirm("Hapus lowongan ini dari pelacakan dan daftar simpanan?")) return;
+    if (!await confirmAction("Hapus lowongan ini dari pelacakan dan daftar simpanan?")) return;
 
     removeTrackedJobFromStorage(jobId, user?.id);
     setJobs((prev) => prev.filter((j) => j.id !== jobId));
@@ -236,7 +238,7 @@ function TrackerContent() {
       if (next.has(jobId)) next.delete(jobId);
       else {
         if (next.size >= 4) {
-          alert("Maksimal dapat membandingkan 4 lowongan sekaligus.");
+          void showNotice("Maksimal dapat membandingkan 4 lowongan sekaligus.");
           return prev;
         }
         next.add(jobId);

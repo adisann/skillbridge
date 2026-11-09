@@ -32,6 +32,8 @@ export default function ProgressPage() {
 function ProgressContent() {
   const learning = useLearning();
   const [savedJobs, setSavedJobs] = useState<SavedJobItem[]>([]);
+  const [priorityOrder, setPriorityOrder] = useState("high-first");
+  const moving = useRef(false);
   const [tab, setTab] = useState("learning");
   const [newTitle, setNewTitle] = useState("");
   const [priority, setPriority] = useState("Tinggi");
@@ -70,7 +72,15 @@ function ProgressContent() {
   };
   const uniqueItems = learning.items.filter((it) => !it.duplicateOf);
   const done = uniqueItems.filter((it) => it.isDone).length;
-  const sortedItems = [...uniqueItems].sort((a,b) => Number(a.isDone)-Number(b.isDone) || LEARNING_PRIORITIES.indexOf(a.priority as typeof LEARNING_PRIORITIES[number])-LEARNING_PRIORITIES.indexOf(b.priority as typeof LEARNING_PRIORITIES[number]) || a.skillName.localeCompare(b.skillName));
+  const priorities = priorityOrder === "high-first" ? [...LEARNING_PRIORITIES] : [...LEARNING_PRIORITIES].reverse();
+  const moveTarget = async (id: string, priority: string) => {
+    const item = uniqueItems.find(it => it.id === id);
+    if (!item || item.priority === priority || moving.current) return;
+    moving.current = true; setError("");
+    try { await learning.update(id, { priority }); setFeedback(`${item.skillName}: prioritas ${priority.toLowerCase()} tersimpan.`); }
+    catch (e) { setError((e as Error).message); }
+    finally { moving.current = false; }
+  };
   return <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
     <div className="page-banner rounded-3xl p-6 sm:p-8 border border-sb-border space-y-3">
       <h1 className="text-2xl sm:text-3xl font-extrabold text-sb-navy">Rencana Belajar</h1>
@@ -88,7 +98,8 @@ function ProgressContent() {
         }}>{t.label}</button>)}
     </div>
     <section role="tabpanel" id="panel-learning" aria-labelledby="tab-learning" hidden={tab !== "learning"} tabIndex={0} className="space-y-4">
-      <form onSubmit={add} className="rounded-2xl border border-sb-border bg-white/80 p-4 space-y-3">
+      <details className="rounded-2xl border border-sb-border bg-white/80 p-4"><summary className="cursor-pointer font-semibold text-sm text-sb-blue">Tambah target belajar</summary>
+      <form onSubmit={add} className="space-y-3 pt-4">
         <div className="flex flex-col sm:flex-row sm:items-end gap-3">
           <label className="flex-1 text-sm font-semibold text-sb-navy">Skill yang ingin dipelajari
             <input className="block w-full border border-sb-border rounded-xl p-3 mt-1" value={newTitle} maxLength={200} onChange={(e) => { setNewTitle(e.target.value); setFeedback(""); }} placeholder="cth. SQL, React, Teamwork" />
@@ -99,10 +110,13 @@ function ProgressContent() {
           <Button type="submit" isLoading={adding} disabled={!normalizeSkillName(newTitle) || !!learning.find(newTitle) || learning.isLoading || !!learning.loadError}>{learning.find(newTitle) ? "Sudah ditambahkan" : adding ? "Menambahkan…" : "Tambah"}</Button>
         </div>
         <p className="text-xs text-sb-text-2">Prioritas menentukan urutan fokus belajar, bukan tingkat penguasaan skill. Prioritas otomatis dapat kamu ubah.</p>
-        <p role="status" className="text-xs text-sb-good">{feedback}</p>
-      </form>
+
+      </form></details>
+      <p role="status" className="text-xs text-sb-good">{feedback}</p>
       {learning.loadError && <p role="alert" className="text-sm text-sb-critical">{learning.loadError} <button onClick={() => void learning.reload()} className="underline">Coba lagi</button></p>}
-      {learning.isLoading ? <SkeletonCard /> : sortedItems.length ? sortedItems.map((item) => <div key={item.id} className="space-y-2"><LearningItemEditor item={item} />{learning.items.some(it => it.duplicateOf === item.id) && <details className="rounded-xl border border-sb-border bg-white/60 p-3"><summary className="cursor-pointer text-sm text-sb-text-2">Tinjau {learning.items.filter(it => it.duplicateOf === item.id).length} salinan lama {item.skillName}</summary><p className="text-xs text-sb-text-2 my-3">Catatan dan progres salinan tetap disimpan. Salin informasi yang diperlukan sebelum menghapus salinan.</p><div className="space-y-3">{learning.items.filter(it => it.duplicateOf === item.id).map(it => <LearningItemEditor key={it.id} item={it} />)}</div></details>}</div>) : <p className="text-sm text-sb-text-2 p-6">Belum ada target belajar. Tambahkan skill di atas atau dari Tren Skill dan detail lowongan.</p>}
+      <div className="flex flex-wrap gap-3 items-center justify-between"><p className="text-xs text-sb-text-2">Buka panah untuk detail. Geser pegangan ke kelompok prioritas lain, atau gunakan tombol naik/turun.</p><label className="text-xs text-sb-navy">Urutkan prioritas<select className="ml-2 p-2 border border-sb-border rounded-lg bg-white" value={priorityOrder} onChange={e => setPriorityOrder(e.target.value)}><option value="high-first">Tinggi ke rendah</option><option value="low-first">Rendah ke tinggi</option></select></label></div>
+      {!learning.isLoading && uniqueItems.length > 0 && <div className="grid grid-cols-3 gap-2 sm:gap-3">{priorities.map(priority => <section key={priority} aria-label={`Prioritas ${priority}`} data-learning-priority={priority} onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }} onDrop={e => { e.preventDefault(); void moveTarget(e.dataTransfer.getData("text/plain"), priority); }} className="rounded-xl border border-dashed border-sb-blue/40 bg-sb-mist-faint/40 p-3 sm:p-4"><h2 className="text-sm font-bold text-sb-navy">{priority} ({uniqueItems.filter(it => it.priority === priority).length})</h2><p className="text-xs text-sb-text-2 mt-1">Geser target ke sini</p></section>)}</div>}
+      {learning.isLoading ? <SkeletonCard /> : !uniqueItems.length ? <p className="text-sm text-sb-text-2 p-6">Belum ada target belajar. Tambahkan skill di atas atau dari Tren Skill dan detail lowongan.</p> : [...uniqueItems].sort((a,b) => priorities.indexOf(a.priority as typeof priorities[number])-priorities.indexOf(b.priority as typeof priorities[number]) || Number(a.isDone)-Number(b.isDone) || a.skillName.localeCompare(b.skillName)).map(item => <div key={item.id} className="space-y-2"><LearningItemEditor item={item} draggable/>{learning.items.some(it => it.duplicateOf === item.id) && <details className="rounded-xl border border-sb-border bg-white/60 p-3"><summary className="cursor-pointer text-xs text-sb-text-2">Tinjau {learning.items.filter(it => it.duplicateOf === item.id).length} salinan lama {item.skillName}</summary><p className="text-xs text-sb-text-2 my-3">Catatan dan progres salinan tetap disimpan. Salin informasi yang diperlukan sebelum menghapus salinan.</p><div className="space-y-3">{learning.items.filter(it => it.duplicateOf === item.id).map(it => <LearningItemEditor key={it.id} item={it}/>)}</div></details>}</div>)}
     </section>
     <section role="tabpanel" id="panel-saved" aria-labelledby="tab-saved" hidden={tab !== "saved"} tabIndex={0} className="space-y-4">
       {savedLoading ? <SkeletonCard /> : <div className="space-y-3">

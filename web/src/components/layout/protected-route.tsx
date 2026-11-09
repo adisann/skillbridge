@@ -7,7 +7,7 @@ import { Lock } from "lucide-react";
 import { useAuth } from "@/lib/supabase/auth-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Spinner } from "@/components/ui/loading";
+import { SkeletonCard, SkeletonText } from "@/components/ui/loading";
 
 export function ProtectedRoute({
   children,
@@ -20,9 +20,9 @@ export function ProtectedRoute({
 
   if (isLoading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 space-y-3">
-        <Spinner size="lg" />
-        <p className="text-xs text-sb-text-2 font-medium">Memverifikasi sesi autentikasi...</p>
+      <div aria-busy="true" aria-label="Memuat halaman" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        <span className="sr-only" role="status">Memuat halaman dan memverifikasi sesi…</span>
+        <SkeletonText lines={2}/><div className="grid md:grid-cols-2 gap-4"><SkeletonCard/><SkeletonCard/></div>
       </div>
     );
   }

@@ -40,6 +40,11 @@ export function SkillTrends({ mode = "user" }: SkillTrendsProps) {
     workType: "all",
     seniority: "all",
   });
+  const [previousTarget, setPreviousTarget] = useState(career.targetRole);
+  if (previousTarget !== career.targetRole) {
+    setPreviousTarget(career.targetRole);
+    if (!isGuest) setFilters(previous => ({ ...previous, role: careerTargetFilter(career.targetRole) }));
+  }
   const { sampleSizeN, lastUpdatedDate, topSkills, learningRecs, isLoading, errorMsg, refresh } =
     useSkillInsights(filters);
   const { notice, claimSkill } = useSkillActions({

@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import "sweetalert2/dist/sweetalert2.min.css";
 import "./globals.css";
 import { RootShell } from "@/components/layout/root-shell";
 import { AuthProvider } from "@/lib/supabase/auth-context";
@@ -46,7 +47,7 @@ export default function RootLayout({
         <AuthProvider>
           <AsyncTaskProvider>
             <Suspense fallback={<div className="min-h-screen bg-sb-mist-faint/50" />}>
-              <CareerProvider><LearningProvider><CareerContent><RootShell>{children}</RootShell></CareerContent></LearningProvider></CareerProvider>
+              <CareerProvider><LearningProvider><RootShell><CareerContent>{children}</CareerContent></RootShell></LearningProvider></CareerProvider>
             </Suspense>
           </AsyncTaskProvider>
         </AuthProvider>

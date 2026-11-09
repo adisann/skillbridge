@@ -1,5 +1,6 @@
 "use client";
 
+import { showNotice } from "@/lib/dialogs";
 import React, { useState } from "react";
 import {
   Check,
@@ -16,6 +17,9 @@ import {
   Edit3,
 } from "lucide-react";
 
+import { ExampleResultCard } from "@/components/landing/hero-analysis-preview";
+import { SkillChips } from "@/components/ui/skill-chips";
+import { UI_COPY } from "@/lib/copy";
 import { SkillBridgeLogo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 import { ScoreRing } from "@/components/ui/score-ring";
@@ -164,6 +168,8 @@ export default function DesignSystemPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-16">
+      <section className="space-y-4"><h2 className="text-2xl font-bold">{UI_COPY.landing.sceneExample}</h2><div className="grid sm:grid-cols-2 gap-6"><ExampleResultCard/><div className="space-y-4"><SkillChips skills={[`${UI_COPY.landing.sceneGap} · ${UI_COPY.landing.sceneMissing}`]} gapClass="gap-2" chipClass="" variant="missing"/><div className="flex gap-3 flex-wrap"><Button size="lg">{UI_COPY.landing.heroCtaPrimary}</Button><Button variant="secondary" size="lg">{UI_COPY.landing.heroCtaSecondary}</Button></div><div className="flex gap-3 text-xs"><span className="bg-sb-good-soft text-sb-navy p-3 rounded-lg">--sb-good-soft</span><span className="bg-sb-warning-soft text-sb-navy p-3 rounded-lg">--sb-warning-soft</span></div></div></div></section>
+
       {/* --------------------------------------------------------------------- */}
       {/* Page Header */}
       {/* --------------------------------------------------------------------- */}
@@ -675,7 +681,7 @@ export default function DesignSystemPage() {
           totalSampleN={26}
           dataDate="November 2026"
           roleFilterLabel={filters.role}
-          onAddLearning={(skill) => alert(`Menambahkan ${skill} ke daftar target belajar`)}
+          onAddLearning={(skill) => void showNotice(`Menambahkan ${skill} ke daftar target belajar`)}
         />
       </section>
 
@@ -720,7 +726,7 @@ export default function DesignSystemPage() {
         </div>
 
         <div className="space-y-6">
-          <div className="flex items-center gap-6 p-4 rounded-2xl glass-panel">
+          <div className="flex flex-wrap items-center gap-6 p-4 rounded-2xl glass-panel">
             <Spinner size="sm" label="Memproses data (Small)..." />
             <Spinner size="md" label="Menganalisis kecocokan (Medium)..." />
             <Spinner size="lg" label="Mengekstrak CV (Large)..." />
@@ -783,7 +789,7 @@ export default function DesignSystemPage() {
             <ErrorState
               title="Koneksi Layanan Terputus"
               message="Tidak dapat menjangkau server Supabase. Pastikan konfigurasi jaringan atau variabel lingkunganmu sudah benar."
-              onRetry={() => alert("Mencoba menghubungkan kembali...")}
+              onRetry={() => void showNotice("Mencoba menghubungkan kembali...")}
             />
           </div>
         </div>

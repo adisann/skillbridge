@@ -43,8 +43,8 @@ export function LandingTrust() {
         </div>
 
         {/* SDG 8 & 10 statement */}
-        <div className="pt-2 text-center border-t border-sb-border/60">
-          <p className="text-base font-medium text-sb-blue pt-4">
+        <div className="pt-8 text-left border-t border-sb-border">
+          <p className="max-w-4xl text-2xl sm:text-3xl font-bold leading-relaxed tracking-tight text-sb-navy pt-4">
             {UI_COPY.landing.trustBottomLine}
           </p>
         </div>

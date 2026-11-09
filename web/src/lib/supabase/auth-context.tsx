@@ -1,9 +1,9 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "./client";
-import { clearDedupedCache } from "@/lib/fetcher";
+import { clearDedupedCache, fetchDeduped } from "@/lib/fetcher";
 
 interface AuthProfile {
   id: string;
@@ -30,70 +30,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const sessionGeneration = useRef(0);
 
-  // Load session saat awal muat via endpoint server /api/me (berbasis cookie httpOnly)
+  // Share session requests across the initial mount and auth notifications.
   useEffect(() => {
-    let isMounted = true;
-
-    const fetchSession = async () => {
+    let mounted = true;
+    const load = async () => {
+      const generation = ++sessionGeneration.current;
       try {
-        const res = await fetch("/api/me", {
-          headers: { "Cache-Control": "no-cache" },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (isMounted) {
-            setUser(data.user || null);
-            setIsLoading(false);
-            return;
-          }
-        }
-      } catch (err) {
-        console.warn("[AuthContext] Inisialisasi sesi server:", err);
-      }
-
-      if (isMounted) {
-        setUser(null);
-        setIsLoading(false);
-      }
+        const data = await fetchDeduped<{ user: AuthProfile | null }>("/api/me");
+        if (mounted && generation === sessionGeneration.current) setUser(data.user || null);
+      } catch { if (mounted && generation === sessionGeneration.current) setUser(null); }
+      finally { if (mounted && generation === sessionGeneration.current) setIsLoading(false); }
     };
-
-    fetchSession();
-
-    // Listener sinkronisasi perubahan auth di browser
+    void load();
     const supabase = createClient();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (!isMounted) return;
-      if (session?.user) {
-        try {
-          const res = await fetch("/api/me");
-          if (res.ok) {
-            const data = await res.json();
-            if (isMounted) setUser(data.user || null);
-          }
-        } catch {
-          // ignore
-        }
-      } else if (!session) {
-        // Cek apakah cookie sesi server masih aktif
-        try {
-          const res = await fetch("/api/me");
-          const data = await res.json();
-          if (isMounted) setUser(data.user || null);
-        } catch {
-          if (isMounted) setUser(null);
-        }
-      }
-      setIsLoading(false);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(event => {
+      if (!mounted || event === "INITIAL_SESSION") return;
+      clearDedupedCache("/api/me");
+      void load();
     });
-
-    return () => {
-      isMounted = false;
-      subscription.unsubscribe();
-    };
+    return () => { mounted = false; subscription.unsubscribe(); };
   }, []);
 
   const login = async (email: string, pass: string): Promise<{ success: boolean; error?: string; role?: "user" | "admin" }> => {
+    sessionGeneration.current++;
     setIsLoading(true);
 
     if (!pass || !pass.trim()) {
@@ -126,6 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
+    sessionGeneration.current++;
     setIsLoading(true);
     clearDedupedCache();
     try {

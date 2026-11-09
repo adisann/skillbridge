@@ -5,11 +5,11 @@ import Link from "next/link";
 import { useCareer } from "@/context/career-context";
 import { Button } from "@/components/ui/button";
 
-export function CareerContextBar({ beforeChange }: { beforeChange?: () => boolean }) {
+export function CareerContextBar({ beforeChange }: { beforeChange?: () => boolean | Promise<boolean> }) {
   const career = useCareer();
   const [target, setTarget] = useState("");
-  const change = (patch: { resumeId?: string; targetRole?: string }) => {
-    if (!beforeChange || beforeChange()) return career.change(patch);
+  const change = async (patch: { resumeId?: string; targetRole?: string }) => {
+    if (!beforeChange || await beforeChange()) return career.change(patch);
   };
   return <details className="rounded-2xl border border-sb-border bg-white/80 p-3 text-sm text-sb-navy">
     <summary className="cursor-pointer font-semibold break-words">CV: {career.activeResume?.filename || "Belum dipilih"} · Target: {career.targetRole || "Belum dipilih"}<span className="ml-2 text-xs text-sb-blue">Ubah CV / target</span></summary>

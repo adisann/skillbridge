@@ -42,7 +42,7 @@ export function useJobFeed({ role, search, userId, isGuest }: UseJobFeedOptions)
         if (savedData.savedJobIds) setSavedJobIds(savedData.savedJobIds);
 
         // Pilih lowongan pertama sebagai default
-        if (fetchedJobs.length > 0) {
+        if (!isGuest && fetchedJobs.length > 0) {
           setSelectedJobId((current) => current || fetchedJobs[0].id);
         }
       } catch (err: unknown) {

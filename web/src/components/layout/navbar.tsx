@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
@@ -11,9 +11,22 @@ import { NavbarMobileMenu } from "@/components/layout/navbar-mobile-menu";
 import { useAuth } from "@/lib/supabase/auth-context";
 import { cn } from "@/lib/utils";
 
+function subscribeToScroll(onChange: () => void) {
+  window.addEventListener("scroll", onChange, { passive: true });
+  window.addEventListener("pageshow", onChange);
+  return () => {
+    window.removeEventListener("scroll", onChange);
+    window.removeEventListener("pageshow", onChange);
+  };
+}
+
+function hasScrolled() {
+  return window.scrollY > 0;
+}
+
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
+  const isScrolled = useSyncExternalStore(subscribeToScroll, hasScrolled, () => false);
   const pathname = usePathname();
   const { user, isAuthenticated } = useAuth();
 
@@ -25,31 +38,12 @@ export function Navbar() {
 
   const isLanding = pathname === "/";
 
-  // Tutup menu dan reset scroll saat rute berubah (pola resmi render-time state adjustment)
+  // Tutup menu saat rute berubah; posisi scroll mengikuti browser.
   const [prevPathname, setPrevPathname] = useState(pathname);
   if (prevPathname !== pathname) {
     setPrevPathname(pathname);
     setIsOpen(false);
-    setIsScrolled(false);
   }
-
-  // Sentinel IntersectionObserver 8px untuk deteksi scroll di puncak landing (tanpa scroll listener)
-  useEffect(() => {
-    if (!isLanding) return;
-
-    const sentinel = document.getElementById("landing-sentinel");
-    if (!sentinel) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsScrolled(!entry.isIntersecting);
-      },
-      { threshold: 0 }
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [isLanding]);
 
   const getUserInitials = (name?: string) => {
     if (!name) return "SB";

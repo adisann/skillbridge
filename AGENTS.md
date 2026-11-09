@@ -2,6 +2,10 @@
 
 Acuan untuk AI agent yang mengerjakan proyek ini. Target: **MVP siap demo sebelum 7 November 2026** untuk INVOFEST 2026. Utamakan alur demo yang mulus, desain, dan usability. Jika ragu soal scope, pilih yang paling sederhana.
 
+## Aturan Commit
+
+- Saat membuat commit, gabungkan seluruh perubahan terkait satu tugas dalam **satu commit** setelah pekerjaan selesai. Jangan memecahnya menjadi banyak commit kecil, kecuali pengguna meminta secara eksplisit.
+
 ## 1. Produk
 
 SkillBridge membantu pencari kerja mengetahui lowongan yang relevan dengan CV mereka, skill yang belum ditemukan di CV, dan skill yang paling sering diminta untuk suatu role.

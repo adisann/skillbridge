@@ -1,3 +1,4 @@
+import { confirmAction } from "@/lib/dialogs";
 import { useState } from "react";
 import { useAsyncTask } from "@/context/async-task-context";
 import {
@@ -162,7 +163,7 @@ export function useAdminJobActions({ refetch, notify }: UseAdminJobActionsOption
   };
 
   const deleteJob = async (job: AdminJob) => {
-    if (!window.confirm(`Apakah kamu yakin ingin menghapus lowongan "${job.title}" di ${job.company} dari basis data?`)) {
+    if (!await confirmAction(`Hapus lowongan "${job.title}" di ${job.company}?`)) {
       return;
     }
     await runSubmit(async () => {

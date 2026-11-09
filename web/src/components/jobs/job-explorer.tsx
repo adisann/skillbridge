@@ -63,8 +63,12 @@ export function JobExplorer({ mode = "user" }: JobExplorerProps) {
   const userTargetRole = user?.targetRole;
   const filteredJobs = useMemo(() => {
     const list = filterJobs(jobs, filters, referenceTime);
+    if (isGuest && filters.role === "all" && !search.trim()) {
+      const core = new Set(["data-analitik", "bisnis-strategi", "produk-desain", "software"]);
+      return [...list].sort((a,b) => Number(core.has(b.category || ""))-Number(core.has(a.category || "")) || (Date.parse(b.retrievedAt) || 0)-(Date.parse(a.retrievedAt) || 0));
+    }
     return isGuest ? list : sortByTargetFit(list, filters.role, userTargetRole);
-  }, [jobs, filters, referenceTime, userTargetRole, isGuest]);
+  }, [jobs, filters, referenceTime, userTargetRole, isGuest, search]);
 
   const { currentPage, pageSize, totalPages, isPending, resetToFirstPage, changePage, changePageSize } =
     useUrlPagination(filteredJobs.length);
