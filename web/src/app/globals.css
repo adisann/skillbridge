@@ -452,3 +452,25 @@ html.js-ready .reveal-item.is-revealed {
 .hero-enter { animation: hero-enter 350ms ease-out both; }
 @keyframes hero-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) { .hero-enter { animation: none; } }
+
+/* Hero demo loop: unggah CV → baca CV → hasil (lihat hero-analysis-preview.tsx) */
+.hero-demo[data-paused] *,
+.hero-paused .hero-demo * {
+  animation-play-state: paused !important;
+}
+.hero-demo-rise { animation: hero-demo-rise 420ms var(--ease-out-strong) both; }
+.hero-demo-out { animation: hero-demo-out 450ms ease-in both; }
+.hero-demo-drop { animation: hero-demo-drop 420ms var(--ease-out-strong) both; }
+.hero-demo-fill { transform-origin: left center; animation: hero-demo-fill var(--fill-dur, 1200ms) var(--ease-in-out-strong) both; }
+.hero-demo-swap-out { animation: hero-demo-swap-out 200ms ease-out both; }
+.hero-demo-swap-in { animation: hero-demo-swap-in 220ms var(--ease-out-strong) both; }
+.hero-demo-scan { animation: hero-demo-scan 1.4s ease-in-out infinite alternate; }
+.hero-demo-bob { animation: hero-demo-bob 1.6s ease-in-out infinite; }
+@keyframes hero-demo-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes hero-demo-out { to { opacity: 0; transform: translateY(-6px); } }
+@keyframes hero-demo-drop { from { opacity: 0; transform: translateY(-28px) rotate(-2deg) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes hero-demo-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes hero-demo-swap-out { to { opacity: 0; transform: translateY(-4px); } }
+@keyframes hero-demo-swap-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes hero-demo-scan { from { transform: translateY(-100%); } to { transform: translateY(400%); } }
+@keyframes hero-demo-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
