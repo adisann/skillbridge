@@ -5,6 +5,7 @@ import {
   buildSystemInstruction,
   isCvRelatedQuery,
   getInstantTemplateAnswer,
+  PROMPT_VERSION,
 } from "@/lib/ai/prompts";
 import { streamAIWithFallback } from "@/lib/ai/provider";
 import { enforceRateLimits, getClientIp } from "@/lib/rate-limit";
@@ -139,7 +140,7 @@ export async function POST(
       salaryMax: job.salary_max ?? null,
       salaryPeriod: job.salary_period ?? null,
       description: job.description,
-      contentHash: job.content_hash || "default_hash",
+      contentHash: `${PROMPT_VERSION}:${job.content_hash || "default_hash"}`,
       sourceName: job.source_name,
       sourceUrl: job.source_url,
       retrievalMethod: job.retrieval_method,
@@ -276,7 +277,8 @@ export async function POST(
     }
 
     // 5. Build Scoped Prompt & Instructions
-    const systemInstruction = buildSystemInstruction(jobContext, candidateCv);
+    // Pertanyaan umum tidak memuat CV (undefined); null berarti akun memang belum punya CV aktif.
+    const systemInstruction = buildSystemInstruction(jobContext, needsCv ? candidateCv : undefined);
 
     // 6. Live Token Streaming via Gemini / Groq with Fallback
     const encoder = new TextEncoder();

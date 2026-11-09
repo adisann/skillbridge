@@ -3,6 +3,9 @@ import { formatGpa } from "../gpa.ts";
 import { formatSalaryRange } from "../salary.ts";
 import type { ActiveJobContext, CandidateCVContext, ChatMessage } from "./types";
 
+/** Naikkan saat aturan prompt berubah agar jawaban lama di cache tidak dipakai lagi. */
+export const PROMPT_VERSION = "p2";
+
 export function buildSystemInstruction(
   job: ActiveJobContext,
   cv?: CandidateCVContext | null
@@ -39,6 +42,13 @@ ${
     ? `- Keterampilan Belum Ditemukan di CV: ${cv.missingSkills.join(", ")}`
     : ""
 }
+`;
+  } else if (cv === undefined) {
+    cvSection = `
+=== KONTEKS CV PENGGUNA ===
+Pertanyaan ini tentang isi lowongan, jadi data CV pengguna sengaja tidak dimuat. Ini BUKAN berarti pengguna belum punya CV.
+Jangan menyebut status CV pengguna (misalnya "CV belum terdeteksi" atau "belum mengunggah CV") dan jangan menyarankan unggah CV. Jawab dari data lowongan saja.
+Jika pengguna ingin tahu kecocokan dirinya, sarankan bertanya langsung, misalnya "Apakah CV saya cocok dengan lowongan ini?".
 `;
   } else {
     cvSection = `
@@ -82,11 +92,12 @@ ${cvSection}
    - Selesaikan setiap kalimat dan daftar poin dengan penutup yang rapi dan logis.
 
 2. FORMAT JAWABAN (POLA ULTRALYTICS & RINGKAS):
-   - Terapkan pola respons Ultralytics: satu kalimat pembuka yang langsung mengarahkan ke fitur di platform, lalu langkah singkat bernomor (3–5 poin) dengan nama menu yang persis sama dengan UI, dan ditutup satu tautan tombol aksi format [Nama Aksi](/rute).
+   - Untuk pertanyaan tentang isi lowongan (tanggung jawab, skill, kualifikasi, lokasi, gaji, deadline) atau kecocokan CV, jawab langsung dari data di atas dalam 2–4 kalimat atau daftar poin singkat berisi isi lowongan. JANGAN tambahkan langkah navigasi platform atau tombol aksi untuk pertanyaan seperti ini.
+   - Pola langkah bernomor (3–5 poin) dengan nama menu yang persis sama dengan UI, ditutup satu tautan tombol aksi format [Nama Aksi](/rute), HANYA dipakai jika pengguna bertanya cara melakukan sesuatu di platform.
    - Hindari paragraf penjelasan panjang karena pengguna lebih butuh "harus klik apa" daripada teori. Batasi jawaban maksimal sekitar 80–100 kata.
    - Jangan gunakan heading (#, ##, ###), tabel, atau emoji. Jangan pakai bold lebih dari satu kali per jawaban, dan hanya untuk penekanan paling penting.
    - Gunakan nama menu yang persis sama dengan UI: "Upload CV", "Lowongan", "Lamaran Saya", "Tren Skill", "Dashboard", atau "Masuk / Daftar".
-   - Selalu sertakan satu tombol aksi di akhir baris seperti [Daftar sekarang](/register), [Upload CV](/cv), [Cari Lowongan](/jobs), atau [Buka Lamaran Saya](/tracker).
+   - Jika memang menjawab cara memakai platform, sertakan satu tombol aksi di akhir seperti [Daftar sekarang](/register), [Upload CV](/cv), [Cari Lowongan](/jobs), atau [Buka Lamaran Saya](/tracker).
    - Jangan membuka dengan sapaan yang menyebut nama lengkap pengguna, dan jangan menutup dengan kalimat basa-basi klise.
    - Untuk pertanyaan sederhana (misalnya lokasi atau tipe kerja), jawab langsung dalam satu atau dua kalimat.
    - Dalam jawaban analisis, sebut skill yang belum ditemukan di CV sebagai "belum ditemukan di CV", bukan "tidak punya".
