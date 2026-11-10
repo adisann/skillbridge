@@ -14,7 +14,7 @@
     "education": "Bachelor",
     "description": "Mencari Junior Data Analyst untuk mengekstrak data dari data warehouse, menyiapkan dashboard performa fitur fintech, dan query SQL.",
     "content_hash": "hash_gh_40112",
-    "retrieval_method": "public_api",
+    "retrieval_method": "seed",
     "is_active": true,
     "job_skills": [
       {
@@ -47,7 +47,8 @@
         },
         "is_mandatory": false
       }
-    ]
+    ],
+    "is_demo": true
   },
   {
     "id": "33333333-0000-0000-0000-000000000002",
@@ -64,7 +65,7 @@
     "education": "Bachelor",
     "description": "Karya Logistik membuka lowongan Business Intelligence (BI) Analyst untuk optimasi rute, pemantauan armada, dan efisiensi biaya logistik operasional.\n\nTanggung Jawab:\n- Mengembangkan dan memelihara dashboard BI untuk memantau KPI logistik harian, on-time delivery (OTD), dan utilisasi armada.\n- Mengekstraksi dan memproses data logistik berskala besar dari database operasional.\n- Menyusun laporan performa mingguan dan bulanan untuk manajemen eksekutif.\n\nKualifikasi Utama:\n- Pendidikan S1 Teknik Informatika, Sistem Informasi, Statistika, Matematika, atau bidang relevan.\n- Minimal 2 tahun pengalaman kerja sebagai BI Analyst, Data Analyst, atau Business Analyst.\n- Kemampuan tingkat lanjut dalam SQL (PostgreSQL, BigQuery, atau MySQL) untuk query analitik kompleks.\n- Pengalaman mendalam menggunakan Business Intelligence tools seperti Tableau, Power BI, atau Metabase.\n- Pengalaman dalam pemodelan data (Data Modeling) dan pemahaman konsep Data Warehousing / ETL.\n- Kemampuan analisis data (Data Analysis) yang kuat dan ketelitian tinggi terhadap integritas data.\n\nKualifikasi Tambahan / Nilai Plus:\n- Pengalaman pemrograman Python untuk otomatisasi laporan dan data scraping adalah nilai tambah.\n- Pemahaman tentang metrik supply chain dan logistik express di Indonesia.\n- Kemampuan komunikasi yang efektif untuk menyajikan temuan analitik kepada stakeholder non-teknis.",
     "content_hash": "548e7509a46b579ba6da20c58ccca06f7aad726f25d313f85ec14e2ed654f85f",
-    "retrieval_method": "jobspy",
+    "retrieval_method": "seed",
     "is_active": true,
     "job_skills": [
       {
@@ -101,7 +102,8 @@
     ],
     "preferred_skills": [
       "Python"
-    ]
+    ],
+    "is_demo": true
   },
   {
     "id": "33333333-0000-0000-0000-000000000003",
@@ -118,9 +120,10 @@
     "education": "Bachelor",
     "description": "Membantu tim merchant dan marketing menganalisis tren promosi bulanan dan customer lifetime value di platform e-commerce.",
     "content_hash": "hash_lev_88a2e1",
-    "retrieval_method": "public_api",
+    "retrieval_method": "seed",
     "is_active": true,
-    "job_skills": []
+    "job_skills": [],
+    "is_demo": true
   },
   {
     "id": "cdc6581d-e497-4c22-96ee-dc4dc9fc2ae8",

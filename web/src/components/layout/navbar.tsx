@@ -116,24 +116,15 @@ export function Navbar() {
                 </Link>
               </div>
             ) : (
-              /* Belum login: Masuk (ghost) dan Mulai gratis */
+              /* Belum login: hanya Masuk (pendaftaran publik ditutup) */
               <div className="flex items-center gap-2">
                 <Link href="/login">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-xs text-sb-text-2 hover:text-sb-navy font-semibold"
-                  >
-                    Masuk
-                  </Button>
-                </Link>
-                <Link href="/register">
                   <Button
                     variant="primary"
                     size="sm"
                     className="text-xs bg-sb-sky text-sb-navy font-bold hover:bg-sb-sky-hover shadow-xs"
                   >
-                    Mulai gratis
+                    Masuk
                   </Button>
                 </Link>
               </div>

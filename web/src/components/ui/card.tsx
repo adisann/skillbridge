@@ -244,7 +244,7 @@ export function JobCard({
         {/* Title & Score Gauge Row */}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <h4 className="text-base font-extrabold text-sb-navy tracking-tight line-clamp-2 leading-snug">
+            <h3 className="text-base font-extrabold text-sb-navy tracking-tight line-clamp-2 leading-snug">
               {onViewDetails ? (
                 <button
                   type="button"
@@ -257,7 +257,7 @@ export function JobCard({
               ) : (
                 <span title={formattedTitle}>{formattedTitle}</span>
               )}
-            </h4>
+            </h3>
             <div className="flex flex-wrap items-center gap-3 text-xs text-sb-text-2 pt-1.5">
               <span className="flex items-center gap-1">
                 <MapPin className="w-3.5 h-3.5 text-sb-blue shrink-0" />

@@ -201,7 +201,7 @@ export function JobExplorer({ mode = "user", initialJobs }: JobExplorerProps) {
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-sb-text-2 px-1">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-bold text-sb-navy">{filteredJobs.length} lowongan ditemukan</span>
+              <h2 className="font-bold text-sb-navy text-xs">{filteredJobs.length} lowongan ditemukan</h2>
               {showUserCategoryNote && (
                 <span className="text-sb-text-2 font-medium">
                   · Menampilkan bidang {userCategory.label} ·{" "}

@@ -4,7 +4,8 @@ import { CareerContextBar } from "@/components/career-context-bar";
 import { useCareer } from "@/context/career-context";
 import React, { useState } from "react";
 import { FilterBar } from "@/components/ui/filter";
-import { careerTargetFilter } from "@/lib/job-categories";
+import { careerTargetFilter, getCategoryBySlug } from "@/lib/job-categories";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FilterState } from "@/lib/job-filters";
 import { MarketSkillBarChart } from "@/components/ui/chart";
 import { AlertBanner } from "@/components/ui/error";
@@ -38,16 +39,38 @@ export function SkillTrends({ mode = "user" }: SkillTrendsProps) {
   const { isAuthenticated } = useAuth();
 
   const career = useCareer();
-  const [filters, setFilters] = useState<FilterState>({
-    role: isGuest ? "all" : careerTargetFilter(career.targetRole),
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  // ?bidang=<slug> (mis. dari Lowongan) menang atas target karier; slug tak dikenal diabaikan
+  const urlBidang = getCategoryBySlug(searchParams.get("bidang"))?.slug ?? null;
+  const [filters, setFiltersState] = useState<FilterState>({
+    role: urlBidang ?? (isGuest ? "all" : careerTargetFilter(career.targetRole)),
     workType: "all",
     seniority: "all",
   });
   const [previousTarget, setPreviousTarget] = useState(career.targetRole);
   if (previousTarget !== career.targetRole) {
     setPreviousTarget(career.targetRole);
-    if (!isGuest) setFilters(previous => ({ ...previous, role: careerTargetFilter(career.targetRole) }));
+    // Target karier yang selesai dimuat/berganti tidak boleh menimpa bidang dari URL
+    if (!isGuest && !urlBidang) setFiltersState(previous => ({ ...previous, role: careerTargetFilter(career.targetRole) }));
   }
+  const [previousUrlBidang, setPreviousUrlBidang] = useState(urlBidang);
+  if (previousUrlBidang !== urlBidang) {
+    // Navigasi kembali/maju mengubah query: samakan filter dengan URL
+    setPreviousUrlBidang(urlBidang);
+    setFiltersState(previous => ({ ...previous, role: urlBidang ?? (isGuest ? "all" : careerTargetFilter(career.targetRole)) }));
+  }
+  const setFilters = (next: FilterState) => {
+    setFiltersState(next);
+    const params = new URLSearchParams(searchParams.toString());
+    if (getCategoryBySlug(next.role)) params.set("bidang", next.role);
+    else params.delete("bidang");
+    const query = params.toString();
+    setPreviousUrlBidang(getCategoryBySlug(next.role)?.slug ?? null);
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  };
+  const roleLabel = filters.role === "all" ? "Semua bidang" : getCategoryBySlug(filters.role)?.label ?? filters.role;
   const { sampleSizeN, lastUpdatedDate, topSkills, learningRecs, isLoading, errorMsg, refresh } =
     useSkillInsights(filters);
   const { notice, claimSkill } = useSkillActions({
@@ -99,7 +122,7 @@ export function SkillTrends({ mode = "user" }: SkillTrendsProps) {
             }))}
             totalSampleN={sampleSizeN}
             dataDate={lastUpdatedDate}
-            roleFilterLabel={filters.role === "all" ? "Seluruh Posisi" : filters.role}
+            roleFilterLabel={roleLabel}
             isLoggedIn={!isGuest && isAuthenticated}
             renderActions={isGuest ? undefined : (item) => {
               if (item.status === "missing") {

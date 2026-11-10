@@ -8,7 +8,7 @@ export const maxDuration = 30;
 
 const MAX_SIZE = 10 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"];
-// Nilai cadangan extractor saat informasi tidak tertulis; jangan diisikan ke form pengguna
+// Nilai cadangan lama extractor saat informasi tidak tertulis; jangan diisikan ke form pengguna
 const PLACEHOLDER_COMPANY = "Perusahaan Terverifikasi";
 
 /**

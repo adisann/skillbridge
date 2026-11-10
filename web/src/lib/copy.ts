@@ -85,7 +85,7 @@ export const UI_COPY = {
     heroHeadingLine2: "tebak-tebakan.",
     heroSubheading:
       "Lihat skill dan kriteria dari banyak lowongan di bidangmu dalam satu tempat, lalu cek mana yang sudah ada di CV\u2011mu sebelum melamar.",
-    heroCtaPrimary: "Mulai gratis",
+    heroCtaPrimary: "Masuk ke akun",
     heroCtaSecondary: "Lihat lowongan",
     heroFieldDataTitle: "Data & Analitik",
     heroFieldDataChips: ["SQL", "Python", "Power BI", "Excel"] as const,
@@ -164,7 +164,7 @@ export const UI_COPY = {
     // 7. Penutup / Closing
     closingTitle: "Jadi kandidat yang tahu apa yang kamu tawarkan.",
     closingSubtitle: "Mulai dari CV yang kamu punya sekarang.",
-    closingCtaPrimary: "Mulai gratis",
+    closingCtaPrimary: "Masuk ke akun",
   },
 } as const;
 

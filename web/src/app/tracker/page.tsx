@@ -42,12 +42,23 @@ export default function TrackerPage() {
   );
 }
 
+interface CatalogJob {
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  employmentType?: string;
+  sourceName?: string;
+  matchScore?: number | null;
+  matchStatus?: TrackedJob["matchStatus"];
+  matchedSkills?: string[];
+  missingSkills?: string[];
+}
+
 function TrackerContent() {
   const { user } = useAuth();
   const [jobs, setJobs] = useState<TrackedJob[]>([]);
-  const [catalogJobs, setCatalogJobs] = useState<
-    Array<{ id: string; title: string; company: string; location: string }>
-  >([]);
+  const [catalogJobs, setCatalogJobs] = useState<CatalogJob[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Filter & Search states
@@ -86,7 +97,7 @@ function TrackerContent() {
       try {
         const [savedData, catalogData] = await Promise.all([
           fetchDeduped<{ savedJobs?: ServerSavedJob[] }>("/api/saved-jobs").catch(() => ({ savedJobs: [] as ServerSavedJob[] })),
-          fetchDeduped<{ jobs?: Array<{ id: string; title: string; company: string; location: string }> }>("/api/jobs").catch(() => ({ jobs: [] })),
+          fetchDeduped<{ jobs?: CatalogJob[] }>("/api/jobs").catch(() => ({ jobs: [] })),
         ]);
 
         if (!isMounted) return;
@@ -94,11 +105,17 @@ function TrackerContent() {
         if (catalogData.jobs) {
           setCatalogJobs(
             catalogData.jobs.map(
-              (j: { id: string; title: string; company: string; location: string }) => ({
+              (j: CatalogJob) => ({
                 id: j.id,
                 title: j.title,
                 company: j.company,
                 location: j.location,
+                employmentType: j.employmentType,
+                sourceName: j.sourceName,
+                matchScore: j.matchScore,
+                matchStatus: j.matchStatus,
+                matchedSkills: j.matchedSkills,
+                missingSkills: j.missingSkills,
               })
             )
           );
@@ -293,15 +310,16 @@ function TrackerContent() {
       title: catJob.title,
       company: catJob.company,
       location: catJob.location,
-      employmentType: "Full-time",
-      sourceName: "SkillBridge Catalog",
-      matchScore: 90,
-      matchStatus: "match",
-      matchedSkills: ["SQL", "Excel", "Data Analysis"],
-      missingSkills: [],
+      employmentType: catJob.employmentType || "",
+      sourceName: catJob.sourceName || "",
+      // Kecocokan diambil dari hasil analisis CV untuk lowongan ini, bukan angka bawaan
+      matchScore: catJob.matchScore ?? 0,
+      matchStatus: catJob.matchScore != null ? (catJob.matchStatus ?? "insufficient_evidence") : "insufficient_evidence",
+      matchedSkills: catJob.matchedSkills ?? [],
+      missingSkills: catJob.missingSkills ?? [],
       stage,
       priority,
-      salaryExpectation: salary || "Kompensasi Kompetitif",
+      salaryExpectation: salary || "",
       dateSaved: today,
       dateApplied: stage === "applied" ? today : undefined,
     };
@@ -335,15 +353,16 @@ function TrackerContent() {
       title: data.title,
       company: data.company,
       location: data.location || "Indonesia",
-      employmentType: "Full-time",
-      sourceName: "Target Mandiri",
-      matchScore: 85,
-      matchStatus: "match",
-      matchedSkills: ["Analytical Thinking", "Communication"],
+      employmentType: "",
+      sourceName: "Ditambahkan sendiri",
+      // Lowongan isian manual tidak punya data persyaratan, jadi kecocokan belum bisa dihitung
+      matchScore: 0,
+      matchStatus: "insufficient_evidence",
+      matchedSkills: [],
       missingSkills: [],
       stage: data.stage,
       priority: data.priority,
-      salaryExpectation: data.salary || "Rp 10.000.000 - Rp 15.000.000",
+      salaryExpectation: data.salary || "",
       dateSaved: today,
       dateApplied: data.stage === "applied" ? today : undefined,
     };

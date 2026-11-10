@@ -1,3 +1,4 @@
+import { isDemoJob } from "@/lib/demo-jobs";
 import { unstable_cache, revalidateTag } from "next/cache";
 import { getServiceSupabase } from "@/lib/supabase/server";
 import { getCanonicalSkill } from "@/lib/matching-config";
@@ -60,7 +61,8 @@ export const getCachedPublicJobs = unstable_cache(
         return [];
       }
 
-      return (jobs || []) as unknown as RawPublicJob[];
+      // Lowongan contoh/seed tidak ikut katalog publik, statistik, tren skill, maupun rekomendasi
+      return ((jobs || []) as unknown as RawPublicJob[]).filter((job) => !isDemoJob(job));
     } catch (err) {
       console.error("[getCachedPublicJobs] Exception:", err);
       return [];

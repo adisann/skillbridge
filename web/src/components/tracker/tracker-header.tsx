@@ -72,7 +72,7 @@ export function TrackerHeader({
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
           {canCompare && (
             <Button
               variant={compareMode ? "secondary" : "outline"}
@@ -130,9 +130,10 @@ export function TrackerHeader({
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 glass-panel p-3.5 rounded-2xl">
         {/* Search bar */}
         <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 text-sb-text-2 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-sb-text-2 absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
           <input
-            type="text"
+            type="search"
+            aria-label="Cari lowongan yang dilacak"
             placeholder="Cari lowongan, posisi, perusahaan..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
@@ -140,21 +141,21 @@ export function TrackerHeader({
           />
         </div>
 
-        <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-2.5">
+        <div className="flex flex-wrap items-center justify-between sm:justify-end w-full sm:w-auto gap-2.5 min-w-0">
           {/* Sort by */}
-          <div className="flex items-center gap-1.5 text-xs text-sb-text-2 font-semibold">
-            <SlidersHorizontal className="w-3.5 h-3.5 text-sb-text-2" />
+          <label className="flex items-center gap-1.5 text-xs text-sb-text-2 font-semibold min-w-0">
+            <SlidersHorizontal className="w-3.5 h-3.5 text-sb-text-2 shrink-0" aria-hidden="true" />
             <span>Urutkan:</span>
             <select
               value={sortBy}
               onChange={(e) => onSortChange(e.target.value as "priority" | "match" | "date")}
               className="py-1 px-2.5 rounded-xl border border-sb-border bg-white/80 text-xs font-bold text-sb-navy focus:outline-hidden cursor-pointer"
             >
-              <option value="priority">Prioritas Bintang (Tertinggi)</option>
-              <option value="match">Skor Match CV (Tertinggi)</option>
-              <option value="date">Terbaru Disimpan</option>
+              <option value="priority">Prioritas tertinggi</option>
+              <option value="match">Kecocokan CV tertinggi</option>
+              <option value="date">Terbaru disimpan</option>
             </select>
-          </div>
+          </label>
 
           {/* View switcher */}
           <div className="flex items-center border border-sb-border rounded-xl p-0.5 bg-sb-mist-faint">
@@ -164,7 +165,9 @@ export function TrackerHeader({
               className={`p-1.5 rounded-lg text-xs font-bold transition-ui ${
                 viewMode === "table" ? "bg-white text-sb-blue shadow-2xs" : "text-sb-text-2 hover:text-sb-navy"
               }`}
-              title="Tampilan Tabel & Perbandingan"
+              title="Tampilan tabel"
+              aria-label="Tampilan tabel"
+              aria-pressed={viewMode === "table"}
             >
               <TableIcon className="w-4 h-4" />
             </button>
@@ -174,7 +177,9 @@ export function TrackerHeader({
               className={`p-1.5 rounded-lg text-xs font-bold transition-ui ${
                 viewMode === "board" ? "bg-white text-sb-blue shadow-2xs" : "text-sb-text-2 hover:text-sb-navy"
               }`}
-              title="Tampilan Kanban Board Pipeline"
+              title="Tampilan papan"
+              aria-label="Tampilan papan"
+              aria-pressed={viewMode === "board"}
             >
               <LayoutGrid className="w-4 h-4" />
             </button>

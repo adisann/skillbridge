@@ -57,7 +57,9 @@ export interface JobDetailData {
   salaryPeriod?: string | null;
   minGpa?: number | null;
   sourceName: string;
-  sourceUrl: string;
+  /** Lowongan contoh (seed), bukan lowongan nyata. */
+  isDemo?: boolean;
+  sourceUrl: string | null;
   retrievalMethod: string;
   retrievedAt?: string;
   expiresAt?: string;

@@ -30,7 +30,7 @@ export function LandingClosing() {
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-2">
-              <Link href="/register">
+              <Link href="/login">
                 <Button variant="primary" size="lg" className="px-8">
                   {UI_COPY.landing.closingCtaPrimary}
                 </Button>

@@ -20,7 +20,7 @@ Tugas Anda adalah membaca teks atau gambar poster/flyer lowongan pekerjaan, lalu
 
 Aturan Ekstraksi:
 1. title: Judul posisi pekerjaan sesuai yang tertulis di dokumen/poster (cth. "Network Security Engineer", "Junior Data Analyst", "Cyber Security Engineer").
-2. company: Nama perusahaan penyelenggara rekrutmen. Jika tidak tertulis, tulis "Perusahaan Terverifikasi".
+2. company: Nama perusahaan penyelenggara rekrutmen. Jika tidak tertulis, kosongkan ("").
 3. location: Lokasi kerja (cth. "Jakarta, Indonesia (Hybrid)" atau "Indonesia").
 4. canonicalTitle: Pilih "BI Analyst" jika posisi berfokus pada Business Intelligence/Reporting/Power BI. Pilih "Data Analyst" untuk posisi analitik data, engineering, teknis lainnya.
 5. seniority: Pilih salah satu dari "Junior", "Mid", "Senior", atau "Lead". Jika tertera fresh graduate/intern/0-1 tahun, pilih "Junior".
@@ -297,7 +297,7 @@ function sanitizeJobData(raw: Record<string, unknown>, sourceUrl?: string): Extr
 
   return {
     title: rawTitle,
-    company: String(raw.company || "Perusahaan Terverifikasi").trim(),
+    company: String(raw.company || "").trim(),
     location: String(raw.location || "Indonesia (Hybrid)").trim(),
     canonicalTitle,
     seniority,

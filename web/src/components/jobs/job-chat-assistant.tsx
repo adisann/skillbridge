@@ -714,6 +714,7 @@ export function JobChatAssistant({
                 <input
                   ref={inputRef}
                   type="text"
+                  aria-label="Pertanyaan untuk asisten AI"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value.slice(0, 300))}
                   onKeyDown={handleKeyDown}
@@ -737,9 +738,10 @@ export function JobChatAssistant({
                   size="md"
                   onClick={handleStopGenerating}
                   title="Hentikan respons AI"
+                  aria-label="Hentikan respons"
                   className="shrink-0 rounded-xl gap-1.5"
                 >
-                  <Square className="w-3.5 h-3.5 fill-current" />
+                  <Square className="w-3.5 h-3.5 fill-current" aria-hidden="true" />
                   <span className="hidden sm:inline">Hentikan</span>
                 </Button>
               ) : (
@@ -749,8 +751,9 @@ export function JobChatAssistant({
                   size="md"
                   disabled={!inputValue.trim()}
                   className="shrink-0 rounded-xl"
+                  aria-label="Kirim pesan"
                 >
-                  <Send className="w-4 h-4" />
+                  <Send className="w-4 h-4" aria-hidden="true" />
                   <span className="hidden sm:inline">Kirim</span>
                 </Button>
               )}

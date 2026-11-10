@@ -60,17 +60,12 @@ export function NavbarMobileMenu({ isAuthenticated, onClose }: NavbarMobileMenuP
           ) : (
             <>
               <Link href="/login" onClick={onClose}>
-                <Button variant="ghost" size="md" className="w-full justify-center text-sb-navy font-semibold">
-                  Masuk
-                </Button>
-              </Link>
-              <Link href="/register" onClick={onClose}>
                 <Button
                   variant="primary"
                   size="md"
                   className="w-full justify-center bg-sb-sky text-sb-navy font-bold shadow-xs"
                 >
-                  Mulai gratis
+                  Masuk
                 </Button>
               </Link>
             </>

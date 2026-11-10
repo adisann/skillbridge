@@ -139,7 +139,7 @@ function GuestLoginCard({
 }) {
   return (
     <div className="p-5 rounded-2xl bg-sb-mist-soft border border-sb-border space-y-3">
-      <h4 className="text-sm font-bold text-sb-navy">Masuk untuk melihat skill mana yang sudah ada di CV-mu</h4>
+      <h3 className="text-sm font-bold text-sb-navy">Masuk untuk melihat skill mana yang sudah ada di CV-mu</h3>
       <p className="text-xs text-sb-text-2 leading-relaxed">
         Masuk dan unggah CV untuk membandingkan kualifikasi secara otomatis dengan lowongan ini.
       </p>

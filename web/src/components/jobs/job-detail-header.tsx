@@ -9,6 +9,16 @@ import { formatDeadlineDate } from "@/lib/job-detail";
 import type { JobDetailData } from "@/types/job";
 import { SalaryText } from "@/components/ui/salary-text";
 import { formatGpa } from "@/lib/gpa";
+import { DEMO_JOB_NOTICE } from "@/lib/demo-jobs";
+
+const SOURCE_LABEL: Record<string, string> = {
+  greenhouse: "Greenhouse",
+  lever: "Lever",
+  linkedin: "LinkedIn",
+  jobstreet: "JobStreet",
+  glints: "Glints",
+  admin_import: "Diimpor admin",
+};
 
 interface JobDetailHeaderProps {
   job: JobDetailData;
@@ -27,6 +37,11 @@ export function JobDetailHeader({ job, isGuest, isSaved, onToggleSave, onOpenCha
   return (
     <Card>
       <CardContent className="p-6 sm:p-8 space-y-6">
+        {job.isDemo && (
+          <p role="note" className="mb-4 rounded-xl border border-sb-warning/40 bg-sb-warning/10 px-4 py-3 text-sm text-sb-navy">
+            <strong>Lowongan contoh.</strong> {DEMO_JOB_NOTICE}
+          </p>
+        )}
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
           <div className="space-y-3 max-w-2xl">
             <span className="px-3 py-1 rounded-full bg-sb-mist-soft text-sb-navy border border-sb-border text-xs font-bold">
@@ -78,6 +93,15 @@ export function JobDetailHeader({ job, isGuest, isSaved, onToggleSave, onOpenCha
             </div>
           )}
         </div>
+
+        {!job.isDemo && (job.sourceName || job.retrievedAt) && (
+          <p className="pt-4 text-xs text-sb-text-2">
+            Sumber: <span className="font-semibold text-sb-navy">{SOURCE_LABEL[job.sourceName] ?? job.sourceName}</span>
+            {job.retrievedAt && !Number.isNaN(Date.parse(job.retrievedAt)) && (
+              <> · Diambil {new Date(job.retrievedAt).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</>
+            )}
+          </p>
+        )}
 
         <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-sb-border">
           {job.sourceUrl && job.sourceUrl.trim() !== "" ? (

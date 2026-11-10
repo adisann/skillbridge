@@ -187,11 +187,8 @@ export function getInstantTemplateAnswer(
     (/cara|gimana|bagaimana|langkah|alur|proses/i.test(cleaned) || cleaned === "daftar" || cleaned.includes("akun baru"))
   ) {
     return (
-      "Kamu bisa daftar dalam kurang dari 2 menit.\n\n" +
-      "1. Klik menu Masuk / Daftar di navigasi atas.\n" +
-      "2. Isi email dan buat kata sandi, atau gunakan akun demo.\n" +
-      "3. Lengkapi profil: pilih bidang target dan unggah CV.\n\n" +
-      "Setelah itu, rekomendasi lowongan langsung muncul di beranda. [Daftar sekarang](/register)"
+      "Pendaftaran akun baru sementara belum dibuka untuk menjaga keamanan dan kestabilan layanan.\n\n" +
+      "Kalau kamu sudah punya akun, masuk lewat menu Masuk di navigasi atas. [Masuk ke akun](/login)"
     );
   }
 

@@ -128,11 +128,7 @@ function ProfileContent() {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
-  const isDemoAccount =
-    user?.email?.includes("demo") ||
-    user?.email?.includes("juri") ||
-    user?.email === "juri@skillbridge.demo" ||
-    user?.email === "juri@skillbridge.id";
+  const isDemoAccount = !!user?.isDemo;
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">

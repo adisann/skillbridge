@@ -110,7 +110,7 @@ class JobstreetSource(JobSource):
             
             # Sanitasi nama perusahaan anonim
             if not company or "anonim" in company.lower():
-                company = "Perusahaan Terverifikasi"
+                company = "Perusahaan tidak disebutkan"
 
             # Lokasi
             locations = item.get("locations") or []

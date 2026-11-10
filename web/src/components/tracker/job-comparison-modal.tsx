@@ -182,7 +182,7 @@ export function JobComparisonModal({ jobs, isOpen, onClose, onUpdateStage }: Job
               <Row label="Ekspektasi gaji">
                 {jobs.map((job) => (
                   <td key={job.id} className="px-4 py-4 text-sb-navy">
-                    {job.salaryExpectation || <span className="text-sb-text-2">Belum diisi</span>}
+                    {job.salaryExpectation && job.salaryExpectation !== "Kompensasi Kompetitif" ? job.salaryExpectation : <span className="text-sb-text-2">Belum diisi</span>}
                   </td>
                 ))}
               </Row>

@@ -11,6 +11,8 @@ interface AuthProfile {
   fullName: string;
   role: "user" | "admin";
   targetRole: string;
+  /** Diisi server (/api/me, /api/auth/login). */
+  isDemo?: boolean;
 }
 
 interface AuthContextType {

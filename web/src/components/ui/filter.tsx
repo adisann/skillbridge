@@ -35,12 +35,12 @@ interface FilterSelectProps {
 }
 
 function FilterSelect({ field, surface, onSelect, linkLabel = false }: FilterSelectProps) {
+  // Label membungkus select (asosiasi implisit), jadi sheet mobile dan panel desktop sama-sama
+  // punya nama aksesibel tanpa id ganda di DOM.
   const controlId = linkLabel ? field.id : undefined;
   return (
-    <div className="space-y-1">
-      <label htmlFor={controlId} className={LABEL_CLASS}>
-        {field.label}
-      </label>
+    <label className="block space-y-1">
+      <span className={cn("block", LABEL_CLASS)}>{field.label}</span>
       <select
         id={controlId}
         value={field.value}
@@ -53,7 +53,7 @@ function FilterSelect({ field, surface, onSelect, linkLabel = false }: FilterSel
           </option>
         ))}
       </select>
-    </div>
+    </label>
   );
 }
 

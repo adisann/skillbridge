@@ -66,7 +66,7 @@ export function LandingHero() {
 
             {/* CTAs */}
             <div className="flex flex-wrap items-center gap-3 pt-1">
-              <Link href="/register">
+              <Link href="/login">
                 <Button
                   size="lg"
                   variant="primary"

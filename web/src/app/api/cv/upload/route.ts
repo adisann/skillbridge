@@ -5,13 +5,14 @@ import { getAuthenticatedUser } from "@/lib/supabase/server";
 import { enforceRateLimits, getClientIp } from "@/lib/rate-limit";
 import { cvUploadRules } from "@/lib/rate-limit-policies";
 import { extractGpaFromText } from "@/lib/gpa";
+import { SKILL_RULES, detectSkills, extractExperienceYears } from "@/lib/cv-extraction";
 
-const ALLOWED_MIME_TYPES = [
-  "application/pdf",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/msword",
-  "text/plain",
-];
+// Hanya PDF dan DOCX yang didukung (sama dengan teks di halaman unggah)
+const ALLOWED_TYPES: Record<string, string[]> = {
+  pdf: ["application/pdf", ""],
+  docx: ["application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/zip", ""],
+};
+const UNSUPPORTED_FORMAT = "Format file tidak didukung. Unggah CV dalam format PDF atau DOCX.";
 // Batas 4 MB: body request fungsi serverless Vercel maksimal 4,5 MB
 const MAX_FILE_SIZE_BYTES = 4 * 1024 * 1024;
 const MAX_PDF_PAGES = 10;
@@ -48,28 +49,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Validasi Jenis Berkas (MIME & Ekstensi)
+    if (file.size === 0) {
+      return NextResponse.json({ error: "Berkas kosong. Pilih CV dalam format PDF atau DOCX." }, { status: 400 });
+    }
+
+    // 2. Validasi jenis berkas: ekstensi DAN MIME harus cocok (browser kadang mengirim MIME kosong)
     const fileName = file.name.toLowerCase();
-    const hasValidExt = fileName.endsWith(".pdf") || fileName.endsWith(".docx") || fileName.endsWith(".doc");
-    if (!ALLOWED_MIME_TYPES.includes(file.type) && !hasValidExt) {
-      return NextResponse.json(
-        { error: "Format berkas tidak diizinkan. Unggah dokumen berformat .PDF atau .DOCX." },
-        { status: 400 }
-      );
+    const ext = fileName.split(".").pop() || "";
+    const allowedMimes = ALLOWED_TYPES[ext];
+    if (!allowedMimes || !allowedMimes.includes(file.type)) {
+      return NextResponse.json({ error: UNSUPPORTED_FORMAT }, { status: 400 });
     }
 
     // 3. Validasi isi berkas (signature), bukan hanya nama/MIME yang bisa dipalsukan
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    const isPdfFile = fileName.endsWith(".pdf") || file.type === "application/pdf";
-    const isDocxFile =
-      fileName.endsWith(".docx") ||
-      file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    const isPdfFile = ext === "pdf";
+    const isDocxFile = ext === "docx";
     if (isPdfFile && buffer.toString("latin1", 0, 5) !== PDF_SIGNATURE) {
-      return NextResponse.json({ error: "Isi berkas bukan PDF yang valid." }, { status: 400 });
+      return NextResponse.json({ error: "Isi berkas bukan PDF yang valid. " + UNSUPPORTED_FORMAT }, { status: 400 });
     }
     if (isDocxFile && buffer.toString("latin1", 0, 2) !== ZIP_SIGNATURE) {
-      return NextResponse.json({ error: "Isi berkas bukan DOCX yang valid." }, { status: 400 });
+      return NextResponse.json({ error: "Isi berkas bukan DOCX yang valid. " + UNSUPPORTED_FORMAT }, { status: 400 });
     }
 
     // 4. Ekstraksi Profil & Kualifikasi (Teks CV tidak masuk log sesuai NFR-02 & NFR-06)
@@ -86,19 +87,17 @@ export async function POST(req: NextRequest) {
         }
         extractedText = Array.isArray(pdfData.text) ? pdfData.text.join("\n") : (pdfData.text || "");
       } catch {
-        extractedText = buffer.toString("utf-8", 0, Math.min(buffer.length, 65536));
+        return NextResponse.json({ error: "PDF tidak dapat dibaca. Pastikan berkas tidak rusak atau terkunci kata sandi." }, { status: 422 });
       }
-    } else if (isDocxFile) {
+    } else {
       try {
         const mammoth = await import("mammoth");
         const mammothResult = await mammoth.extractRawText({ buffer });
         extractedText = mammothResult.value || "";
       } catch (docErr) {
         console.warn("[Upload] Gagal mengekstrak DOCX via mammoth:", docErr);
-        extractedText = buffer.toString("utf-8", 0, Math.min(buffer.length, 65536));
+        return NextResponse.json({ error: "DOCX tidak dapat dibaca. Pastikan berkas tidak rusak." }, { status: 422 });
       }
-    } else {
-      extractedText = buffer.toString("utf-8", 0, Math.min(buffer.length, 65536));
     }
 
     // Validasi NFR-04: Dokumen kosong atau tidak memuat teks
@@ -115,53 +114,12 @@ export async function POST(req: NextRequest) {
     // 5. Simpan ke Cloudflare R2 Bucket Privat, hanya setelah berkas lolos semua validasi
     // Key per-pengguna dan acak: tidak bisa ditebak, dan kepemilikannya bisa diverifikasi saat simpan/hapus.
     const safeKey = `${resumeKeyPrefix(user.id)}${randomUUID()}.${isPdfFile ? "pdf" : "docx"}`;
-    const { presignedUrl } = await uploadToR2(buffer, safeKey, file.type || "application/pdf");
+    const contentType = isPdfFile ? "application/pdf" : "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    const { presignedUrl } = await uploadToR2(buffer, safeKey, contentType);
 
     const lowerText = extractedText.toLowerCase();
 
-    // Taksonomi aturan regex dengan boundary kata (mencegah salah deteksi huruf tunggal seperti 'r')
-    const SKILL_RULES = [
-      { name: "Python", regex: /\b(python|python3|py)\b/i },
-      { name: "SQL", regex: /\b(sql|pl\/sql)\b/i },
-      { name: "PostgreSQL", regex: /\b(postgresql|postgres)\b/i },
-      { name: "MySQL", regex: /\bmysql\b/i },
-      { name: "JavaScript", regex: /\b(javascript|js|ecmascript|node\.?js)\b/i },
-      { name: "PHP", regex: /\b(php|mvc\s*php)\b/i },
-      { name: "Laravel", regex: /\b(laravel)\b/i },
-      { name: "Django", regex: /\b(django)\b/i },
-      { name: "Microsoft Excel", regex: /\b(microsoft\s*excel|ms\s*excel|excel|pivot\s*tables?)\b/i },
-      { name: "Microsoft Office", regex: /\b(microsoft\s*office|ms\s*office|office\s*365)\b/i },
-      { name: "Tableau", regex: /\b(tableau)\b/i },
-      { name: "Looker", regex: /\b(looker|looker\s*studio|google\s*data\s*studio)\b/i },
-      { name: "Power BI", regex: /\b(power\s*bi|powerbi|dax)\b/i },
-      { name: "Data Visualization", regex: /\b(data\s*visualization|visualisasi\s*data)\b/i },
-      { name: "Web Scraping", regex: /\b(web\s*scraping|scraping|selenium|beautifulsoup|bs4)\b/i },
-      { name: "Pandas", regex: /\b(pandas)\b/i },
-      { name: "Machine Learning", regex: /\b(machine\s*learning|scikit-learn|lightgbm|xgboost|tensorflow|pytorch)\b/i },
-      { name: "Deep Learning", regex: /\b(deep\s*learning)\b/i },
-      { name: "Data Science", regex: /\b(data\s*science|sains\s*data|data\s*scientist)\b/i },
-      { name: "Business Analytics", regex: /\b(business\s*analytics|analitika\s*bisnis|business\s*analysis)\b/i },
-      { name: "Data Cleaning", regex: /\b(data\s*cleaning|pembersihan\s*data|data\s*preprocessing)\b/i },
-      { name: "Data Modeling", regex: /\b(data\s*modeling|predictive\s*modeling|pemodelan\s*data)\b/i },
-      { name: "Database Management", regex: /\b(database\s*management|database|basis\s*data|dbms)\b/i },
-      { name: "Git", regex: /\b(git|github|gitlab)\b/i },
-      { name: "Statistics", regex: /\b(statistics|statistika|statistical)\b/i },
-      { name: "Project Management", regex: /\b(project\s*management|manajemen\s*proyek)\b/i },
-      { name: "ETL", regex: /\b(etl|data\s*pipeline)\b/i },
-      { name: "BigQuery", regex: /\b(bigquery|google\s*bigquery)\b/i },
-      { name: "Snowflake", regex: /\b(snowflake)\b/i },
-      { name: "dbt", regex: /\b(dbt|data\s*build\s*tool)\b/i },
-      { name: "Metabase", regex: /\b(metabase)\b/i },
-      { name: "A/B Testing", regex: /\b(a\/b\s*testing|ab\s*testing)\b/i },
-      { name: "R", regex: /\b(bahasa\s*r|r\s*programming|r-project|rstudio)\b/i },
-    ];
-
-    const detectedSkills: string[] = [];
-    for (const rule of SKILL_RULES) {
-      if (rule.regex.test(extractedText)) {
-        detectedSkills.push(rule.name);
-      }
-    }
+    const detectedSkills = detectSkills(extractedText);
 
     // NFR-03 & E04: Tidak menyuntikkan skill default palsu bila teks tidak memuat skill
     const finalSkills = detectedSkills;
@@ -199,12 +157,8 @@ export async function POST(req: NextRequest) {
 
     const gpa = extractGpaFromText(extractedText);
 
-    // A mentioned duration is a draft, to be reviewed for relevance to the target.
-    const yearMatch = lowerText.match(/(\d+)\+?\s*(?:tahun|thn|years?|yrs?)\b/);
-    const monthMatch = lowerText.match(/(\d+)\s*(?:bulan|months?|mos?)\b/);
-    const experienceYears = yearMatch || monthMatch
-      ? Number(yearMatch?.[1] || 0) + Number(monthMatch?.[1] || 0) / 12
-      : /fresh graduate|lulusan baru/.test(lowerText) ? 0 : null;
+    // Draf durasi pengalaman: rentang tanggal digabung (tanpa hitung ganda), lalu durasi eksplisit.
+    const experienceYears = extractExperienceYears(extractedText);
     const skillDetails = SKILL_RULES.filter((r) => detectedSkills.includes(r.name)).map((rule) => ({
       name: rule.name, needsReview: true, claimed: false,
       evidence: lines.find((line) => rule.regex.test(line))?.slice(0, 500) || null,

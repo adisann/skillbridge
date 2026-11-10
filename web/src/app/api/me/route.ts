@@ -1,3 +1,4 @@
+import { DEMO_USER_EMAIL } from "@/lib/demo-account";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser, getServiceSupabase } from "@/lib/supabase/server";
 
@@ -33,6 +34,7 @@ export async function GET(req: NextRequest) {
         "Pengguna",
       role: (profileRow?.role as "user" | "admin") || (user.app_metadata?.role === "admin" ? "admin" : "user"),
       targetRole: (profileRow?.target_role as "Data Analyst" | "BI Analyst") || "Data Analyst",
+      isDemo: (user.email || "").toLowerCase() === DEMO_USER_EMAIL,
     };
 
     return NextResponse.json(

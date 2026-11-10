@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient, getServiceSupabase } from "@/lib/supabase/server";
-import { syncDemoUserName } from "@/lib/demo-account";
+import { DEMO_USER_EMAIL, syncDemoUserName } from "@/lib/demo-account";
 import { enforceRateLimits, getClientIp } from "@/lib/rate-limit";
 import { authAttemptRules } from "@/lib/rate-limit-policies";
 
@@ -60,6 +60,8 @@ export async function POST(req: NextRequest) {
         normalizedEmail.split("@")[0],
       role: (profileRow?.role as "user" | "admin") || "user",
       targetRole: (profileRow?.target_role as "Data Analyst" | "BI Analyst") || "Data Analyst",
+      // Penanda akun demo dihitung di server, jadi email akun demo tidak perlu ada di kode frontend
+      isDemo: (data.user.email || normalizedEmail).toLowerCase() === DEMO_USER_EMAIL,
     };
 
     // Sesi dipegang cookie Supabase (httpOnly) yang diset oleh signInWithPassword di atas.

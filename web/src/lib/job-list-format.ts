@@ -2,6 +2,7 @@ import { jobExperienceYears } from "@/lib/job-experience";
 import { calculateJobMatch, getDisplayScore } from "@/lib/matching";
 import { getCategoryFromTitle } from "@/lib/job-categories";
 import { splitJobSkills } from "@/lib/job-skills";
+import { displayCompany } from "@/lib/demo-jobs";
 import type { CandidateProfile } from "@/lib/candidate-profile";
 import type { RawPublicJob } from "@/lib/public-jobs";
 
@@ -79,7 +80,7 @@ export function formatJobListItem(j: RawPublicJob, candidate?: CandidateProfile 
     canonicalTitle,
     category: jobCategory.slug,
     categoryLabel: jobCategory.label,
-    company: j.company,
+    company: displayCompany(j.company),
     location: j.location,
     employmentType: j.employment_type,
     seniority: j.seniority || "Mid",

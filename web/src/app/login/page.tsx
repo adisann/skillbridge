@@ -121,10 +121,7 @@ export default function LoginPage() {
             </CardContent>
 
             <CardFooter className="justify-center text-xs text-sb-text-2">
-              Belum memiliki akun?{" "}
-              <Link href="/register" className="ml-1 font-semibold text-sb-blue hover:underline">
-                Daftar Baru
-              </Link>
+              Pendaftaran akun baru sementara belum dibuka.
             </CardFooter>
           </Card>
         )}

@@ -109,8 +109,9 @@ describe("SkillBridge AI Job Assistant Unit Tests", () => {
     // 1. FAQ Pendaftaran
     const registerAnswer = getInstantTemplateAnswer("Gimana cara daftar?", mockJob);
     assert.ok(registerAnswer);
-    assert.ok(registerAnswer.includes("Kamu bisa daftar dalam kurang dari 2 menit."));
-    assert.ok(registerAnswer.includes("[Daftar sekarang](/register)"));
+    // Pendaftaran publik sengaja ditutup: jawaban tidak boleh menjanjikan pendaftaran
+    assert.ok(registerAnswer.includes("Pendaftaran akun baru sementara belum dibuka"))
+    assert.ok(!registerAnswer.includes("/register"));
 
     // 2. FAQ Upload CV
     const cvAnswer = getInstantTemplateAnswer("cara upload cv", mockJob);

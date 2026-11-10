@@ -143,6 +143,22 @@ export default function CVPage() {
       return;
     }
 
+    // Validasi awal di browser (server tetap memeriksa ekstensi, MIME, dan isi berkas)
+    const ext = file.name.toLowerCase().split(".").pop();
+    if (ext !== "pdf" && ext !== "docx") {
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      setNotification({ type: "error", message: "Format file tidak didukung. Unggah CV dalam format PDF atau DOCX." });
+      return;
+    }
+    if (file.size === 0 || file.size > 4 * 1024 * 1024) {
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      setNotification({
+        type: "error",
+        message: file.size === 0 ? "Berkas kosong. Pilih CV dalam format PDF atau DOCX." : "Ukuran berkas melebihi batas maksimal 4 MB.",
+      });
+      return;
+    }
+
     const targetFile = file;
     if (fileInputRef.current) fileInputRef.current.value = "";
 
@@ -380,7 +396,7 @@ export default function CVPage() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".pdf,.docx,.doc"
+                accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 onChange={handleFileUpload}
                 className="sr-only"
                 id="cv-file-upload"

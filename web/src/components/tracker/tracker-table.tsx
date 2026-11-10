@@ -147,7 +147,7 @@ export function TrackerTable({
 
                   {/* Salary */}
                   <td className="py-3.5 px-3 font-semibold text-sb-navy">
-                    {job.salaryExpectation || "Kompensasi Kompetitif"}
+                    {job.salaryExpectation && job.salaryExpectation !== "Kompensasi Kompetitif" ? job.salaryExpectation : <span className="font-normal text-sb-text-2">Belum diisi</span>}
                   </td>
 
                   {/* Timeline & Notes */}

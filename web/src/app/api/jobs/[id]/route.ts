@@ -1,3 +1,4 @@
+import { displayCompany, isDemoJob } from "@/lib/demo-jobs";
 import { jobExperienceYears } from "@/lib/job-experience";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
@@ -60,15 +61,18 @@ export async function GET(
         ? "Business Analyst"
         : job.canonical_title;
 
+    const isDemo = isDemoJob(job);
+
     return NextResponse.json({
       job: {
         id: job.id,
+        isDemo,
         externalId: job.external_id,
         title: job.title,
         canonicalTitle: correctedCanonicalTitle,
         category: jobCat.slug,
         categoryLabel: jobCat.label,
-        company: job.company,
+        company: displayCompany(job.company),
         location: job.location,
         employmentType: job.employment_type,
         seniority: job.seniority || "Mid",
@@ -82,7 +86,8 @@ export async function GET(
         description: job.description,
         contentHash: job.content_hash || "default_hash",
         sourceName: job.source_name,
-        sourceUrl: job.source_url,
+        // URL sumber lowongan contoh tidak valid (milik lowongan lain / placeholder), jadi tidak ditampilkan
+        sourceUrl: isDemo ? null : job.source_url,
         retrievalMethod: job.retrieval_method,
         retrievedAt: job.retrieved_at,
         expiresAt: job.expires_at || null,
@@ -94,7 +99,7 @@ export async function GET(
         matchedSkills: activeResume ? liveMatch.matchedSkills : [],
         missingSkills: activeResume ? liveMatch.missingSkills : reqSkills,
         unprovenSkills: activeResume ? liveMatch.unprovenSkills : [],
-        factorsSupporting: activeResume ? liveMatch.factorsSupporting : ["Data lowongan resmi aktif."],
+        factorsSupporting: activeResume ? liveMatch.factorsSupporting : isDemo ? [] : ["Lowongan aktif dari sumber yang tercantum."],
         factorsLimiting: activeResume ? liveMatch.factorsLimiting : ["CV belum terunggah. Unggah CV untuk mengevaluasi kecocokan."],
         scoreBreakdown: activeResume ? liveMatch.breakdown : [],
         requirementsEvaluation: activeResume ? liveMatch.requirementsEvaluation : [],
