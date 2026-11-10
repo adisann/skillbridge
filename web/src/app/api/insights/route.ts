@@ -66,7 +66,8 @@ export async function GET(req: NextRequest) {
         role,
         sampleSizeN: aggregation.sampleSizeN,
         lastUpdated: aggregation.lastUpdatedDate,
-        topSkills: aggregation.topSkills.slice(0, 15),
+        // Halaman Tren Skill menampilkan 15 dulu lalu "Tampilkan lebih banyak"
+        topSkills: aggregation.topSkills.slice(0, 60),
         learningRecommendations: aggregation.learningRecommendations,
       },
       { headers }

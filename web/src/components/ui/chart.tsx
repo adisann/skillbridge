@@ -1,5 +1,7 @@
-import React from "react";
-import { Check, Plus, AlertCircle } from "lucide-react";
+"use client";
+
+import React, { useState } from "react";
+import { Check, Plus, AlertCircle, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatPercent } from "@/lib/copy";
 import { CVSkillStatus } from "./badge";
@@ -22,6 +24,8 @@ interface MarketSkillBarChartProps {
   onToggleUserClaimed?: (skillName: string) => void;
   className?: string;
   isLoggedIn?: boolean;
+  /** Jumlah skill yang tampil pertama kali; sisanya lewat tombol "Tampilkan lebih banyak". */
+  pageSize?: number;
 }
 
 export function MarketSkillBarChart({
@@ -32,7 +36,12 @@ export function MarketSkillBarChart({
   onAddLearning,
   className,
   isLoggedIn = true,
+  pageSize = 15,
 }: MarketSkillBarChartProps) {
+  const [visibleCount, setVisibleCount] = useState(pageSize);
+  const visibleSkills = skills.slice(0, visibleCount);
+  const remaining = skills.length - visibleSkills.length;
+
   return (
     <div
       className={cn(
@@ -52,7 +61,7 @@ export function MarketSkillBarChart({
 
       {/* Bar Chart Rows */}
       <div className="space-y-3 pt-1">
-        {skills.map((item, idx) => {
+        {visibleSkills.map((item, idx) => {
           const isFoundInCV = Boolean(isLoggedIn && item.status === "found");
           const isMissing = item.status === "missing";
 
@@ -133,16 +142,24 @@ export function MarketSkillBarChart({
                 />
               </div>
 
-              {/* Contoh Persyaratan dari Lowongan */}
-              {item.exampleRequirement && (
-                <p className="text-[11px] text-sb-text-2 italic pl-2 border-l-2 border-sb-mist line-clamp-1">
-                  Contoh: &ldquo;{item.exampleRequirement}&rdquo;
-                </p>
-              )}
             </div>
           );
         })}
       </div>
+
+      {remaining > 0 && (
+        <div className="flex justify-center pt-1">
+          <button
+            type="button"
+            onClick={() => setVisibleCount((n) => n + pageSize)}
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-full border border-sb-border bg-white text-sb-navy hover:border-sb-blue/40 hover:bg-sb-mist-faint transition-ui cursor-pointer"
+          >
+            Tampilkan lebih banyak
+            <span className="text-xs font-medium text-sb-text-2">({Math.min(remaining, pageSize)} skill lagi)</span>
+            <ChevronDown className="w-4 h-4 text-sb-blue" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -61,7 +61,31 @@ export function JobExplorer({ mode = "user", initialJobs }: JobExplorerProps) {
     }
   }, [selectedJobId]);
 
-  const categoryCounts = useMemo(() => countJobsByCategory(jobs), [jobs]);
+  // Jumlah per bidang untuk dropdown. Saat satu bidang dipilih, `jobs` hanya berisi bidang itu,
+  // jadi jumlah terakhir dari tampilan "Semua Bidang" disimpan supaya bidang lain tidak hilang.
+  const liveCounts = useMemo(() => countJobsByCategory(jobs), [jobs]);
+  const [allCounts, setAllCounts] = useState<Record<string, number> | null>(null);
+  const [countsKey, setCountsKey] = useState("");
+  const currentKey = `${filters.role}|${search.trim()}`;
+  if (filters.role === "all" && !isLoading && currentKey !== countsKey) {
+    setCountsKey(currentKey);
+    setAllCounts(liveCounts);
+  }
+  useEffect(() => {
+    // Halaman dibuka langsung dengan bidang tertentu: ambil ringkasan seluruh katalog sekali
+    if (filters.role === "all" || allCounts) return;
+    let cancelled = false;
+    fetch("/api/jobs?summary=1")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled && data?.categories) setAllCounts(data.categories);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [filters.role, allCounts]);
+  const categoryCounts = filters.role === "all" ? liveCounts : { ...(allCounts ?? {}), ...liveCounts };
 
   const userTargetRole = user?.targetRole;
   const filteredJobs = useMemo(() => {

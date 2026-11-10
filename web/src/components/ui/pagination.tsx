@@ -106,7 +106,8 @@ export function Pagination({
         )}
       </div>
 
-      {/* Row 2: Navigation controls (Previous, pills, Next) */}
+      {/* Row 2: Navigation controls (Previous, pills, Next) — tidak perlu bila hanya satu halaman */}
+      {totalPages > 1 && (
       <div className="flex items-center justify-center gap-1 w-full max-w-full overflow-hidden py-0.5">
         <Button
           variant="outline"
@@ -167,6 +168,7 @@ export function Pagination({
           <span className="hidden xl:inline mr-1">Berikutnya</span>
         </Button>
       </div>
+      )}
     </div>
   );
 }

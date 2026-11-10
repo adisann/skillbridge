@@ -90,7 +90,7 @@ export function TrackerHeader({
             onClick={onOpenAdd}
             leftIcon={<Plus className="w-4 h-4" />}
           >
-            + Tambah Target Manual
+            Tambah Lowongan
           </Button>
         </div>
       </div>

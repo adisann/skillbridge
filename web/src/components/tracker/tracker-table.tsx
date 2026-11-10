@@ -215,6 +215,7 @@ export function TrackerTable({
         pageSizeOptions={[10, 20, 50]}
         onPageChange={onPageChange}
         onPageSizeChange={onPageSizeChange}
+        className="px-4 sm:px-5 py-3.5 bg-white/50"
       />
     </div>
   );

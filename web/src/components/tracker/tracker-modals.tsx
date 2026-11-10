@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X } from "lucide-react";
+import { X, ScanText, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TextInput, Textarea } from "@/components/ui/input";
 import { PriorityStars } from "@/components/tracker/priority-stars";
@@ -189,8 +189,36 @@ export function AddJobModal({
   const [manualSalary, setManualSalary] = useState("");
   const [manualPriority, setManualPriority] = useState(4);
   const [manualStage, setManualStage] = useState<JobStage>("bookmarked");
+  const [ocrStatus, setOcrStatus] = useState<"idle" | "reading" | "done" | "error">("idle");
+  const [ocrMessage, setOcrMessage] = useState("");
 
   if (!isOpen) return null;
+
+  /** Baca screenshot/poster lowongan lalu isi posisi, perusahaan, dan lokasi. */
+  const readScreenshot = async (file: File) => {
+    setOcrStatus("reading");
+    setOcrMessage("");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/tracker/import-ocr", { method: "POST", body: formData });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.job) throw new Error(data.error || "Screenshot belum bisa dibaca.");
+      const job = data.job as { title?: string; company?: string; location?: string };
+      if (job.title) setManualTitle(job.title);
+      if (job.company) setManualCompany(job.company);
+      if (job.location) setManualLocation(job.location);
+      setOcrStatus("done");
+      setOcrMessage(
+        job.company
+          ? "Terisi dari screenshot. Periksa lagi sebelum menyimpan."
+          : "Terisi dari screenshot, tapi nama perusahaan tidak terbaca. Lengkapi dulu sebelum menyimpan."
+      );
+    } catch (err) {
+      setOcrStatus("error");
+      setOcrMessage(err instanceof Error ? err.message : "Screenshot belum bisa dibaca.");
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -215,6 +243,8 @@ export function AddJobModal({
     setManualSalary("");
     setManualPriority(4);
     setManualStage("bookmarked");
+    setOcrStatus("idle");
+    setOcrMessage("");
     onClose();
   };
 
@@ -257,9 +287,47 @@ export function AddJobModal({
               <div className="relative flex py-1 items-center">
                 <div className="flex-grow border-t border-sb-border" />
                 <span className="shrink-0 px-2 text-xs text-sb-text-2 font-medium">
-                  atau isi manual
+                  atau isi sendiri
                 </span>
                 <div className="flex-grow border-t border-sb-border" />
+              </div>
+
+              <div className="rounded-xl border border-dashed border-sb-border bg-sb-mist-faint/60 p-3 space-y-2">
+                <label
+                  className={`flex items-center gap-3 ${ocrStatus === "reading" ? "cursor-wait" : "cursor-pointer"}`}
+                >
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,application/pdf"
+                    className="sr-only"
+                    disabled={ocrStatus === "reading"}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      e.target.value = "";
+                      if (file) void readScreenshot(file);
+                    }}
+                  />
+                  <span className="w-9 h-9 rounded-lg bg-white border border-sb-border text-sb-blue flex items-center justify-center shrink-0">
+                    {ocrStatus === "reading" ? <Loader2 className="w-4 h-4 animate-spin" /> : <ScanText className="w-4 h-4" />}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block font-semibold text-sb-navy">
+                      {ocrStatus === "reading" ? "Membaca screenshot…" : "Isi otomatis dari screenshot"}
+                    </span>
+                    <span className="block text-sb-text-2">
+                      Unggah screenshot atau poster lowongan (PNG, JPG, WEBP, PDF, maks. 10 MB).
+                    </span>
+                  </span>
+                </label>
+                {ocrMessage && (
+                  <p
+                    role="status"
+                    className={`flex items-start gap-1.5 ${ocrStatus === "error" ? "text-red-700" : "text-sb-navy"}`}
+                  >
+                    {ocrStatus === "done" && <CheckCircle2 className="w-3.5 h-3.5 text-sb-good shrink-0 mt-0.5" />}
+                    {ocrMessage}
+                  </p>
+                )}
               </div>
 
               <TextInput
@@ -323,7 +391,12 @@ export function AddJobModal({
             <Button variant="outline" size="sm" type="button" onClick={onClose}>
               Batal
             </Button>
-            <Button variant="primary" size="sm" type="submit">
+            <Button
+              variant="primary"
+              size="sm"
+              type="submit"
+              disabled={ocrStatus === "reading" || (!selectedCatalogJobId && (!manualTitle.trim() || !manualCompany.trim()))}
+            >
               Simpan lowongan
             </Button>
           </div>

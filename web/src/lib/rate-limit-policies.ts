@@ -47,6 +47,15 @@ export function adminAiImportRules(adminId: string): RateRule[] {
   ];
 }
 
+/** OCR screenshot lowongan untuk job tracker pengguna (memakai kuota AI vision). */
+export function trackerOcrRules(userId: string): RateRule[] {
+  return [
+    { scope: "tracker-ocr:user-hour", key: userId, limit: 10, windowSeconds: HOUR, message: "Batas baca screenshot per jam tercapai. Coba lagi nanti atau isi manual." },
+    { scope: "tracker-ocr:user-day", key: userId, limit: 30, windowSeconds: DAY, message: "Batas baca screenshot harian tercapai. Coba lagi besok atau isi manual." },
+    { scope: "tracker-ocr:global-day", key: "global", limit: 300, windowSeconds: DAY, message: "Fitur baca screenshot sedang ramai. Coba lagi besok atau isi manual." },
+  ];
+}
+
 /** Percobaan login dan masuk demo per IP (menahan tebak kata sandi). */
 export function authAttemptRules(ip: string): RateRule[] {
   return [

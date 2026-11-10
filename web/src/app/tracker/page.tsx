@@ -412,7 +412,7 @@ function TrackerContent() {
                 </Button>
               </Link>
               <Button variant="outline" size="sm" onClick={() => setShowAddModal(true)}>
-                + Tambah Target Manual
+                Tambah Lowongan
               </Button>
             </div>
           </div>

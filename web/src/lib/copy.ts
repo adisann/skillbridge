@@ -102,9 +102,9 @@ export const UI_COPY = {
     problemCard2Title: "Layak atau belum?",
     problemCard2Desc:
       "Daftar persyaratannya panjang. Sulit menilai sendiri apakah CV-mu sudah cukup.",
-    problemCard3Title: "Ditolak tanpa kabar",
+    problemCard3Title: "Lamaran tanpa kabar",
     problemCard3Desc:
-      "Lamaran tidak dibalas, dan kamu tidak tahu apa yang perlu diperbaiki.",
+      "Lamaran tidak dibalas, dan lama-lama kamu lupa sudah melamar ke mana saja.",
     problemPunchline:
       "Bukan kamu yang kurang berusaha. Informasinya saja yang tidak pernah sampai.",
 
@@ -115,7 +115,7 @@ export const UI_COPY = {
     solutionItem2Before: "Menebak apakah CV-mu cukup",
     solutionItem2After: "Untuk tiap lowongan, terlihat skill yang sudah tercantum dan yang belum ditemukan.",
     solutionItem3Before: "Menunggu kabar yang tidak datang",
-    solutionItem3After: "Sebelum melamar, kamu sudah tahu bagian CV mana yang perlu diperkuat.",
+    solutionItem3After: "Semua lamaran terpantau di satu tempat, jadi kamu tahu mana yang perlu ditindaklanjuti.",
     solutionCardJob1: "Data Analyst",
     solutionCardJob1Chips: ["SQL", "Excel", "Python"] as const,
     solutionCardJob2: "Business Intelligence",
@@ -159,7 +159,7 @@ export const UI_COPY = {
     trustPoint3Title: "Gratis",
     trustPoint3Desc: "Tanpa biaya untuk pencari kerja.",
     trustBottomLine:
-      "Seberapa cocok CV-mu dengan sebuah lowongan seharusnya bisa dicek, bukan ditebak.",
+      "Tahu skill yang dicari dan seberapa cocok CV-mu, tanpa harus menebak-nebak sendiri.",
 
     // 7. Penutup / Closing
     closingTitle: "Jadi kandidat yang tahu apa yang kamu tawarkan.",

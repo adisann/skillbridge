@@ -86,6 +86,7 @@ export function SkillTrends({ mode = "user" }: SkillTrendsProps) {
       ) : (
         <div className="space-y-8">
           <MarketSkillBarChart
+            key={`${filters.role}-${filters.workType}-${filters.seniority}`}
             skills={topSkills.map((s) => ({
               skillName: s.skillName,
               count: s.frequencyCount,
@@ -102,7 +103,7 @@ export function SkillTrends({ mode = "user" }: SkillTrendsProps) {
           <details className="rounded-2xl border border-sb-border bg-white/60 p-4">
             <summary className="cursor-pointer font-semibold text-sb-navy">Tinjau skill & tambahkan target belajar</summary>
             <div className="mt-4"><SkillComparisonCard
-            skills={topSkills}
+            skills={topSkills.slice(0, 15)}
             isGuest={isGuest}
             sampleSizeN={sampleSizeN}
             onClaim={claimSkill}
