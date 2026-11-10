@@ -1,5 +1,5 @@
 -- ==============================================================================
--- SkillBridge Seed: Akun Demo Juri, Akun Admin, dan Importer Lowongan Kerja
+-- SkillBridge Seed: Akun Demo, Akun Admin, dan Importer Lowongan Kerja
 -- ==============================================================================
 
 -- 1. Create Demo Users in auth.users (if running on Supabase instance)
@@ -19,7 +19,7 @@ begin
       (
         juri_uid, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
         'juri@skillbridge.demo', crypt('DemoJuriInvofest2026!', gen_salt('bf')), now(),
-        '{"provider":"email","providers":["email"]}', '{"full_name":"Budi Pratama (Juri Lomba)"}', now(), now()
+        '{"provider":"email","providers":["email"]}', '{"full_name":"Budi Pratama"}', now(), now()
       ),
       (
         admin_uid, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
@@ -37,7 +37,7 @@ begin
   -- Insert corresponding Profiles in public.profiles
   insert into public.profiles (id, full_name, email, role, target_role)
   values
-    (juri_uid, 'Budi Pratama (Juri Lomba)', 'juri@skillbridge.demo', 'user', 'Data Analyst'),
+    (juri_uid, 'Budi Pratama', 'juri@skillbridge.demo', 'user', 'Data Analyst'),
     (admin_uid, 'Administrator SkillBridge', 'admin@skillbridge.demo', 'admin', 'Data Analyst'),
     (userb_uid, 'Rina Maharani', 'userb@skillbridge.demo', 'user', 'Data Analyst')
   on conflict (id) do update set
@@ -88,7 +88,9 @@ values
   ('22222222-0000-0000-0000-000000000002', '11111111-0000-0000-0000-000000000060', false, 'Komunikasi tim')
 on conflict do nothing;
 
--- 4. Insert Verified Curated Jobs
+-- 4. Insert Demo Jobs
+-- Lowongan contoh untuk akun demo. Ditandai retrieval_method 'seed' sehingga tidak tampil di katalog publik
+-- (lihat web/src/lib/demo-jobs.ts); identitas perusahaannya bukan dari URL sumber.
 insert into public.jobs (
   id, source_name, external_id, source_url, title, canonical_title, company, location,
   employment_type, seniority, experience_years_min, education, description, content_hash,
@@ -110,7 +112,7 @@ values
     'Bachelor',
     'Mencari Junior Data Analyst untuk mengekstrak data dari data warehouse, menyiapkan dashboard performa fitur fintech, dan query SQL.',
     'hash_gh_40112',
-    'public_api',
+    'seed',
     now(),
     true
   ),
@@ -129,7 +131,7 @@ values
     'Bachelor',
     'Dibutuhkan BI Analyst berpengalaman untuk mengoptimasi rute armada dan efisiensi rantai pasok dengan Power BI dan SQL.',
     'hash_li_412988102',
-    'jobspy',
+    'seed',
     now(),
     true
   ),
@@ -148,7 +150,7 @@ values
     'Bachelor',
     'Membantu tim merchant dan marketing menganalisis tren promosi bulanan dan customer lifetime value di platform e-commerce.',
     'hash_lev_88a2e1',
-    'public_api',
+    'seed',
     now(),
     true
   )
@@ -170,7 +172,7 @@ values
   ('33333333-0000-0000-0000-000000000002', '11111111-0000-0000-0000-000000000050', true, 'Pemodelan data relasional dan star schema')
 on conflict (job_id, skill_id) do nothing;
 
--- 6. Insert Matches for Juri Demo
+-- 6. Insert Matches for Demo Account
 insert into public.matches (
   user_id, resume_id, job_id, match_status, score, score_breakdown, factors_supporting, factors_limiting
 )
@@ -197,7 +199,7 @@ values
   )
 on conflict (resume_id, job_id) do nothing;
 
--- 7. Insert Saved Jobs & Learning Items for Juri Demo
+-- 7. Insert Saved Jobs & Learning Items for Demo Account
 insert into public.saved_jobs (user_id, job_id)
 values
   ('00000000-0000-0000-0000-000000000001', '33333333-0000-0000-0000-000000000001')

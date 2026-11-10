@@ -1,3 +1,6 @@
+// Uji SQL migrasi career/learning di database sementara (PGlite), dijalankan dari root repo:
+//   npm install --prefix .tmp-ux-checks --no-package-lock --no-save @electric-sql/pglite
+//   node supabase/tests/run-career-learning.mjs
 process.on('uncaughtException', e => { console.error(e.message, e.where); process.exit(1); });
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';

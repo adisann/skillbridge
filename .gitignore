@@ -1,6 +1,5 @@
 # Node / Next.js
 node_modules/
-design-ref/figma-make/node_modules/
 .next/
 out/
 build/
@@ -43,3 +42,11 @@ Thumbs.db
 .vscode/
 .idea/
 
+
+# Referensi lokal & tooling AI (tidak ikut repo)
+/AGENTS.md
+/.agents/
+/skills-lock.json
+/design-ref/
+/*.pdf
+supabase/.temp/
