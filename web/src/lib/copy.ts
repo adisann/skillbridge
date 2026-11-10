@@ -109,13 +109,13 @@ export const UI_COPY = {
       "Bukan kamu yang kurang berusaha. Informasinya saja yang tidak pernah sampai.",
 
     // 3. Solusi (SkillBridge sebagai pemandu)
-    solutionTitle: "SkillBridge merangkumnya untukmu.",
+    solutionTitle: "SkillBridge mencocokkan CV-mu dengan lowongan.",
     solutionItem1Before: "Membuka lowongan satu per satu",
-    solutionItem1After: "Skill dan kriteria dari banyak lowongan dirangkum per bidang.",
+    solutionItem1After: "Persyaratan dari banyak lowongan langsung dibandingkan dengan isi CV-mu.",
     solutionItem2Before: "Menebak apakah CV-mu cukup",
-    solutionItem2After: "Unggah CV, lalu lihat skill mana yang sudah ada dan mana yang belum.",
+    solutionItem2After: "Untuk tiap lowongan, terlihat skill yang sudah tercantum dan yang belum ditemukan.",
     solutionItem3Before: "Menunggu kabar yang tidak datang",
-    solutionItem3After: "Tanpa menunggu kabar, kamu sudah tahu apa yang bisa disiapkan.",
+    solutionItem3After: "Sebelum melamar, kamu sudah tahu bagian CV mana yang perlu diperkuat.",
     solutionCardJob1: "Data Analyst",
     solutionCardJob1Chips: ["SQL", "Excel", "Python"] as const,
     solutionCardJob2: "Business Intelligence",
@@ -159,7 +159,7 @@ export const UI_COPY = {
     trustPoint3Title: "Gratis",
     trustPoint3Desc: "Tanpa biaya untuk pencari kerja.",
     trustBottomLine:
-      "Informasi soal skill yang dicari seharusnya bisa didapat siapa pun, bukan hanya yang punya orang dalam.",
+      "Seberapa cocok CV-mu dengan sebuah lowongan seharusnya bisa dicek, bukan ditebak.",
 
     // 7. Penutup / Closing
     closingTitle: "Jadi kandidat yang tahu apa yang kamu tawarkan.",
