@@ -20,9 +20,9 @@ interface TrackerHeaderProps {
   onSortChange: (sort: "priority" | "match" | "date") => void;
   viewMode: "table" | "board";
   onViewModeChange: (mode: "table" | "board") => void;
-  selectedCount: number;
-  onOpenCompare: () => void;
-  onClearSelection: () => void;
+  compareMode: boolean;
+  onToggleCompareMode: () => void;
+  canCompare: boolean;
   onOpenAdd: () => void;
 }
 
@@ -36,9 +36,9 @@ export function TrackerHeader({
   onSortChange,
   viewMode,
   onViewModeChange,
-  selectedCount,
-  onOpenCompare,
-  onClearSelection,
+  compareMode,
+  onToggleCompareMode,
+  canCompare,
   onOpenAdd,
 }: TrackerHeaderProps) {
   const STAGES_PIPELINE: Array<{ id: string; label: string; count: number }> = [
@@ -73,14 +73,15 @@ export function TrackerHeader({
         </div>
 
         <div className="flex items-center gap-2.5">
-          {selectedCount >= 2 && (
+          {canCompare && (
             <Button
-              variant="primary"
+              variant={compareMode ? "secondary" : "outline"}
               size="sm"
-              onClick={onOpenCompare}
-              leftIcon={<SlidersHorizontal className="w-4 h-4 text-white" />}
+              onClick={onToggleCompareMode}
+              aria-pressed={compareMode}
+              leftIcon={<SlidersHorizontal className="w-4 h-4" />}
             >
-              Bandingkan {selectedCount} Lowongan
+              {compareMode ? "Batal bandingkan" : "Bandingkan lowongan"}
             </Button>
           )}
 
@@ -181,32 +182,6 @@ export function TrackerHeader({
         </div>
       </div>
 
-      {/* Selected Counter & Multi Action Bar */}
-      {selectedCount > 0 && (
-        <div className="p-3.5 rounded-xl bg-sb-mist-soft border border-sb-border flex items-center justify-between text-xs text-sb-navy">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-sb-blue font-mono-metric">{selectedCount} lowongan dipilih</span>
-            <span className="text-sb-text-2">• Kamu dapat membandingkan kecocokan skill & gaji secara berdampingan.</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={onOpenCompare}
-              leftIcon={<SlidersHorizontal className="w-3.5 h-3.5" />}
-            >
-              Buka Matriks Perbandingan
-            </Button>
-            <button
-              type="button"
-              onClick={onClearSelection}
-              className="text-xs text-sb-blue hover:underline font-semibold ml-2 cursor-pointer"
-            >
-              Batalkan Pilihan
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

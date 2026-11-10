@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { Clock, Calendar, ExternalLink, Pencil, Trash2 } from "lucide-react";
-import { MatchBadge } from "@/components/ui/badge";
+import { MatchScore } from "@/components/tracker/match-score";
 import { Pagination } from "@/components/ui/pagination";
 import { PriorityStars } from "@/components/tracker/priority-stars";
 import { TrackedJob, JobStage, STAGE_CONFIG } from "@/types/tracker";
@@ -10,9 +10,10 @@ import { cn } from "@/lib/utils";
 interface TrackerTableProps {
   jobs: TrackedJob[];
   totalItems: number;
+  /** Kolom pilih hanya muncul saat mode "Bandingkan lowongan" aktif. */
+  selectMode: boolean;
   selectedJobIds: Set<string>;
   onToggleSelectJob: (id: string) => void;
-  onToggleSelectAll: () => void;
   onStageChange: (id: string, stage: JobStage) => void;
   onPriorityChange: (id: string, priority: number) => void;
   onEditJob: (job: TrackedJob) => void;
@@ -27,9 +28,9 @@ interface TrackerTableProps {
 export function TrackerTable({
   jobs,
   totalItems,
+  selectMode,
   selectedJobIds,
   onToggleSelectJob,
-  onToggleSelectAll,
   onStageChange,
   onPriorityChange,
   onEditJob,
@@ -46,15 +47,11 @@ export function TrackerTable({
         <table className="w-full text-left text-xs border-collapse">
           <thead>
             <tr className="border-b border-sb-border bg-white/60 text-sb-text-2 font-bold uppercase tracking-wider">
-              <th className="py-3 px-3.5 w-10 text-center">
-                <input
-                  type="checkbox"
-                  checked={selectedJobIds.size === jobs.length && jobs.length > 0}
-                  onChange={onToggleSelectAll}
-                  className="rounded text-sb-blue focus:ring-sb-blue cursor-pointer"
-                  title="Pilih Semua di Halaman Ini"
-                />
-              </th>
+              {selectMode && (
+                <th className="py-3 px-3.5 w-12 text-center">
+                  <span className="sr-only">Pilih untuk dibandingkan</span>
+                </th>
+              )}
               <th className="py-3 px-4 min-w-[200px]">Posisi & Perusahaan</th>
               <th className="py-3 px-3">Kecocokan CV</th>
               <th className="py-3 px-3 min-w-[130px]">Tahapan Lamaran</th>
@@ -77,19 +74,25 @@ export function TrackerTable({
               return (
                 <tr
                   key={job.id}
-                  className={`hover:bg-white/80 transition-colors ${
-                    isSelected ? "bg-sb-mist-soft" : "bg-white/40"
-                  }`}
+                  onClick={selectMode ? () => onToggleSelectJob(job.id) : undefined}
+                  className={cn(
+                    "transition-colors",
+                    selectMode && "cursor-pointer",
+                    selectMode && isSelected ? "bg-sb-mist-soft" : "bg-white/40 hover:bg-white/80"
+                  )}
                 >
-                  {/* Checkbox */}
-                  <td className="py-3.5 px-3.5 text-center">
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => onToggleSelectJob(job.id)}
-                      className="rounded text-sb-blue focus:ring-sb-blue cursor-pointer"
-                    />
-                  </td>
+                  {selectMode && (
+                    <td className="py-3.5 px-3.5 text-center">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={() => onToggleSelectJob(job.id)}
+                        aria-label={`Pilih ${job.title} untuk dibandingkan`}
+                        className="w-4 h-4 rounded text-sb-blue focus:ring-sb-blue cursor-pointer"
+                      />
+                    </td>
+                  )}
 
                   {/* Title & Company */}
                   <td className="py-3.5 px-4">
@@ -109,7 +112,7 @@ export function TrackerTable({
 
                   {/* Match Badge */}
                   <td className="py-3.5 px-3">
-                    <MatchBadge status={job.matchStatus} score={job.matchScore} />
+                    <MatchScore status={job.matchStatus} score={job.matchScore} />
                   </td>
 
                   {/* Stage Selector */}

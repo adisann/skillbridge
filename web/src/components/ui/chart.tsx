@@ -26,6 +26,8 @@ interface MarketSkillBarChartProps {
   isLoggedIn?: boolean;
   /** Jumlah skill yang tampil pertama kali; sisanya lewat tombol "Tampilkan lebih banyak". */
   pageSize?: number;
+  /** Aksi per skill (mis. "Saya kuasai", "Tambah ke rencana belajar"), tampil di bawah bar. */
+  renderActions?: (item: MarketSkillItem) => React.ReactNode;
 }
 
 export function MarketSkillBarChart({
@@ -37,6 +39,7 @@ export function MarketSkillBarChart({
   className,
   isLoggedIn = true,
   pageSize = 15,
+  renderActions,
 }: MarketSkillBarChartProps) {
   const [visibleCount, setVisibleCount] = useState(pageSize);
   const visibleSkills = skills.slice(0, visibleCount);
@@ -141,6 +144,11 @@ export function MarketSkillBarChart({
                   style={{ width: `${formatPercent(item.percentage)}%` }}
                 />
               </div>
+
+              {(() => {
+                const actions = renderActions?.(item);
+                return actions ? <div className="flex flex-wrap items-center justify-end gap-2 pt-0.5">{actions}</div> : null;
+              })()}
 
             </div>
           );

@@ -71,6 +71,7 @@ function TrackerContent() {
 
   // Selection for comparison
   const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(new Set());
+  const [compareMode, setCompareMode] = useState(false);
   const [isCompareOpen, setIsCompareOpen] = useState(false);
 
   // Edit / Add Modal states
@@ -247,12 +248,12 @@ function TrackerContent() {
     });
   };
 
-  const toggleSelectAll = () => {
-    if (selectedJobIds.size === paginatedJobs.length && paginatedJobs.length > 0) {
-      setSelectedJobIds(new Set());
-    } else {
-      setSelectedJobIds(new Set(paginatedJobs.slice(0, 4).map((j) => j.id)));
-    }
+  const toggleCompareMode = () => {
+    setCompareMode((on) => {
+      if (on) setSelectedJobIds(new Set());
+      else setViewMode("table"); // pilih lowongan dilakukan di tampilan tabel
+      return !on;
+    });
   };
 
   const comparisonJobs = useMemo(() => {
@@ -372,12 +373,40 @@ function TrackerContent() {
             updatePaginationUrl(1, pageSize);
           }}
           viewMode={viewMode}
-          onViewModeChange={setViewMode}
-          selectedCount={selectedJobIds.size}
-          onOpenCompare={() => setIsCompareOpen(true)}
-          onClearSelection={() => setSelectedJobIds(new Set())}
+          onViewModeChange={(mode) => {
+            setViewMode(mode);
+            if (mode === "board" && compareMode) toggleCompareMode();
+          }}
+          compareMode={compareMode}
+          onToggleCompareMode={toggleCompareMode}
+          canCompare={jobs.length >= 2}
           onOpenAdd={() => setShowAddModal(true)}
         />
+
+        {compareMode && (
+          <div
+            role="status"
+            className="sticky top-3 z-20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-sb-blue/30 bg-white px-4 py-3 shadow-sm"
+          >
+            <p className="text-sm text-sb-navy">
+              <strong>Pilih 2–4 lowongan</strong> untuk dibandingkan.{" "}
+              <span className="text-sb-text-2">{selectedJobIds.size} dipilih</span>
+            </p>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={toggleCompareMode}>
+                Batal
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                disabled={selectedJobIds.size < 2}
+                onClick={() => setIsCompareOpen(true)}
+              >
+                Bandingkan{selectedJobIds.size >= 2 ? ` ${selectedJobIds.size} lowongan` : ""}
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* MAIN VIEW: TABLE OR KANBAN */}
         {isLoading ? (
@@ -420,9 +449,9 @@ function TrackerContent() {
           <TrackerTable
             jobs={paginatedJobs}
             totalItems={displayedJobs.length}
+            selectMode={compareMode}
             selectedJobIds={selectedJobIds}
             onToggleSelectJob={toggleSelectJob}
-            onToggleSelectAll={toggleSelectAll}
             onStageChange={handleStageChange}
             onPriorityChange={handlePriorityChange}
             onEditJob={(job) => setEditingJob(job)}

@@ -12,7 +12,10 @@ import { SkeletonCard } from "@/components/ui/loading";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SkillTrendsBanner } from "@/components/insights/skill-trends-banner";
 import { GuestCalloutBanner, GuestComparePrompt } from "@/components/insights/skill-trends-guest";
-import { SkillComparisonCard } from "@/components/insights/skill-comparison-card";
+import { LearningButton } from "@/components/learning-button";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Check } from "lucide-react";
 import { LearningRecommendations } from "@/components/insights/learning-recommendations";
 import { useAuth } from "@/lib/supabase/auth-context";
 import { useSkillInsights } from "@/lib/hooks/use-skill-insights";
@@ -98,16 +101,36 @@ export function SkillTrends({ mode = "user" }: SkillTrendsProps) {
             dataDate={lastUpdatedDate}
             roleFilterLabel={filters.role === "all" ? "Seluruh Posisi" : filters.role}
             isLoggedIn={!isGuest && isAuthenticated}
+            renderActions={isGuest ? undefined : (item) => {
+              if (item.status === "missing") {
+                return (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => claimSkill(item.skillName)}
+                      title="Tandai skill yang kamu kuasai tapi belum tertulis di CV"
+                      leftIcon={<Check className="w-3.5 h-3.5 text-sb-text-2" />}
+                    >
+                      Saya kuasai
+                    </Button>
+                    <LearningButton skillName={item.skillName} />
+                  </>
+                );
+              }
+              if (item.status === "needs_verification" || item.status === "user_added") {
+                return (
+                  <Link
+                    href={`/cv?skill=${encodeURIComponent(item.skillName)}#review-skills`}
+                    className="text-xs font-semibold text-sb-blue underline"
+                  >
+                    Tinjau skill di CV
+                  </Link>
+                );
+              }
+              return null;
+            }}
           />
-
-          <details className="rounded-2xl border border-sb-border bg-white/60 p-4">
-            <summary className="cursor-pointer font-semibold text-sb-navy">Tinjau skill & tambahkan target belajar</summary>
-            <div className="mt-4"><SkillComparisonCard
-            skills={topSkills.slice(0, 15)}
-            isGuest={isGuest}
-            sampleSizeN={sampleSizeN}
-            onClaim={claimSkill}
-          /></div></details>
 
           {isGuest && (
             <GuestComparePrompt />

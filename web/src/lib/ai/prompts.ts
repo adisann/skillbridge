@@ -189,7 +189,7 @@ export function getInstantTemplateAnswer(
     return (
       "Kamu bisa daftar dalam kurang dari 2 menit.\n\n" +
       "1. Klik menu Masuk / Daftar di navigasi atas.\n" +
-      "2. Isi email dan buat kata sandi, atau gunakan Akun Demo Juri.\n" +
+      "2. Isi email dan buat kata sandi, atau gunakan akun demo.\n" +
       "3. Lengkapi profil: pilih bidang target dan unggah CV.\n\n" +
       "Setelah itu, rekomendasi lowongan langsung muncul di beranda. [Daftar sekarang](/register)"
     );

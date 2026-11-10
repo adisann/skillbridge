@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { Pencil } from "lucide-react";
-import { MatchBadge } from "@/components/ui/badge";
+import { MatchScore } from "@/components/tracker/match-score";
 import { PriorityStars } from "@/components/tracker/priority-stars";
 import { TrackedJob, JobStage, STAGE_CONFIG } from "@/types/tracker";
 
@@ -69,7 +69,7 @@ export function TrackerBoard({
                       </Link>
                       <p className="text-[11px] font-semibold text-sb-text-2">{job.company}</p>
                     </div>
-                    <MatchBadge status={job.matchStatus} score={job.matchScore} />
+                    <MatchScore status={job.matchStatus} score={job.matchScore} />
                   </div>
 
                   {/* Priority Rating */}

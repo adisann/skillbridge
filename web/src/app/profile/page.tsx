@@ -154,7 +154,7 @@ function ProfileContent() {
                 {isDemoAccount && (
                   <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-sb-good border border-emerald-200 flex items-center gap-1">
                     <ShieldCheck className="w-3 h-3 text-sb-good" />
-                    Akun Demo Juri
+                    Akun Demo
                   </span>
                 )}
               </div>
@@ -413,10 +413,10 @@ function ProfileContent() {
               <div className="space-y-1">
                 <h3 className="text-sm font-bold text-sb-navy flex items-center gap-2">
                   <RotateCcw className="w-4 h-4 text-sb-warning" />
-                  Mode Demo Juri Presentasi
+                  Mode Demo
                 </h3>
                 <p className="text-xs text-sb-text-2">
-                  Kamu sedang menggunakan akun demo juri. Jika perlu mengatur ulang target belajar atau riwayat interaksi kembali ke keadaan bersih awal, gunakan tombol di bawah ini.
+                  Kamu sedang memakai akun demo. Untuk mengembalikan target belajar dan riwayat interaksi ke keadaan awal, gunakan tombol di bawah ini.
                 </p>
               </div>
               <div className="pt-1">

@@ -1,10 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { X, ExternalLink, Check, AlertTriangle } from "lucide-react";
 import { TrackedJob, STAGE_CONFIG } from "@/types/tracker";
-import { MatchBadge } from "@/components/ui/badge";
 import { PriorityStars } from "./priority-stars";
+import { MatchScore } from "./match-score";
 import { Button } from "@/components/ui/button";
 
 interface JobComparisonModalProps {
@@ -14,251 +14,223 @@ interface JobComparisonModalProps {
   onUpdateStage: (jobId: string, newStage: TrackedJob["stage"]) => void;
 }
 
-export function JobComparisonModal({
-  jobs,
-  isOpen,
-  onClose,
-  onUpdateStage,
-}: JobComparisonModalProps) {
+const STAGE_OPTIONS: Array<{ value: TrackedJob["stage"]; label: string }> = [
+  { value: "bookmarked", label: "Tersimpan" },
+  { value: "applying", label: "Siapkan Berkas" },
+  { value: "applied", label: "Sudah Melamar" },
+  { value: "interviewing", label: "Wawancara" },
+  { value: "offered", label: "Penawaran" },
+  { value: "accepted", label: "Diterima" },
+  { value: "rejected", label: "Ditolak" },
+];
+
+function Row({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+  return (
+    <tr className="border-t border-sb-border align-top">
+      <th
+        scope="row"
+        className="sticky left-0 z-10 bg-sb-mist-faint px-4 py-4 text-left text-sm font-semibold text-sb-navy w-40 min-w-40"
+      >
+        {label}
+        {hint && <span className="block mt-0.5 text-xs font-normal text-sb-text-2">{hint}</span>}
+      </th>
+      {children}
+    </tr>
+  );
+}
+
+export function JobComparisonModal({ jobs, isOpen, onClose, onUpdateStage }: JobComparisonModalProps) {
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isOpen, onClose]);
+
   if (!isOpen || jobs.length === 0) return null;
 
+  // Sorot skor kecocokan tertinggi supaya perbandingan cepat terbaca
+  const scored = jobs.filter((j) => j.matchStatus !== "insufficient_evidence" && j.matchScore > 0);
+  const bestScore = scored.length > 1 ? Math.max(...scored.map((j) => j.matchScore)) : null;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 sm:p-6 overflow-y-auto">
-      <div className="glass-panel bg-white/95 rounded-2xl max-w-5xl w-full shadow-2xl border border-sb-border overflow-hidden my-8 max-h-[90vh] flex flex-col">
-        {/* Header Modal */}
-        <div className="p-6 border-b border-sb-border flex items-center justify-between bg-white/70">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-sb-navy/50 p-3 sm:p-6"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="compare-title"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl w-full max-w-6xl max-h-[92vh] shadow-2xl border border-sb-border flex flex-col overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-5 sm:px-6 py-4 border-b border-sb-border flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-lg font-bold text-sb-navy">
-              Perbandingan Komparatif Lowongan Target ({jobs.length} Posisi)
+            <h3 id="compare-title" className="text-lg font-bold text-sb-navy">
+              Bandingkan {jobs.length} lowongan
             </h3>
-            <p className="text-xs text-sb-text-2 mt-0.5">
-              Bandingkan lowongan secara berdampingan.
+            <p className="text-sm text-sb-text-2 mt-0.5">
+              Persentase menunjukkan kecocokan CV aktifmu dengan persyaratan lowongan, bukan peluang diterima.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-sb-text-2 hover:text-sb-navy hover:bg-sb-mist-soft transition-colors"
+            aria-label="Tutup perbandingan"
+            className="p-2 rounded-lg text-sb-text-2 hover:text-sb-navy hover:bg-sb-mist-soft transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Comparison Grid Table */}
-        <div className="overflow-x-auto flex-1 p-6">
-          <table className="w-full border-collapse text-left">
-            <thead>
-              <tr className="border-b border-sb-border">
-                <th className="py-3 px-4 text-xs font-bold text-sb-text-2 uppercase tracking-wider w-44 bg-sb-mist-faint">
-                  Faktor Evaluasi
+        <div className="overflow-auto flex-1">
+          <table className="w-full border-collapse text-left text-sm">
+            <thead className="sticky top-0 z-20 bg-white">
+              <tr>
+                <th className="sticky left-0 z-30 bg-white px-4 py-4 w-40 min-w-40">
+                  <span className="sr-only">Faktor</span>
                 </th>
                 {jobs.map((job) => (
-                  <th key={job.id} className="py-3 px-4 min-w-[260px] align-top">
-                    <div className="space-y-1">
-                      <h4 className="text-sm font-bold text-sb-navy leading-snug">{job.title}</h4>
-                      <p className="text-xs font-semibold text-sb-blue">{job.company}</p>
-                      <p className="text-[11px] text-sb-text-2">{job.location}</p>
-                    </div>
+                  <th key={job.id} scope="col" className="px-4 py-4 min-w-[15rem] align-top font-normal">
+                    <p className="text-base font-bold text-sb-navy leading-snug">{job.title}</p>
+                    <p className="text-sm font-semibold text-sb-blue mt-0.5">{job.company}</p>
+                    <p className="text-xs text-sb-text-2 mt-0.5">{job.location}</p>
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-sb-border text-xs">
-              {/* Row 1: Match Score & Status */}
-              <tr className="hover:bg-sb-mist-soft/40">
-                <td className="py-3.5 px-4 font-bold text-sb-navy bg-sb-mist-faint">
-                  Kecocokan CV
-                </td>
+            <tbody>
+              <Row label="Kecocokan CV">
                 {jobs.map((job) => (
-                  <td key={job.id} className="py-3.5 px-4">
-                    <div className="flex items-center gap-2">
-                      <MatchBadge status={job.matchStatus} score={job.matchScore} />
-                    </div>
-                  </td>
-                ))}
-              </tr>
-
-              {/* Row 2: Priority & Excitement Level */}
-              <tr className="hover:bg-sb-mist-soft/40">
-                <td className="py-3.5 px-4 font-bold text-sb-navy bg-sb-mist-faint">
-                  Tingkat Prioritas (Minat)
-                </td>
-                {jobs.map((job) => (
-                  <td key={job.id} className="py-3.5 px-4">
-                    <div className="space-y-1">
-                      <PriorityStars value={job.priority} readOnly size="md" />
-                      <span className="block text-xs text-sb-text-2 font-semibold font-mono-metric">
-                        Rating {job.priority}/5 Bintang
-                      </span>
-                    </div>
-                  </td>
-                ))}
-              </tr>
-
-              {/* Row 3: Stage / Status Lamaran */}
-              <tr className="hover:bg-sb-mist-soft/40">
-                <td className="py-3.5 px-4 font-bold text-sb-navy bg-sb-mist-faint">
-                  Tahapan Saat Ini
-                </td>
-                {jobs.map((job) => {
-                  const stageConf = STAGE_CONFIG[job.stage] || STAGE_CONFIG.bookmarked;
-                  return (
-                    <td key={job.id} className="py-3.5 px-4">
-                      <span
-                        className={`inline-block px-2.5 py-1 rounded-full text-[11px] font-bold border ${stageConf.badgeClass}`}
-                      >
-                        {stageConf.label}
-                      </span>
-                    </td>
-                  );
-                })}
-              </tr>
-
-              {/* Row 4: Skill yang Cocok */}
-              <tr className="hover:bg-sb-mist-soft/40">
-                <td className="py-3.5 px-4 font-bold text-sb-navy bg-sb-mist-faint">
-                  Keahlian Terpenuhi (CV)
-                </td>
-                {jobs.map((job) => (
-                  <td key={job.id} className="py-3.5 px-4">
-                    <div className="flex flex-wrap gap-1">
-                      {job.matchedSkills && job.matchedSkills.length > 0 ? (
-                        job.matchedSkills.map((s) => (
-                          <span
-                            key={s}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sb-good/10 text-sb-good border border-sb-good/30 text-[11px] font-semibold"
-                          >
-                            <Check className="w-3 h-3 text-sb-good" />
-                            {s}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-sb-text-2 italic">Belum ada skill ditemukan</span>
-                      )}
-                    </div>
-                  </td>
-                ))}
-              </tr>
-
-              {/* Row 5: Skill Gap */}
-              <tr className="hover:bg-sb-mist-soft/40">
-                <td className="py-3.5 px-4 font-bold text-sb-navy bg-sb-mist-faint">
-                  Keahlian Belum Ditemukan (Gap)
-                </td>
-                {jobs.map((job) => (
-                  <td key={job.id} className="py-3.5 px-4">
-                    <div className="flex flex-wrap gap-1">
-                      {job.missingSkills && job.missingSkills.length > 0 ? (
-                        job.missingSkills.map((s) => (
-                          <span
-                            key={s}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sb-mist-faint text-sb-text-2 border border-sb-border text-[11px] font-medium"
-                          >
-                            <AlertTriangle className="w-3 h-3 text-sb-warning" />
-                            {s}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-sb-good font-semibold text-[11px]">
-                          Seluruh persyaratan wajib terpenuhi!
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                ))}
-              </tr>
-
-              {/* Row 6: Ekspektasi Kompensasi */}
-              <tr className="hover:bg-sb-mist-soft/40">
-                <td className="py-3.5 px-4 font-bold text-sb-navy bg-sb-mist-faint">
-                  Ekspektasi Kompensasi
-                </td>
-                {jobs.map((job) => (
-                  <td key={job.id} className="py-3.5 px-4 font-semibold text-sb-navy">
-                    {job.salaryExpectation || "Kompensasi Kompetitif"}
-                  </td>
-                ))}
-              </tr>
-
-              {/* Row 7: Tanggal Simpan & Tanggal Lamar */}
-              <tr className="hover:bg-sb-mist-soft/40">
-                <td className="py-3.5 px-4 font-bold text-sb-navy bg-sb-mist-faint">
-                  Timeline Lamaran
-                </td>
-                {jobs.map((job) => (
-                  <td key={job.id} className="py-3.5 px-4 text-sb-text-2 space-y-0.5 font-mono-metric">
-                    <p>Disimpan: {job.dateSaved || "-"}</p>
-                    {job.dateApplied && <p className="text-sb-blue font-semibold">Dilamar: {job.dateApplied}</p>}
-                    {job.interviewDate && (
-                      <p className="text-sb-warning font-semibold">Wawancara: {job.interviewDate}</p>
+                  <td key={job.id} className="px-4 py-4">
+                    <MatchScore status={job.matchStatus} score={job.matchScore} size="lg" />
+                    {bestScore !== null && job.matchScore === bestScore && (
+                      <span className="mt-2 inline-block text-xs font-semibold text-sb-good">Paling cocok</span>
                     )}
                   </td>
                 ))}
-              </tr>
+              </Row>
 
-              {/* Row 8: Catatan Pengguna */}
-              <tr className="hover:bg-sb-mist-soft/40">
-                <td className="py-3.5 px-4 font-bold text-sb-navy bg-sb-mist-faint">
-                  Catatan Pribadi
-                </td>
+              <Row label="Skill yang cocok">
                 {jobs.map((job) => (
-                  <td key={job.id} className="py-3.5 px-4 text-sb-text-2 italic">
-                    {job.notes || "Belum ada catatan khusus."}
+                  <td key={job.id} className="px-4 py-4">
+                    {job.matchedSkills && job.matchedSkills.length > 0 ? (
+                      <ul className="flex flex-wrap gap-1.5">
+                        {job.matchedSkills.map((s) => (
+                          <li key={s} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-sb-good-soft text-sb-navy border border-sb-good/25 text-xs font-medium">
+                            <Check className="w-3.5 h-3.5 text-sb-good" />
+                            {s}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <span className="text-sb-text-2">Belum ada skill yang cocok</span>
+                    )}
                   </td>
                 ))}
-              </tr>
+              </Row>
 
-              {/* Row 9: Aksi Cepat */}
-              <tr>
-                <td className="py-4 px-4 font-bold text-sb-navy bg-sb-mist-faint">
-                  Aksi & Tautan
-                </td>
+              <Row label="Skill belum ditemukan" hint="Ada di lowongan, belum terlihat di CV">
                 {jobs.map((job) => (
-                  <td key={job.id} className="py-4 px-4">
-                    <div className="space-y-2">
+                  <td key={job.id} className="px-4 py-4">
+                    {job.missingSkills && job.missingSkills.length > 0 ? (
+                      <ul className="flex flex-wrap gap-1.5">
+                        {job.missingSkills.map((s) => (
+                          <li key={s} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white text-sb-navy border border-dashed border-sb-warning/60 text-xs font-medium">
+                            <AlertTriangle className="w-3.5 h-3.5 text-sb-warning" />
+                            {s}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <span className="text-sb-good font-semibold">Semua skill wajib sudah tercantum</span>
+                    )}
+                  </td>
+                ))}
+              </Row>
+
+              <Row label="Prioritas">
+                {jobs.map((job) => (
+                  <td key={job.id} className="px-4 py-4">
+                    <PriorityStars value={job.priority} readOnly size="md" />
+                    <span className="sr-only">{job.priority} dari 5</span>
+                  </td>
+                ))}
+              </Row>
+
+              <Row label="Tahapan">
+                {jobs.map((job) => {
+                  const stageConf = STAGE_CONFIG[job.stage] || STAGE_CONFIG.bookmarked;
+                  return (
+                    <td key={job.id} className="px-4 py-4">
                       <select
                         value={job.stage}
-                        onChange={(e) =>
-                          onUpdateStage(job.id, e.target.value as TrackedJob["stage"])
-                        }
-                        className="w-full py-1 px-2.5 rounded-full border border-sb-border text-xs font-semibold bg-white text-sb-navy focus:outline-hidden"
+                        aria-label={`Tahapan ${job.title}`}
+                        onChange={(e) => onUpdateStage(job.id, e.target.value as TrackedJob["stage"])}
+                        className={`py-1.5 pl-3 pr-8 rounded-full border text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-sb-blue ${stageConf.badgeClass}`}
                       >
-                        <option value="bookmarked">Tersimpan</option>
-                        <option value="applying">Siapkan Berkas</option>
-                        <option value="applied">Sudah Melamar</option>
-                        <option value="interviewing">Wawancara</option>
-                        <option value="offered">Penawaran</option>
-                        <option value="accepted">Diterima</option>
-                        <option value="rejected">Ditolak</option>
+                        {STAGE_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value}>{o.label}</option>
+                        ))}
                       </select>
+                    </td>
+                  );
+                })}
+              </Row>
 
-                      {!job.id.startsWith("custom_") && (
-                        <a
-                          href={`/jobs/${job.id}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center justify-center gap-1 w-full py-1 px-2.5 rounded-full text-xs font-semibold text-sb-blue bg-sb-mist-faint hover:bg-sb-mist-soft transition-colors"
-                        >
-                          Lihat Detail Lowongan <ExternalLink className="w-3 h-3" />
-                        </a>
-                      )}
-                    </div>
+              <Row label="Ekspektasi gaji">
+                {jobs.map((job) => (
+                  <td key={job.id} className="px-4 py-4 text-sb-navy">
+                    {job.salaryExpectation || <span className="text-sb-text-2">Belum diisi</span>}
                   </td>
                 ))}
-              </tr>
+              </Row>
+
+              <Row label="Timeline">
+                {jobs.map((job) => (
+                  <td key={job.id} className="px-4 py-4 text-sb-navy space-y-1">
+                    <p><span className="text-sb-text-2">Disimpan:</span> {job.dateSaved || "-"}</p>
+                    {job.dateApplied && <p><span className="text-sb-text-2">Dilamar:</span> {job.dateApplied}</p>}
+                    {job.interviewDate && <p><span className="text-sb-text-2">Wawancara:</span> {job.interviewDate}</p>}
+                  </td>
+                ))}
+              </Row>
+
+              <Row label="Catatan">
+                {jobs.map((job) => (
+                  <td key={job.id} className="px-4 py-4 text-sb-navy whitespace-pre-line">
+                    {job.notes || <span className="text-sb-text-2">Belum ada catatan</span>}
+                  </td>
+                ))}
+              </Row>
+
+              <Row label="Detail">
+                {jobs.map((job) => (
+                  <td key={job.id} className="px-4 py-4">
+                    {!job.id.startsWith("custom_") ? (
+                      <a
+                        href={`/jobs/${job.id}`}
+                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-sb-blue hover:underline"
+                      >
+                        Lihat lowongan <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    ) : (
+                      <span className="text-sb-text-2">Ditambahkan sendiri</span>
+                    )}
+                  </td>
+                ))}
+              </Row>
             </tbody>
           </table>
         </div>
 
-        {/* Modal Footer */}
-        <div className="p-4 border-t border-sb-border flex justify-end bg-white/70">
+        <div className="px-5 sm:px-6 py-3 border-t border-sb-border flex justify-end">
           <Button variant="outline" size="sm" onClick={onClose}>
-            Tutup Perbandingan
+            Tutup
           </Button>
         </div>
       </div>
     </div>
   );
 }
-
-

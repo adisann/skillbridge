@@ -408,10 +408,9 @@ export default function CVPage() {
         </Card>
 
         {/* Section 2: Role Target & Ringkasan Profil */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="md:col-span-1"><CardHeader><CardTitle>Target aktif</CardTitle></CardHeader><CardContent><p className="font-bold text-sb-navy">{targetRole || "Belum dipilih"}</p><p className="text-xs text-sb-text-2 mt-2">Ubah melalui pemilih CV / target di atas.</p></CardContent></Card>
-
-          <Card className="md:col-span-2">
+        <div className="grid grid-cols-1 gap-6">
+          {/* Target karier tampil & diubah di bar CV/target di atas (tidak diulang di sini) */}
+          <Card>
             <CardHeader>
               <CardTitle>Profil Hasil Ekstraksi (Pendidikan & Pengalaman)</CardTitle>
               <CardDescription>
@@ -569,16 +568,25 @@ export default function CVPage() {
             })}</ul></details>}
 
             {/* Add Skill Input */}
-            <div className="flex items-center gap-2 max-w-md">
-              <TextInput
-                label="Tambah skill"
-                placeholder="Tambah skill baru (cth. SQL, Python, Tableau)..."
-                value={newSkillInput}
-                onChange={(e) => setNewSkillInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddSkill())}
-              />
-              <Button variant="outline" size="md" onClick={handleAddSkill}>
-                <Plus className="w-4 h-4 mr-1" />
+            <div className="flex items-end gap-2 max-w-lg">
+              <div className="flex-1 min-w-0">
+                <TextInput
+                  label="Tambah skill"
+                  placeholder="cth. SQL, Python, Tableau"
+                  value={newSkillInput}
+                  onChange={(e) => setNewSkillInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddSkill())}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="md"
+                onClick={handleAddSkill}
+                disabled={!newSkillInput.trim()}
+                className="h-10 shrink-0"
+                leftIcon={<Plus className="w-4 h-4" />}
+              >
                 Tambah
               </Button>
             </div>
