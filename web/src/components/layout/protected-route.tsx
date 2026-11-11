@@ -20,9 +20,9 @@ export function ProtectedRoute({
 
   if (isLoading) {
     return (
-      <div aria-busy="true" aria-label="Memuat halaman" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <div aria-busy="true" aria-label="Memuat halaman" className="max-w-7xl mx-auto page-shell page-stack">
         <span className="sr-only" role="status">Memuat halaman dan memverifikasi sesi…</span>
-        <SkeletonText lines={2}/><div className="grid md:grid-cols-2 gap-4"><SkeletonCard/><SkeletonCard/></div>
+        <SkeletonText lines={2}/><div className="grid md:grid-cols-2 gap-stack-md"><SkeletonCard/><SkeletonCard/></div>
       </div>
     );
   }
@@ -30,10 +30,10 @@ export function ProtectedRoute({
   // Case 1: Unauthenticated -> Need login
   if (!isAuthenticated || !user) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center p-4">
+      <div className="min-h-[70vh] flex items-center justify-center p-stack-md">
         <Card className="max-w-md w-full border-sb-border shadow-md">
           <CardHeader className="text-center">
-            <div className="w-12 h-12 rounded-full bg-sb-mist-soft text-sb-blue flex items-center justify-center mx-auto mb-2 border border-sb-border">
+            <div className="w-12 h-12 rounded-full bg-sb-mist-soft text-sb-blue flex items-center justify-center mx-auto mb-stack-xs border border-sb-border">
               <Lock className="w-6 h-6" />
             </div>
             <CardTitle>Masuk Dulu</CardTitle>
@@ -41,7 +41,7 @@ export function ProtectedRoute({
               Masuk dulu untuk melihat halaman ini.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-stack-sm">
             <Link href="/login" className="block">
               <Button variant="outline" size="md" className="w-full justify-center">
                 Masuk

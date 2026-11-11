@@ -5,6 +5,9 @@
  */
 
 export const UI_COPY = {
+  /** Jargon merek SkillBridge */
+  tagline: "Keahlian bertemu kesempatan",
+
   // Label Navigasi & Sidebar
   nav: {
     dashboard: "Dashboard",
@@ -80,6 +83,7 @@ export const UI_COPY = {
     sceneCvRead: "CV terbaca",
     sceneLearning: "Rencana belajar",
     sceneCourse: "Pelajari Power BI",
+    catalogA11y: "Contoh tampilan di dalam aplikasi: dashboard, lowongan, tren skill, CV, lamaran, rencana belajar, dan perbandingan lowongan.",
     // 1. Hero
     heroHeadingLine1: "Melamar bukan",
     heroHeadingLine2: "tebak-tebakan.",

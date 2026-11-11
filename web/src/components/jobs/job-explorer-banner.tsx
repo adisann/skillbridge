@@ -15,20 +15,20 @@ export function JobExplorerBanner({ isGuest, isLoggedIn, role }: JobExplorerBann
       : "Lowongan dari berbagai situs kerja.";
 
   return (
-    <div className="page-banner p-6 sm:p-10 space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-        <div className="space-y-2 max-w-2xl">
+    <div className="page-banner p-stack-lg sm:p-stack-xl space-y-stack-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-stack-xl">
+        <div className="space-y-stack-xs max-w-2xl">
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-sb-navy">
             Lowongan Pekerjaan
           </h1>
           <p className="text-xs sm:text-sm text-sb-text-2 leading-relaxed max-w-xl">{subtitle}</p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-stack-xs">
           {isGuest ? (
             <Link
               href={role !== "all" ? `/tren-skill?bidang=${role}` : "/tren-skill"}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-sb-blue hover:underline"
+              className="inline-flex items-center gap-stack-2xs text-xs font-bold text-sb-blue hover:underline"
             >
               <span>Tren skill di bidang ini</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -36,12 +36,12 @@ export function JobExplorerBanner({ isGuest, isLoggedIn, role }: JobExplorerBann
           ) : (
             <>
               <Link href="/insights">
-                <Button variant="secondary" size="sm" className="text-xs font-bold px-5">
+                <Button variant="secondary" size="sm" className="text-xs font-bold px-stack-lg">
                   Lihat Tren Skill
                 </Button>
               </Link>
               <Link href="/cv">
-                <Button variant="primary" size="sm" className="text-xs font-bold px-5">
+                <Button variant="primary" size="sm" className="text-xs font-bold px-stack-lg">
                   Koreksi CV
                 </Button>
               </Link>

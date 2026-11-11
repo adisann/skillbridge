@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --experimental-strip-types --test tests/career-learning.test.ts tests/matching.test.ts tests/ai-assistant.test.ts tests/gpa.test.ts tests/salary.test.ts tests/admin-salary.test.ts tests/demo-flow.test.ts tests/r2-key.test.ts tests/api-auth.test.ts tests/cv-extraction.test.ts",
+    "test": "node --experimental-strip-types --test tests/career-learning.test.ts tests/matching.test.ts tests/matching-qualification.test.ts tests/ai-assistant.test.ts tests/gpa.test.ts tests/salary.test.ts tests/admin-salary.test.ts tests/demo-flow.test.ts tests/r2-key.test.ts tests/r2-storage.test.ts tests/api-auth.test.ts tests/cv-extraction.test.ts",
     "typecheck": "tsc --noEmit",
     "dup": "jscpd src",
     "dead": "knip"

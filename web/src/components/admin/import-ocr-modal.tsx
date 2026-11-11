@@ -52,7 +52,7 @@ export function ImportOcrModal({ isExtracting, onSubmit, onClose }: ImportOcrMod
   return (
     <ModalShell size="compact" onClose={onClose}>
       <ModalHeader onClose={onClose}>
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-stack-xs">
           <div className="w-8 h-8 rounded-lg bg-sb-mist-faint text-sb-blue flex items-center justify-center">
             <ScanText className="w-4 h-4" />
           </div>
@@ -63,21 +63,21 @@ export function ImportOcrModal({ isExtracting, onSubmit, onClose }: ImportOcrMod
         </div>
       </ModalHeader>
 
-      <div className="p-2.5 rounded-lg bg-sb-mist-soft border border-sb-border text-[11px] text-sb-navy flex items-center gap-2">
+      <div className="p-stack-xs rounded-lg bg-sb-mist-soft border border-sb-border text-[11px] text-sb-navy flex items-center gap-stack-xs">
         <CheckCircle2 className="w-4 h-4 text-sb-good shrink-0" />
         <span>
           Periksa kembali judul, perusahaan, dan persyaratan hasil pembacaan sebelum menyimpan.
         </span>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
+      <form onSubmit={handleSubmit} className="space-y-stack-md">
+        <div className="space-y-stack-xs">
           <label className="block text-xs font-semibold text-sb-navy">
             Unggah File Poster / Flyer Lowongan Kerja *
           </label>
-          <div className="border-2 border-dashed border-sb-border rounded-xl p-4 text-center hover:border-sb-blue transition-colors bg-sb-mist-faint/50">
+          <div className="border-2 border-dashed border-sb-border rounded-xl p-stack-md text-center hover:border-sb-blue transition-colors bg-sb-mist-faint/50">
             {preview ? (
-              <div className="space-y-3">
+              <div className="space-y-stack-sm">
                 <div className="relative inline-block max-h-48 rounded-lg overflow-hidden border border-sb-border shadow-2xs">
                   {/* eslint-disable-next-line @next/next/no-img-element -- pratinjau data URL lokal, tidak cocok untuk next/image */}
                   <img src={preview} alt="Pratinjau Flyer" className="max-h-48 object-contain mx-auto" />
@@ -91,7 +91,7 @@ export function ImportOcrModal({ isExtracting, onSubmit, onClose }: ImportOcrMod
                 </label>
               </div>
             ) : (
-              <label className="cursor-pointer block py-4 space-y-2">
+              <label className="cursor-pointer block py-stack-md space-y-stack-xs">
                 {fileInput}
                 <div className="w-10 h-10 rounded-full bg-sb-mist-soft text-sb-blue flex items-center justify-center mx-auto">
                   <UploadCloud className="w-5 h-5" />

@@ -22,7 +22,7 @@ export function AdminTabs({ activeTab, onChange, counts }: AdminTabsProps) {
           type="button"
           aria-current={activeTab === id ? "page" : undefined}
           onClick={() => onChange(id)}
-          className={`flex items-center justify-center gap-1 min-w-0 px-1 py-2.5 text-xs font-bold border-b-2 transition-colors duration-150 ${
+          className={`flex items-center justify-center gap-stack-2xs min-w-0 px-stack-2xs py-stack-xs text-xs font-bold border-b-2 transition-colors duration-150 ${
             activeTab === id
               ? "border-sb-blue text-sb-blue"
               : "border-transparent text-sb-text-2 hover:text-sb-navy"

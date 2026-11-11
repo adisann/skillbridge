@@ -66,8 +66,9 @@ export async function GET(req: NextRequest) {
         role,
         sampleSizeN: aggregation.sampleSizeN,
         lastUpdated: aggregation.lastUpdatedDate,
-        // Halaman Tren Skill menampilkan 15 dulu lalu "Tampilkan lebih banyak"
-        topSkills: aggregation.topSkills.slice(0, 60),
+        // Default dibatasi 60 skill teratas agar ringan; ?allSkills=1 mengembalikan semuanya
+        // (dipakai Rencana Belajar untuk menghitung "Diminta di x dari N lowongan" per skill).
+        topSkills: searchParams.get("allSkills") === "1" ? aggregation.topSkills : aggregation.topSkills.slice(0, 60),
         learningRecommendations: aggregation.learningRecommendations,
       },
       { headers }

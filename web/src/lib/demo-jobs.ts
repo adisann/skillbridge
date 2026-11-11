@@ -20,7 +20,7 @@ const DEMO_EXTERNAL_IDS = new Set([
 /** Baris seed SQL memakai UUID tetap berawalan ini. */
 const DEMO_ID_PREFIX = "33333333-0000-0000-0000-";
 
-export interface JobIdentity {
+interface JobIdentity {
   id?: string | null;
   external_id?: string | null;
   retrieval_method?: string | null;
@@ -42,7 +42,7 @@ export const DEMO_JOB_NOTICE =
 
 /** Nama cadangan lama dari crawler/OCR saat perusahaan tidak tertulis. Bukan tanda verifikasi. */
 const LEGACY_PLACEHOLDER_COMPANY = "perusahaan terverifikasi";
-export const UNKNOWN_COMPANY = "Perusahaan tidak disebutkan";
+const UNKNOWN_COMPANY = "Perusahaan tidak disebutkan";
 
 export function displayCompany(company: string | null | undefined): string {
   const value = (company || "").trim();

@@ -22,7 +22,13 @@ export async function POST(req: NextRequest) {
     if (resumeId) {
       findQuery = findQuery.eq("id", resumeId);
     }
-    const { data: foundResumes } = await findQuery;
+    const { data: foundResumes, error: findError } = await findQuery;
+    if (findError) {
+      throw new Error("Gagal memuat CV yang akan dihapus. Coba lagi.");
+    }
+    if (resumeId && !foundResumes?.length) {
+      return NextResponse.json({ error: "CV tidak ditemukan di akun ini." }, { status: 404 });
+    }
     const keysToDelete = (foundResumes || [])
       .map((r: { file_url: string | null }) => ownedResumeKey(effectiveUserId, r.file_url))
       .filter((k: string | null): k is string => Boolean(k));

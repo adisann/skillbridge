@@ -12,7 +12,7 @@ export function SkillChips({ skills, gapClass, chipClass, variant = "default" }:
   return (
     <div className={cn("flex flex-wrap", gapClass)}>
       {skills.map((skill) => (
-        <span key={skill} className={cn("px-3 py-1 rounded-full border text-xs font-semibold", chipClass, variant === "missing" && "border-dashed border-sb-warning bg-sb-warning-soft text-sb-navy")}>
+        <span key={skill} className={cn("px-stack-sm py-stack-2xs rounded-full border text-xs font-semibold", chipClass, variant === "missing" && "border-dashed border-sb-warning bg-sb-warning-soft text-sb-navy")}>
           {skill}
         </span>
       ))}

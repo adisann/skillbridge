@@ -1,6 +1,5 @@
 import React from "react";
 import Link from "next/link";
-import { Compass } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LogoProps {
@@ -10,56 +9,53 @@ interface LogoProps {
   href?: string;
 }
 
+/**
+ * Satu-satunya sumber bentuk logo SkillBridge: dua pilar dan satu lengkung (jembatan)
+ * yang menyatukan keahlian kandidat dengan kebutuhan dunia kerja.
+ * Dipakai komponen di bawah dan disalin apa adanya ke `app/icon.svg` (favicon).
+ */
+const SKILLBRIDGE_MARK_VIEWBOX = "0 0 100 60";
+const SKILLBRIDGE_MARK_PATH =
+  "M0 60V0H19V20C19 9 33 2 50 2C67 2 81 9 81 20V0H100V60H81V40C81 27 67 18 50 18C33 18 19 27 19 40V60Z";
+
+/** Tanda logo. Warna mengikuti `currentColor`, ukuran lewat `className` (mis. `h-6 w-auto`). */
+function SkillBridgeMark({ className }: { className?: string }) {
+  return (
+    <svg viewBox={SKILLBRIDGE_MARK_VIEWBOX} className={className} aria-hidden="true" focusable="false">
+      <path d={SKILLBRIDGE_MARK_PATH} fill="currentColor" />
+    </svg>
+  );
+}
+
 export function SkillBridgeLogo({
   className,
   size = "md",
   showText = true,
   href = "/",
 }: LogoProps) {
-  const iconSizes = {
-    sm: "h-7 w-7 rounded-lg",
-    md: "h-9 w-9 rounded-xl",
-    lg: "h-11 w-11 rounded-2xl",
-  };
-
-  const compassSizes = {
-    sm: "h-3.5 w-3.5",
-    md: "h-5 w-5",
-    lg: "h-6 w-6",
+  const markSizes = {
+    sm: "h-3.5 w-auto",
+    md: "h-[18px] w-auto",
+    lg: "h-6 w-auto",
   };
 
   const textSizes = {
     sm: "text-base",
-    md: "text-lg",
+    md: "text-xl",
     lg: "text-2xl",
   };
 
   const content = (
     <span
       className={cn(
-        "inline-flex items-center gap-2.5 font-bold tracking-tight select-none",
+        "inline-flex items-center gap-stack-xs text-sb-blue select-none",
         className
       )}
     >
-      {/* Box icon rounded with sky-mist gradient, navy compass, ring-1 ring-white/50, and soft shadow */}
-      <span
-        className={cn(
-          "flex items-center justify-center text-sb-navy shrink-0 bg-gradient-to-br from-sb-sky to-sb-mist shadow-xs ring-1 ring-white/60",
-          iconSizes[size]
-        )}
-        aria-hidden="true"
-      >
-        <Compass className={compassSizes[size]} strokeWidth={2.4} />
-      </span>
-
+      <SkillBridgeMark className={cn("shrink-0", markSizes[size])} />
       {showText && (
-        <span
-          className={cn(
-            "font-extrabold tracking-[-0.03em] text-sb-navy",
-            textSizes[size]
-          )}
-        >
-          Skill<span className="text-sb-blue">Bridge</span>
+        <span className={cn("font-display font-semibold tracking-[-0.02em] leading-none", textSizes[size])}>
+          SkillBridge
         </span>
       )}
     </span>
@@ -69,6 +65,7 @@ export function SkillBridgeLogo({
     return (
       <Link
         href={href}
+        aria-label="SkillBridge, ke beranda"
         className="focus:outline-none focus-visible:ring-2 focus-visible:ring-sb-blue rounded-xl transition-transform duration-150 ease-out-strong active:scale-[0.97] inline-flex"
       >
         {content}

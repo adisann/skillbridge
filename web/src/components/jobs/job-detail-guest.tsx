@@ -11,12 +11,12 @@ interface GuestLoginPromptProps {
 /** Ajakan masuk atau coba akun demo untuk pengunjung tanpa login. */
 export function GuestLoginPrompt({ jobId }: GuestLoginPromptProps) {
   return (
-    <div className="glass-panel p-6 sm:p-8 rounded-2xl border border-sb-border bg-sb-mist-soft space-y-3">
+    <div className="glass-panel p-stack-lg sm:p-stack-xl rounded-2xl border border-sb-border bg-sb-mist-soft space-y-stack-sm">
       <h3 className="text-base font-extrabold text-sb-navy">Masuk untuk melihat skill mana yang sudah ada di CV-mu</h3>
       <p className="text-xs sm:text-sm text-sb-text-2 leading-relaxed max-w-2xl">
         Masuk dan unggah CV untuk membandingkan kualifikasi secara otomatis dengan lowongan ini, melihat skor kecocokan, dan mendapatkan rekomendasi gap kompetensi.
       </p>
-      <div className="flex flex-wrap items-center gap-3 pt-2">
+      <div className="flex flex-wrap items-center gap-stack-sm pt-stack-xs">
         <Link href={`/login?next=${encodeURIComponent(`/lowongan/${jobId}`)}`}>
           <Button variant="primary" size="md">
             Masuk
@@ -37,28 +37,28 @@ export function GuestRequirementsCard({ job }: { job: JobDetailData }) {
           Daftar keahlian teknis dan kemampuan pendukung yang dipersyaratkan oleh perusahaan.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-stack-xl">
         {job.requiredSkills && job.requiredSkills.length > 0 && (
-          <div className="space-y-2">
+          <div className="space-y-stack-xs">
             <h4 className="text-xs font-bold uppercase tracking-wider text-sb-navy">
               Skill Wajib ({job.requiredSkills.length})
             </h4>
             <SkillChips
               skills={job.requiredSkills}
-              gapClass="gap-2"
+              gapClass="gap-stack-xs"
               chipClass="bg-sb-mist-soft text-sb-navy border-sb-border"
             />
           </div>
         )}
 
         {job.preferredSkills && job.preferredSkills.length > 0 && (
-          <div className="space-y-2 pt-2 border-t border-sb-border">
+          <div className="space-y-stack-xs pt-stack-xs border-t border-sb-border">
             <h4 className="text-xs font-bold uppercase tracking-wider text-sb-text-2">
               Skill Tambahan ({job.preferredSkills.length})
             </h4>
             <SkillChips
               skills={job.preferredSkills}
-              gapClass="gap-2"
+              gapClass="gap-stack-xs"
               chipClass="bg-sb-mist-faint text-sb-navy border-sb-border"
             />
           </div>

@@ -10,7 +10,7 @@ export function PixelBridge({ className, variant = "hero" }: PixelBridgeProps) {
   if (variant === "divider") {
     return (
       <div
-        className={cn("flex items-center justify-center gap-1.5 py-6 select-none opacity-60", className)}
+        className={cn("flex items-center justify-center gap-stack-2xs py-stack-xl select-none opacity-60", className)}
         aria-hidden="true"
       >
         <span className="w-1.5 h-1.5 rounded-xs bg-sb-mist" />
@@ -27,7 +27,7 @@ export function PixelBridge({ className, variant = "hero" }: PixelBridgeProps) {
   if (variant === "compact") {
     return (
       <div
-        className={cn("grid grid-cols-7 gap-1 w-24 select-none opacity-80", className)}
+        className={cn("grid grid-cols-7 gap-stack-2xs w-24 select-none opacity-80", className)}
         aria-hidden="true"
       >
         {/* Row 1 */}

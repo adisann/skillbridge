@@ -51,7 +51,7 @@ export function DataTable<T extends object>({
                   <th
                     key={col.key}
                     className={cn(
-                      "px-4 py-3 select-none",
+                      "px-stack-md py-stack-sm select-none",
                       alignClass,
                       col.sortable && "cursor-pointer hover:bg-sb-mist-soft transition-colors",
                       col.className
@@ -60,7 +60,7 @@ export function DataTable<T extends object>({
                   >
                     <div
                       className={cn(
-                        "inline-flex items-center gap-1.5",
+                        "inline-flex items-center gap-stack-2xs",
                         col.align === "right" && "justify-end",
                         col.align === "center" && "justify-center"
                       )}
@@ -90,7 +90,7 @@ export function DataTable<T extends object>({
               <tr>
                 <td
                   colSpan={columns.length}
-                  className="px-4 py-8 text-center text-xs text-sb-text-2"
+                  className="px-stack-md py-stack-2xl text-center text-xs text-sb-text-2"
                 >
                   {emptyMessage}
                 </td>
@@ -112,7 +112,7 @@ export function DataTable<T extends object>({
                     return (
                       <td
                         key={col.key}
-                        className={cn("px-4 py-3 text-xs leading-relaxed", alignClass, col.className)}
+                        className={cn("px-stack-md py-stack-sm text-xs leading-relaxed", alignClass, col.className)}
                       >
                         {col.render ? col.render(row, idx) : String((row as Record<string, unknown>)[col.key] ?? "")}
                       </td>

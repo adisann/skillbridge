@@ -7,6 +7,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MATCH_STATUS_LABELS } from "@/lib/matching-config";
 
 // -----------------------------------------------------------------------------
 // Match Status Badge
@@ -27,38 +28,38 @@ interface MatchBadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 export function MatchBadge({ status, score, size = "md", className, ...props }: MatchBadgeProps) {
   const sizeClasses =
     size === "sm"
-      ? "px-2.5 py-0.5 text-xs gap-1.5"
+      ? "px-stack-xs py-stack-3xs text-xs gap-stack-2xs"
       : size === "lg"
-      ? "px-4 py-2 text-sm gap-2"
-      : "px-3 py-1.5 text-xs gap-1.5";
+      ? "px-stack-md py-stack-xs text-sm gap-stack-xs"
+      : "px-stack-sm py-stack-2xs text-xs gap-stack-2xs";
 
   const config: Record<
     MatchStatus,
     { label: string; bg: string; text: string; border: string; icon: React.ReactNode }
   > = {
     match: {
-      label: "Cocok",
+      label: MATCH_STATUS_LABELS.match,
       bg: "bg-emerald-50",
       text: "text-sb-good",
       border: "border-emerald-200",
       icon: <CheckCircle2 className="w-3.5 h-3.5 text-sb-good shrink-0" aria-hidden="true" />,
     },
     underqualified: {
-      label: "Perlu penguatan skill",
+      label: MATCH_STATUS_LABELS.underqualified,
       bg: "bg-amber-50",
       text: "text-sb-warning",
       border: "border-amber-200",
       icon: <AlertTriangle className="w-3.5 h-3.5 text-sb-warning shrink-0" aria-hidden="true" />,
     },
     potentially_overqualified: {
-      label: "Melampaui level posisi",
+      label: MATCH_STATUS_LABELS.potentially_overqualified,
       bg: "bg-sb-mist-soft",
       text: "text-sb-blue",
       border: "border-sb-mist",
       icon: <ArrowUpCircle className="w-3.5 h-3.5 text-sb-blue shrink-0" aria-hidden="true" />,
     },
     insufficient_evidence: {
-      label: "Belum ada skor",
+      label: MATCH_STATUS_LABELS.insufficient_evidence,
       bg: "bg-sb-mist-soft",
       text: "text-sb-navy",
       border: "border-sb-border",
@@ -71,7 +72,7 @@ export function MatchBadge({ status, score, size = "md", className, ...props }: 
   return (
     <span
       className={cn(
-        "inline-flex items-center font-semibold rounded-full border shadow-2xs select-none whitespace-nowrap shrink-0",
+        "inline-flex max-w-full items-center font-semibold rounded-full border shadow-2xs select-none whitespace-nowrap",
         sizeClasses,
         current.bg,
         current.text,
@@ -81,7 +82,7 @@ export function MatchBadge({ status, score, size = "md", className, ...props }: 
       {...props}
     >
       {current.icon}
-      <span>{current.label}</span>
+      <span className="min-w-0">{current.label}</span>
     </span>
   );
 }
@@ -109,13 +110,13 @@ export function CVSkillBadge({
   const isFound = status === "found" || status === "matched";
   const isMissing = status === "missing";
 
-  const padding = compact ? "px-2.5 py-0.5 text-xs" : "px-3 py-1 text-xs";
+  const padding = compact ? "px-stack-xs py-stack-3xs text-xs" : "px-stack-sm py-stack-2xs text-xs";
 
   if (isFound) {
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-1.5 font-semibold rounded-full bg-emerald-50 text-sb-good border border-emerald-200 select-none",
+          "inline-flex items-center gap-stack-2xs font-semibold rounded-full bg-emerald-50 text-sb-good border border-emerald-200 select-none",
           padding,
           className
         )}
@@ -124,11 +125,11 @@ export function CVSkillBadge({
         <CheckCircle2 className="w-3.5 h-3.5 text-sb-good shrink-0" aria-hidden="true" />
         {skillName && <span className="font-bold text-sb-navy">{skillName}</span>}
         {isMandatory && (
-          <span className="text-xs uppercase font-bold px-1 rounded bg-emerald-100 text-sb-good">
+          <span className="text-xs uppercase font-bold px-stack-2xs rounded bg-emerald-100 text-sb-good">
             Wajib
           </span>
         )}
-        <span className={skillName ? "pl-1 border-l border-emerald-300/50 text-[11px]" : ""}>
+        <span className={skillName ? "pl-stack-2xs border-l border-emerald-300/50 text-[11px]" : ""}>
           Terbukti di CV
         </span>
       </span>
@@ -139,7 +140,7 @@ export function CVSkillBadge({
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-1.5 font-semibold rounded-full bg-sb-mist-faint text-sb-text-2 border border-sb-border select-none",
+          "inline-flex items-center gap-stack-2xs font-semibold rounded-full bg-sb-mist-faint text-sb-text-2 border border-sb-border select-none",
           padding,
           className
         )}
@@ -148,11 +149,11 @@ export function CVSkillBadge({
         <XCircle className="w-3.5 h-3.5 text-sb-critical shrink-0" aria-hidden="true" />
         {skillName && <span className="font-bold text-sb-navy">{skillName}</span>}
         {isMandatory && (
-          <span className="text-xs uppercase font-bold px-1 rounded bg-rose-100 text-sb-critical">
+          <span className="text-xs uppercase font-bold px-stack-2xs rounded bg-rose-100 text-sb-critical">
             Wajib
           </span>
         )}
-        <span className={skillName ? "pl-1 border-l border-sb-border text-[11px]" : ""}>
+        <span className={skillName ? "pl-stack-2xs border-l border-sb-border text-[11px]" : ""}>
           Belum ditemukan di CV
         </span>
       </span>
@@ -162,7 +163,7 @@ export function CVSkillBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 font-semibold rounded-full bg-amber-50 text-sb-warning border border-amber-200 select-none",
+        "inline-flex items-center gap-stack-2xs font-semibold rounded-full bg-amber-50 text-sb-warning border border-amber-200 select-none",
         padding,
         className
       )}
@@ -171,11 +172,11 @@ export function CVSkillBadge({
       <HelpCircle className="w-3.5 h-3.5 text-sb-warning shrink-0" aria-hidden="true" />
       {skillName && <span className="font-bold text-sb-navy">{skillName}</span>}
       {isMandatory && (
-        <span className="text-xs uppercase font-bold px-1 rounded bg-amber-100 text-sb-warning">
+        <span className="text-xs uppercase font-bold px-stack-2xs rounded bg-amber-100 text-sb-warning">
           Wajib
         </span>
       )}
-      <span className={skillName ? "pl-1 border-l border-amber-300 text-[11px]" : ""}>
+      <span className={skillName ? "pl-stack-2xs border-l border-amber-300 text-[11px]" : ""}>
         Belum cukup bukti
       </span>
     </span>

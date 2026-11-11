@@ -48,17 +48,17 @@ export function TrackerTable({
           <thead>
             <tr className="border-b border-sb-border bg-white/60 text-sb-text-2 font-bold uppercase tracking-wider">
               {selectMode && (
-                <th className="py-3 px-3.5 w-12 text-center">
+                <th className="py-stack-sm px-stack-sm w-12 text-center">
                   <span className="sr-only">Pilih untuk dibandingkan</span>
                 </th>
               )}
-              <th className="py-3 px-4 min-w-[200px]">Posisi & Perusahaan</th>
-              <th className="py-3 px-3">Kecocokan CV</th>
-              <th className="py-3 px-3 min-w-[130px]">Tahapan Lamaran</th>
-              <th className="py-3 px-3 min-w-[130px]">Prioritas Minat</th>
-              <th className="py-3 px-3">Ekspektasi Gaji</th>
-              <th className="py-3 px-3 min-w-[120px]">Timeline & Catatan</th>
-              <th className="py-3 px-3 text-right">Aksi</th>
+              <th className="py-stack-sm px-stack-md min-w-[200px]">Posisi & Perusahaan</th>
+              <th className="py-stack-sm px-stack-sm">Kecocokan CV</th>
+              <th className="py-stack-sm px-stack-sm min-w-[130px]">Tahapan Lamaran</th>
+              <th className="py-stack-sm px-stack-sm min-w-[130px]">Prioritas Minat</th>
+              <th className="py-stack-sm px-stack-sm">Ekspektasi Gaji</th>
+              <th className="py-stack-sm px-stack-sm min-w-[120px]">Timeline & Catatan</th>
+              <th className="py-stack-sm px-stack-sm text-right">Aksi</th>
             </tr>
           </thead>
           <tbody
@@ -82,7 +82,7 @@ export function TrackerTable({
                   )}
                 >
                   {selectMode && (
-                    <td className="py-3.5 px-3.5 text-center">
+                    <td className="py-stack-sm px-stack-sm text-center">
                       <input
                         type="checkbox"
                         checked={isSelected}
@@ -95,8 +95,8 @@ export function TrackerTable({
                   )}
 
                   {/* Title & Company */}
-                  <td className="py-3.5 px-4">
-                    <div className="space-y-0.5">
+                  <td className="py-stack-sm px-stack-md">
+                    <div className="space-y-stack-3xs">
                       <Link
                         href={job.id.startsWith("custom_") ? "#" : `/jobs/${job.id}`}
                         className="font-bold text-sb-navy hover:text-sb-blue hover:underline line-clamp-1"
@@ -111,16 +111,16 @@ export function TrackerTable({
                   </td>
 
                   {/* Match Badge */}
-                  <td className="py-3.5 px-3">
+                  <td className="py-stack-sm px-stack-sm">
                     <MatchScore status={job.matchStatus} score={job.matchScore} />
                   </td>
 
                   {/* Stage Selector */}
-                  <td className="py-3.5 px-3">
+                  <td className="py-stack-sm px-stack-sm">
                     <select
                       value={job.stage}
                       onChange={(e) => onStageChange(job.id, e.target.value as JobStage)}
-                      className={`w-full py-1 px-2.5 rounded-full border text-xs font-bold focus:outline-hidden ${stageConf.badgeClass}`}
+                      className={`w-full py-stack-2xs px-stack-xs rounded-full border text-xs font-bold focus:outline-hidden ${stageConf.badgeClass}`}
                     >
                       <option value="bookmarked">Tersimpan</option>
                       <option value="applying">Siapkan Berkas</option>
@@ -133,8 +133,8 @@ export function TrackerTable({
                   </td>
 
                   {/* Priority Stars (1-5) */}
-                  <td className="py-3.5 px-3">
-                    <div className="space-y-1">
+                  <td className="py-stack-sm px-stack-sm">
+                    <div className="space-y-stack-2xs">
                       <PriorityStars
                         value={job.priority}
                         onChange={(newVal) => onPriorityChange(job.id, newVal)}
@@ -146,20 +146,20 @@ export function TrackerTable({
                   </td>
 
                   {/* Salary */}
-                  <td className="py-3.5 px-3 font-semibold text-sb-navy">
+                  <td className="py-stack-sm px-stack-sm font-semibold text-sb-navy">
                     {job.salaryExpectation && job.salaryExpectation !== "Kompensasi Kompetitif" ? job.salaryExpectation : <span className="font-normal text-sb-text-2">Belum diisi</span>}
                   </td>
 
                   {/* Timeline & Notes */}
-                  <td className="py-3.5 px-3">
-                    <div className="space-y-1 text-[11px]">
+                  <td className="py-stack-sm px-stack-sm">
+                    <div className="space-y-stack-2xs text-[11px]">
                       {job.dateApplied && (
-                        <p className="text-sb-blue font-semibold flex items-center gap-1 font-mono-metric">
+                        <p className="text-sb-blue font-semibold flex items-center gap-stack-2xs font-mono-metric">
                           <Clock className="w-3 h-3" /> Dilamar: {job.dateApplied}
                         </p>
                       )}
                       {job.interviewDate && (
-                        <p className="text-sb-warning font-semibold flex items-center gap-1 font-mono-metric">
+                        <p className="text-sb-warning font-semibold flex items-center gap-stack-2xs font-mono-metric">
                           <Calendar className="w-3 h-3" /> {job.interviewDate}
                         </p>
                       )}
@@ -174,12 +174,12 @@ export function TrackerTable({
                   </td>
 
                   {/* Actions */}
-                  <td className="py-3.5 px-3 text-right">
-                    <div className="flex items-center justify-end gap-1.5">
+                  <td className="py-stack-sm px-stack-sm text-right">
+                    <div className="flex items-center justify-end gap-stack-2xs">
                       <button
                         type="button"
                         onClick={() => onEditJob(job)}
-                        className="p-1.5 rounded-lg text-sb-text-2 hover:text-sb-blue hover:bg-sb-mist-soft transition-colors"
+                        className="p-stack-2xs rounded-lg text-sb-text-2 hover:text-sb-blue hover:bg-sb-mist-soft transition-colors"
                         title="Edit catatan atau rincian"
                       >
                         <Pencil className="w-4 h-4" />
@@ -187,7 +187,7 @@ export function TrackerTable({
                       <button
                         type="button"
                         onClick={() => onDeleteJob(job.id)}
-                        className="p-1.5 rounded-lg text-sb-text-2 hover:text-sb-critical hover:bg-sb-critical/10 transition-colors"
+                        className="p-stack-2xs rounded-lg text-sb-text-2 hover:text-sb-critical hover:bg-sb-critical/10 transition-colors"
                         title="Hapus dari pelacakan"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -195,7 +195,7 @@ export function TrackerTable({
                       {!job.id.startsWith("custom_") && (
                         <Link
                           href={`/jobs/${job.id}`}
-                          className="p-1.5 rounded-lg text-sb-text-2 hover:text-sb-blue hover:bg-sb-mist-soft transition-colors"
+                          className="p-stack-2xs rounded-lg text-sb-text-2 hover:text-sb-blue hover:bg-sb-mist-soft transition-colors"
                           title="Lihat detail lowongan"
                         >
                           <ExternalLink className="w-4 h-4" />
@@ -218,7 +218,7 @@ export function TrackerTable({
         pageSizeOptions={[10, 20, 50]}
         onPageChange={onPageChange}
         onPageSizeChange={onPageSizeChange}
-        className="px-4 sm:px-5 py-3.5 bg-white/50"
+        className="px-stack-md sm:px-stack-lg py-stack-sm bg-white/50"
       />
     </div>
   );

@@ -13,8 +13,7 @@ import { SkeletonCard } from "@/components/ui/loading";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SkillTrendsBanner } from "@/components/insights/skill-trends-banner";
 import { GuestCalloutBanner, GuestComparePrompt } from "@/components/insights/skill-trends-guest";
-import { LearningButton } from "@/components/learning-button";
-import { Button } from "@/components/ui/button";
+import { LearningButton, CHIP_BUTTON_CLASS } from "@/components/learning-button";
 import Link from "next/link";
 import { Check } from "lucide-react";
 import { LearningRecommendations } from "@/components/insights/learning-recommendations";
@@ -80,7 +79,7 @@ export function SkillTrends({ mode = "user" }: SkillTrendsProps) {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-7xl mx-auto page-shell page-stack">
       <SkillTrendsBanner isGuest={isGuest} sampleSizeN={sampleSizeN} lastUpdatedDate={lastUpdatedDate} />
 
       {!isGuest && <CareerContextBar />}
@@ -91,17 +90,17 @@ export function SkillTrends({ mode = "user" }: SkillTrendsProps) {
 
       {isGuest && <GuestCalloutBanner />}
 
-      <div className="space-y-4">
+      <div className="space-y-stack-md">
         <FilterBar filters={filters} onChange={setFilters} sampleCount={sampleSizeN} />
       </div>
 
       {isLoading ? (
-        <div className="space-y-6">
+        <div className="space-y-stack-xl">
           <SkeletonCard />
           <SkeletonCard />
         </div>
       ) : topSkills.length === 0 ? (
-        <div className="py-12">
+        <div className="py-stack-4xl">
           <EmptyState
             title="Tidak Ada Data Skill untuk Filter Ini"
             description="Coba sesuaikan filter bidang atau tipe kerja untuk melihat kebutuhan skill."
@@ -110,7 +109,7 @@ export function SkillTrends({ mode = "user" }: SkillTrendsProps) {
           />
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="page-stack">
           <MarketSkillBarChart
             key={`${filters.role}-${filters.workType}-${filters.seniority}`}
             skills={topSkills.map((s) => ({
@@ -128,16 +127,16 @@ export function SkillTrends({ mode = "user" }: SkillTrendsProps) {
               if (item.status === "missing") {
                 return (
                   <>
-                    <Button
-                      variant="outline"
-                      size="sm"
+                    <button
+                      type="button"
                       onClick={() => claimSkill(item.skillName)}
                       title="Tandai skill yang kamu kuasai tapi belum tertulis di CV"
-                      leftIcon={<Check className="w-3.5 h-3.5 text-sb-text-2" />}
+                      className={`${CHIP_BUTTON_CLASS} bg-white text-sb-navy border-sb-border hover:border-sb-blue/40`}
                     >
+                      <Check className="w-3 h-3 text-sb-text-2" />
                       Saya kuasai
-                    </Button>
-                    <LearningButton skillName={item.skillName} />
+                    </button>
+                    <LearningButton skillName={item.skillName} size="chip" />
                   </>
                 );
               }
@@ -145,7 +144,7 @@ export function SkillTrends({ mode = "user" }: SkillTrendsProps) {
                 return (
                   <Link
                     href={`/cv?skill=${encodeURIComponent(item.skillName)}#review-skills`}
-                    className="text-xs font-semibold text-sb-blue underline"
+                    className="text-[11px] font-semibold text-sb-blue underline whitespace-nowrap"
                   >
                     Tinjau skill di CV
                   </Link>

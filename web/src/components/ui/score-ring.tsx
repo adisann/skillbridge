@@ -1,25 +1,29 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import { formatPercent } from "@/lib/copy";
+import { DEFAULT_MATCHING_THRESHOLDS, MATCH_STATUS_COLORS } from "@/lib/matching-config";
+import type { MatchCategory } from "@/lib/matching";
 
 interface ScoreRingProps {
   score?: number | null;
   size?: "sm" | "md" | "lg";
   className?: string;
   showLabel?: boolean;
+  status?: MatchCategory;
 }
 
 export function ScoreRing({
   score,
   size = "md",
   className,
+  status,
 }: ScoreRingProps) {
   const dimensions = size === "sm" ? 56 : size === "lg" ? 96 : 72;
   const strokeWidth = size === "sm" ? 5 : size === "lg" ? 8 : 6;
   const radius = (dimensions - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
 
-  const hasScore = score != null && !isNaN(score) && score >= 0;
+  const hasScore = status !== "insufficient_evidence" && score != null && Number.isFinite(score) && score >= 0;
   const safeScore = hasScore ? formatPercent(score) : 0;
   const offset = hasScore
     ? circumference - (safeScore / 100) * circumference
@@ -27,11 +31,11 @@ export function ScoreRing({
 
   const strokeColor = !hasScore
     ? "var(--sb-mist)"
-    : safeScore >= 80
+    : status
+    ? MATCH_STATUS_COLORS[status]
+    : safeScore >= DEFAULT_MATCHING_THRESHOLDS.matchScoreMin
     ? "var(--sb-good)"
-    : safeScore >= 65
-    ? "var(--sb-warning)"
-    : "var(--sb-critical)";
+    : "var(--sb-warning)";
 
   return (
     <div

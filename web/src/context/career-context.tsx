@@ -67,7 +67,7 @@ export function useCareer() {
 export function CareerContent({ children }: { children: React.ReactNode }) {
   const { revision, busy } = useCareer();
   return <div aria-busy={busy}>
-    {busy && <p role="status" className="px-4 py-2 bg-sb-mist-soft text-sm text-sb-navy">Memperbarui hasil untuk CV dan target…</p>}
+    {busy && <p role="status" className="px-stack-md py-stack-xs bg-sb-mist-soft text-sm text-sb-navy">Memperbarui hasil untuk CV dan target…</p>}
     <div key={revision} className={busy ? "pointer-events-none opacity-60" : undefined} inert={busy}>{children}</div>
   </div>;
 }

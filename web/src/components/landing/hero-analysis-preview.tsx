@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 export function ExampleResultCard() {
   const c = UI_COPY.landing;
-  return <div className="bg-white border border-sb-border rounded-2xl p-5 text-sb-navy space-y-3"><p className="text-xs font-semibold text-sb-blue">{c.sceneResult}</p><p className="font-bold">{c.sceneRole}</p><p className="text-sm">{c.sceneCount}</p><SkillChips skills={[`${c.sceneGap} · ${c.sceneMissing}`]} variant="missing" gapClass="gap-2" chipClass=""/></div>;
+  return <div className="bg-white border border-sb-border rounded-2xl p-stack-lg text-sb-navy space-y-stack-sm"><p className="text-xs font-semibold text-sb-blue">{c.sceneResult}</p><p className="font-bold">{c.sceneRole}</p><p className="text-sm">{c.sceneCount}</p><SkillChips skills={[`${c.sceneGap} · ${c.sceneMissing}`]} variant="missing" gapClass="gap-stack-xs" chipClass=""/></div>;
 }
 
 /*
@@ -19,16 +19,13 @@ export function ExampleResultCard() {
 type Phase = "idle" | "upload" | "process" | "result" | "out";
 
 const DURATION: Record<Phase, number> = {
-  idle: 1400, // jeda kosong sebelum loop berikutnya
-  upload: 2100,
-  process: 2900,
-  result: 5200, // waktu baca hasil
+  idle: 2000,
+  upload: 2000,
+  process: 2000,
+  result: 6700, // 5 detik akhir siklus + 1,7 detik awal siklus berikutnya.
   out: 450,
 };
-
-// Hasil pertama (render server) ditahan lebih lama sebelum loop mulai: pengunjung sempat membaca,
-// dan tampilan awal tetap diam selama halaman dimuat (baik untuk Speed Index).
-const FIRST_RESULT_HOLD = 8000;
+const INITIAL_DELAY_MS = 1700;
 
 const NEXT: Record<Phase, Phase> = { idle: "upload", upload: "process", process: "result", result: "out", out: "idle" };
 
@@ -66,7 +63,7 @@ function useDemoLoop() {
       const next = NEXT[phase];
       if (next === "upload") setCycle((n) => n + 1);
       setPhase(next);
-    }, phase === "result" && cycle === 0 ? FIRST_RESULT_HOLD : DURATION[phase]);
+    }, phase === "result" && cycle === 0 ? INITIAL_DELAY_MS : DURATION[phase]);
     return () => window.clearTimeout(timer);
   }, [phase, running, cycle]);
 
@@ -83,17 +80,17 @@ export function HeroAnalysisPreview() {
     <div
       ref={ref}
       data-paused={running ? undefined : ""}
-      className="hero-demo w-full rounded-3xl border border-sb-blue/20 bg-white shadow-[0_20px_60px_-24px_rgba(0,90,156,.3)] overflow-hidden text-sb-navy"
+      className="hero-demo w-full rounded-3xl border border-sb-blue/20 bg-white shadow-[0_20px_60px_-24px_rgba(30,64,175,.3)] overflow-hidden text-sb-navy"
     >
       <p className="sr-only">{c.demoA11y}</p>
       <div aria-hidden="true">
-        <div className="flex items-center justify-between gap-3 px-5 py-4 bg-sb-mist-faint border-b border-sb-border">
-          <span key={title} className="flex items-center gap-2 text-sm font-bold animate-fade-in">
+        <div className="flex items-center justify-between gap-stack-sm px-stack-lg py-stack-md bg-sb-mist-faint border-b border-sb-border">
+          <span key={title} className="flex items-center gap-stack-xs text-sm font-bold animate-fade-in">
             <FileText className="w-4 h-4 text-sb-blue" />
             {title}
           </span>
-          <span className="flex items-center gap-2.5">
-            <span className="flex gap-1">
+          <span className="flex items-center gap-stack-xs">
+            <span className="flex gap-stack-2xs">
               {[0, 1, 2].map((i) => (
                 <span
                   key={i}
@@ -101,7 +98,7 @@ export function HeroAnalysisPreview() {
                 />
               ))}
             </span>
-            <span className="rounded-full border border-sb-border px-2.5 py-1 text-xs text-sb-blue bg-white">{c.sceneExample}</span>
+            <span className="rounded-full border border-sb-border px-stack-xs py-stack-2xs text-xs text-sb-blue bg-white">{c.sceneExample}</span>
           </span>
         </div>
 
@@ -123,38 +120,38 @@ export function HeroAnalysisPreview() {
 function UploadStage({ active }: { active: boolean }) {
   const c = UI_COPY.landing;
   return (
-    <div className="absolute inset-0 p-5 sm:p-7 flex flex-col justify-center gap-5 animate-fade-in">
+    <div className="absolute inset-0 p-stack-lg sm:p-stack-xl flex flex-col justify-center gap-stack-lg animate-fade-in">
       <div
         className={cn(
-          "rounded-2xl border-2 border-dashed px-6 py-10 flex flex-col items-center text-center gap-2 transition-colors duration-300",
+          "rounded-2xl border-2 border-dashed px-stack-xl py-stack-3xl flex flex-col items-center text-center gap-stack-xs transition-colors duration-300",
           active ? "border-sb-sky bg-sb-mist-faint" : "border-sb-border bg-white"
         )}
       >
         <span className={cn("w-12 h-12 rounded-2xl flex items-center justify-center bg-sb-mist-soft text-sb-blue", !active && "hero-demo-bob")}>
           <UploadCloud className="w-6 h-6" />
         </span>
-        <p className="text-sm font-bold mt-1">{c.demoDropHint}</p>
+        <p className="text-sm font-bold mt-stack-2xs">{c.demoDropHint}</p>
         <p className="text-xs text-sb-text-2">{c.demoDropFormats}</p>
       </div>
 
-      <div className={cn("rounded-2xl border border-sb-border bg-white p-4 shadow-xs", active ? "hero-demo-drop" : "opacity-0")}>
-        <div className="flex items-center gap-3">
+      <div className={cn("rounded-2xl border border-sb-border bg-white p-stack-md shadow-xs", active ? "hero-demo-drop" : "opacity-0")}>
+        <div className="flex items-center gap-stack-sm">
           <span className="w-10 h-10 rounded-xl bg-sb-mist-soft flex items-center justify-center text-sb-blue shrink-0">
             <FileText className="w-5 h-5" />
           </span>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-bold truncate">{c.demoFileName}</p>
             <div className="relative h-4 text-xs text-sb-text-2">
-              <span className="absolute inset-0 hero-demo-swap-out" style={delay(1650)}>{c.demoFileSize} · {c.demoUploading}</span>
-              <span className="absolute inset-0 flex items-center gap-1 text-sb-good font-semibold hero-demo-swap-in" style={delay(1650)}>
+              <span className="absolute inset-0 hero-demo-swap-out" style={delay(1100)}>{c.demoFileSize} · {c.demoUploading}</span>
+              <span className="absolute inset-0 flex items-center gap-stack-2xs text-sb-good font-semibold hero-demo-swap-in" style={delay(1100)}>
                 <Check className="w-3.5 h-3.5" />
                 {c.demoUploaded}
               </span>
             </div>
           </div>
         </div>
-        <div className="mt-3 h-1.5 rounded-full bg-sb-mist-soft overflow-hidden">
-          <div className={cn("h-full rounded-full bg-sb-sky", active && "hero-demo-fill")} style={{ ...delay(350), ["--fill-dur" as string]: "1250ms" }} />
+        <div className="mt-stack-sm h-1.5 rounded-full bg-sb-mist-soft overflow-hidden">
+          <div className={cn("h-full rounded-full bg-sb-sky", active && "hero-demo-fill")} style={{ ...delay(200), ["--fill-dur" as string]: "850ms" }} />
         </div>
       </div>
     </div>
@@ -164,43 +161,43 @@ function UploadStage({ active }: { active: boolean }) {
 function ProcessStage() {
   const c = UI_COPY.landing;
   return (
-    <div className="absolute inset-0 p-5 sm:p-7 flex flex-col justify-center gap-6 animate-fade-in">
-      <div className="flex items-center gap-5">
+    <div className="absolute inset-0 p-stack-lg sm:p-stack-xl flex flex-col justify-center gap-stack-xl animate-fade-in">
+      <div className="flex items-center gap-stack-lg">
         {/* Dokumen mini yang dipindai */}
-        <div className="relative w-24 h-32 shrink-0 rounded-xl border border-sb-border bg-white shadow-xs overflow-hidden p-3 space-y-2">
+        <div className="relative w-24 h-32 shrink-0 rounded-xl border border-sb-border bg-white shadow-xs overflow-hidden p-stack-sm space-y-stack-xs">
           <span className="block h-2 w-10 rounded-full bg-sb-mist" />
           {[100, 80, 92, 64, 88, 72, 56].map((w, i) => (
             <span key={i} className="block h-1.5 rounded-full bg-sb-mist-soft" style={{ width: `${w}%` }} />
           ))}
           <span className="hero-demo-scan absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-transparent via-sb-sky/40 to-transparent" />
         </div>
-        <div className="space-y-1.5 min-w-0">
+        <div className="space-y-stack-2xs min-w-0">
           <p className="text-sm font-bold truncate">{c.demoFileName}</p>
-          <p className="flex items-center gap-2 text-xs text-sb-text-2">
+          <p className="flex items-center gap-stack-xs text-xs text-sb-text-2">
             <Loader2 className="w-3.5 h-3.5 animate-spin text-sb-blue" />
             {c.demoReading}
           </p>
         </div>
       </div>
 
-      <div className="space-y-3">
-        <p className="flex items-center gap-2 text-sm font-bold">
+      <div className="space-y-stack-sm">
+        <p className="flex items-center gap-stack-xs text-sm font-bold">
           <Check className="w-4 h-4 text-sb-good" />
           {c.sceneCvRead}
         </p>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-stack-xs">
           {c.previewFound.map((skill, i) => (
-            <span key={skill} className="px-3 py-1 rounded-full border text-xs font-semibold bg-sb-good-soft border-sb-good/20 text-sb-navy animate-pop-in" style={delay(450 + i * 380)}>
+            <span key={skill} className="px-stack-sm py-stack-2xs rounded-full border text-xs font-semibold bg-sb-good-soft border-sb-good/20 text-sb-navy animate-pop-in" style={delay(200 + i * 180)}>
               {skill}
             </span>
           ))}
         </div>
       </div>
 
-      <div className="space-y-2 hero-demo-rise" style={delay(2050)}>
+      <div className="space-y-stack-xs hero-demo-rise" style={delay(1000)}>
         <p className="text-xs text-sb-text-2">{c.demoMatching}</p>
         <div className="h-1.5 rounded-full bg-sb-mist-soft overflow-hidden">
-          <div className="h-full rounded-full bg-sb-sky hero-demo-fill" style={{ ...delay(2100), ["--fill-dur" as string]: "750ms" }} />
+          <div className="h-full rounded-full bg-sb-sky hero-demo-fill" style={{ ...delay(1100), ["--fill-dur" as string]: "400ms" }} />
         </div>
       </div>
     </div>
@@ -211,12 +208,12 @@ function ResultBody({ animate, className }: { animate: boolean; className?: stri
   const c = UI_COPY.landing;
   const rise = (ms: number, base?: string) => ({ className: cn(base, animate && "hero-demo-rise"), style: animate ? delay(ms) : undefined });
   return (
-    <div className={cn("p-5 sm:p-7 space-y-6", className)}>
+    <div className={cn("p-stack-lg sm:p-stack-xl space-y-stack-xl", className)}>
       <div {...rise(0)}>
-        <p className="text-xs text-sb-text-2 mb-2">{c.previewRoleLabel}</p>
+        <p className="text-xs text-sb-text-2 mb-stack-xs">{c.previewRoleLabel}</p>
         <h2 className="text-2xl font-extrabold tracking-tight">{c.sceneRole}</h2>
-        <p className="text-sm text-sb-text-2 mt-2">{c.sceneCount}</p>
-        <div className="flex gap-1.5 mt-4">
+        <p className="text-sm text-sb-text-2 mt-stack-xs">{c.sceneCount}</p>
+        <div className="flex gap-stack-2xs mt-stack-md">
           {Array.from({ length: 8 }, (_, i) => (
             <span key={i} className="h-2 flex-1 rounded-full bg-sb-mist-soft overflow-hidden">
               {i < 4 && (
@@ -229,18 +226,18 @@ function ResultBody({ animate, className }: { animate: boolean; className?: stri
           ))}
         </div>
       </div>
-      <div {...rise(180, "space-y-3")}>
-        <p className="flex items-center gap-2 text-sm font-bold"><Check className="w-4 h-4 text-sb-good" />{c.sceneFound}</p>
-        <SkillChips skills={[...c.previewFound]} gapClass="gap-2" chipClass="bg-sb-good-soft border-sb-good/20 text-sb-navy" />
+      <div {...rise(180, "space-y-stack-sm")}>
+        <p className="flex items-center gap-stack-xs text-sm font-bold"><Check className="w-4 h-4 text-sb-good" />{c.sceneFound}</p>
+        <SkillChips skills={[...c.previewFound]} gapClass="gap-stack-xs" chipClass="bg-sb-good-soft border-sb-good/20 text-sb-navy" />
       </div>
-      <div {...rise(360, "space-y-3")}>
+      <div {...rise(360, "space-y-stack-sm")}>
         <p className="text-sm font-bold">{c.sceneMissing}</p>
-        <SkillChips skills={[...c.previewMissing]} variant="missing" gapClass="gap-2" chipClass="" />
+        <SkillChips skills={[...c.previewMissing]} variant="missing" gapClass="gap-stack-xs" chipClass="" />
       </div>
-      <div {...rise(560, "flex items-start gap-3 rounded-2xl bg-sb-mist-faint p-4 border border-sb-border")}>
-        <BookOpen className="w-5 h-5 text-sb-blue shrink-0 mt-0.5" />
-        <div className="space-y-1"><p className="font-bold text-sm">{c.previewNext}</p><p className="text-xs text-sb-text-2 leading-relaxed">{c.previewNextDesc}</p></div>
-        <ArrowRight className="w-4 h-4 shrink-0 text-sb-blue mt-1" />
+      <div {...rise(560, "flex items-start gap-stack-sm rounded-2xl bg-sb-mist-faint p-stack-md border border-sb-border")}>
+        <BookOpen className="w-5 h-5 text-sb-blue shrink-0 mt-stack-3xs" />
+        <div className="space-y-stack-2xs"><p className="font-bold text-sm">{c.previewNext}</p><p className="text-xs text-sb-text-2 leading-relaxed">{c.previewNextDesc}</p></div>
+        <ArrowRight className="w-4 h-4 shrink-0 text-sb-blue mt-stack-2xs" />
       </div>
     </div>
   );

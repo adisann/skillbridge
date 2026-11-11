@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UserX } from "lucide-react";
+import { UI_COPY } from "@/lib/copy";
 import { SkillBridgeLogo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -15,16 +16,17 @@ export default function RegisterPage() {
   const [open, setOpen] = useState(true);
 
   return (
-    <div className="min-h-[85vh] flex flex-col items-center justify-center py-10 px-4 sm:px-6 lg:px-8 space-y-6">
-      <div className="w-full max-w-md space-y-6">
-        <div className="text-center space-y-2">
+    <div className="min-h-[85vh] flex flex-col items-center justify-center py-stack-2xl px-stack-md sm:px-stack-xl lg:px-stack-2xl space-y-stack-lg">
+      <div className="w-full max-w-md space-y-stack-xl">
+        <div className="text-center space-y-stack-xs">
           <SkillBridgeLogo size="lg" />
-          <h1 className="text-2xl font-extrabold text-sb-navy tracking-tight pt-2">Pendaftaran Belum Dibuka</h1>
+          <p className="text-sm font-medium text-sb-text-2">{UI_COPY.tagline}</p>
+          <h1 className="text-2xl font-extrabold text-sb-navy tracking-tight pt-stack-xs">Pendaftaran Belum Dibuka</h1>
         </div>
 
         <Card className="border-sb-border shadow-md text-center">
           <CardHeader className="items-center">
-            <div className="w-12 h-12 rounded-full bg-sb-mist-soft text-sb-blue flex items-center justify-center mx-auto mb-2">
+            <div className="w-12 h-12 rounded-full bg-sb-mist-soft text-sb-blue flex items-center justify-center mx-auto mb-stack-xs">
               <UserX className="w-6 h-6" aria-hidden="true" />
             </div>
             <CardTitle>Pendaftaran akun baru dinonaktifkan</CardTitle>

@@ -20,6 +20,8 @@ export interface MatchingThresholds {
   overqualifiedMinExperienceDiff: number;
   /** Ambang batas minimum jumlah skill teknis sebelum dinyatakan 'insufficient_evidence' */
   insufficientEvidenceMinSkills: number;
+  seniorMinExperienceYears: number;
+  midMinExperienceYears: number;
 }
 
 /**
@@ -39,10 +41,26 @@ export const DEFAULT_MATCHING_WEIGHTS: MatchingWeights = {
  */
 export const DEFAULT_MATCHING_THRESHOLDS: MatchingThresholds = {
   matchScoreMin: 68,
-  mandatoryRatioMin: 0.50,
+  mandatoryRatioMin: 0.70,
   overqualifiedMinExperienceDiff: 4, // Misal: syarat 1-2 tahun, kandidat punya 6+ tahun
   insufficientEvidenceMinSkills: 1,  // CV dengan 0 atau < 1 skill teknis
+  seniorMinExperienceYears: 4,
+  midMinExperienceYears: 2,
 };
+
+export const MATCH_STATUS_LABELS = {
+  match: "Memenuhi kualifikasi",
+  underqualified: "Belum memenuhi kualifikasi",
+  potentially_overqualified: "Berpotensi melebihi kualifikasi",
+  insufficient_evidence: "Bukti belum cukup",
+} as const;
+
+export const MATCH_STATUS_COLORS = {
+  match: "var(--sb-good)",
+  underqualified: "var(--sb-warning)",
+  potentially_overqualified: "var(--sb-blue)",
+  insufficient_evidence: "var(--sb-mist)",
+} as const;
 
 /**
  * Pemetaan alias kanonikal skill untuk memastikan normalisasi (misal: "Microsoft Excel" == "Excel", "PowerBI" == "Power BI")

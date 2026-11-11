@@ -87,12 +87,10 @@ export function PixelArrow({
           return (
             <span
               key={`${b.row}-${b.col}`}
-              className={cn(
-                "sb-box-pulse rounded-[3px] block",
-                // Kolom tengah memakai --sb-sky, sayap memakai --sb-mist
-                isCenter ? "bg-sb-sky" : "bg-sb-mist"
-              )}
+              className={cn("sb-box-pulse rounded-[3px] block")}
               style={{
+                // Gradient warna tombol utama: ujung panah Biru penghubung, makin ke ekor makin muda; sayap sedikit lebih muda
+                background: `color-mix(in srgb, var(--sb-blue) ${Math.round(100 - (b.row / 8) * 55) - (isCenter ? 0 : 15)}%, var(--sb-sky))`,
                 gridColumn: b.col + 1,
                 gridRow: b.row + 1,
                 width: "var(--px)",

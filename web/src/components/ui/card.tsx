@@ -41,7 +41,8 @@ export function CardHeader({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("flex flex-col space-y-1.5 p-6 pb-3", className)}
+      data-slot="card-header"
+      className={cn("flex flex-col space-y-stack-2xs p-stack-lg sm:p-stack-xl pb-stack-sm sm:pb-stack-sm", className)}
       {...props}
     />
   );
@@ -75,7 +76,7 @@ export function CardContent({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("p-6 pt-0", className)} {...props} />;
+  return <div data-slot="card-content" className={cn("p-stack-lg sm:p-stack-xl", className)} {...props} />;
 }
 
 export function CardFooter({
@@ -84,7 +85,7 @@ export function CardFooter({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("flex items-center p-6 pt-3 border-t border-sb-border", className)}
+      className={cn("flex items-center p-stack-lg sm:p-stack-xl pt-stack-sm sm:pt-stack-sm border-t border-sb-border", className)}
       {...props}
     />
   );
@@ -113,11 +114,11 @@ export function MetricCard({
   return (
     <div
       className={cn(
-        "p-5 rounded-[20px] glass lift-card flex flex-col justify-between",
+        "p-stack-lg rounded-[20px] glass lift-card flex flex-col justify-between",
         className
       )}
     >
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-stack-sm">
         <span className="text-xs font-bold uppercase tracking-wider text-sb-text-2">
           {title}
         </span>
@@ -127,15 +128,15 @@ export function MetricCard({
           </div>
         )}
       </div>
-      <div className="mt-3">
-        <div className="flex items-baseline gap-2">
+      <div className="mt-stack-sm">
+        <div className="flex flex-wrap items-baseline gap-stack-xs">
           <span className="text-2xl sm:text-3xl font-extrabold text-sb-navy tracking-tight font-mono-metric">
             {value}
           </span>
           {badge}
         </div>
         {subtitle && (
-          <p className="mt-1 text-xs text-sb-text-2 leading-normal">{subtitle}</p>
+          <p className="mt-stack-2xs text-xs text-sb-text-2 leading-normal">{subtitle}</p>
         )}
       </div>
     </div>
@@ -203,31 +204,31 @@ export function JobCard({
         className
       )}
     >
-      <CardHeader className="p-5 pb-3 space-y-3">
+      <CardHeader className="p-stack-lg pb-stack-sm space-y-stack-sm">
         {/* Top Meta Bar: Company + Seniority & Bookmark */}
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-1.5 min-w-0 flex-1">
+        <div className="flex items-center justify-between gap-stack-xs">
+          <div className="flex flex-wrap items-center gap-stack-2xs min-w-0 flex-1">
             <span
-              className="inline-flex items-center text-xs font-semibold text-sb-navy bg-white/80 border border-sb-border px-2.5 py-0.5 rounded-full max-w-[200px] sm:max-w-[260px] truncate"
+              className="inline-flex items-center text-xs font-semibold text-sb-navy bg-white/80 border border-sb-border px-stack-xs py-stack-3xs rounded-full max-w-[200px] sm:max-w-[260px] truncate"
               title={company}
             >
-              <Building2 className="w-3 h-3 mr-1 text-sb-blue shrink-0" />
+              <Building2 className="w-3 h-3 mr-stack-2xs text-sb-blue shrink-0" />
               <span className="truncate">{company}</span>
             </span>
             {seniority && (
-              <span className="text-[11px] font-medium text-sb-text-2 bg-sb-mist-faint border border-sb-border px-2 py-0.5 rounded-full shrink-0">
+              <span className="text-[11px] font-medium text-sb-text-2 bg-sb-mist-faint border border-sb-border px-stack-xs py-stack-3xs rounded-full shrink-0">
                 {seniority}
               </span>
             )}
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-stack-2xs shrink-0">
             {onSaveToggle && (
               <button
                 type="button"
                 onClick={onSaveToggle}
                 className={cn(
-                  "p-2 rounded-full border transition-colors cursor-pointer",
+                  "p-stack-xs rounded-full border transition-colors cursor-pointer",
                   isSaved
                     ? "bg-sb-mist-soft text-sb-blue border-sb-border"
                     : "text-sb-text-2 hover:text-sb-blue hover:bg-white/80 border-sb-border"
@@ -242,7 +243,7 @@ export function JobCard({
         </div>
 
         {/* Title & Score Gauge Row */}
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start justify-between gap-stack-sm">
           <div className="min-w-0 flex-1">
             <h3 className="text-base font-extrabold text-sb-navy tracking-tight line-clamp-2 leading-snug">
               {onViewDetails ? (
@@ -258,12 +259,12 @@ export function JobCard({
                 <span title={formattedTitle}>{formattedTitle}</span>
               )}
             </h3>
-            <div className="flex flex-wrap items-center gap-3 text-xs text-sb-text-2 pt-1.5">
-              <span className="flex items-center gap-1">
+            <div className="flex flex-wrap items-center gap-stack-sm text-xs text-sb-text-2 pt-stack-2xs">
+              <span className="flex items-center gap-stack-2xs">
                 <MapPin className="w-3.5 h-3.5 text-sb-blue shrink-0" />
                 <span>{location}</span>
               </span>
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-stack-2xs">
                 <Briefcase className="w-3.5 h-3.5 text-sb-blue shrink-0" />
                 <span>{employmentType}</span>
               </span>
@@ -274,6 +275,7 @@ export function JobCard({
           {!isGuest && (
             <div className="shrink-0 self-start">
               <ScoreRing
+                status={matchStatus}
                 score={matchStatus === "insufficient_evidence" ? null : matchScore}
                 size="sm"
                 showLabel={false}
@@ -290,21 +292,21 @@ export function JobCard({
         )}
       </CardHeader>
 
-      <CardContent className="px-5 py-3 flex-1">
+      <CardContent className="px-stack-lg py-stack-sm flex-1">
         {isGuest ? (
           /* Mode Tamu: Tampilkan 3-4 chip skill yang diminta */
-          <div className="space-y-1.5">
+          <div className="space-y-stack-2xs">
             <span className="text-[11px] font-bold uppercase tracking-wider text-sb-text-2">
               Skill yang diminta:
             </span>
-            <div className="flex flex-wrap items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-stack-2xs">
               {(requiredSkills && requiredSkills.length > 0
                 ? requiredSkills.slice(0, 4)
                 : ["Kualifikasi di deskripsi"]
               ).map((s) => (
                 <span
                   key={s}
-                  className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-sb-mist-soft text-sb-navy border border-sb-border font-medium text-[11px]"
+                  className="inline-flex items-center px-stack-xs py-stack-3xs rounded-full bg-sb-mist-soft text-sb-navy border border-sb-border font-medium text-[11px]"
                 >
                   {s}
                 </span>
@@ -318,19 +320,19 @@ export function JobCard({
           </div>
         ) : (
           /* Mode User: Breakdown Singkat */
-          <div className="space-y-2.5 text-xs">
+          <div className="space-y-stack-xs text-xs">
             {matchedSkills.length > 0 && (
-              <div className="space-y-1">
+              <div className="space-y-stack-2xs">
                 <span className="text-xs font-bold uppercase tracking-wider text-sb-good">
                   Cocok:
                 </span>
-                <div className="flex flex-wrap items-center gap-1.5">
+                <div className="flex flex-wrap items-center gap-stack-2xs">
                   {matchedSkills.map((s) => (
                     <span
                       key={s}
-                      className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-50 text-sb-good border border-emerald-200/80 font-medium text-[11px]"
+                      className="inline-flex items-center px-stack-xs py-stack-3xs rounded-full bg-emerald-50 text-sb-good border border-emerald-200/80 font-medium text-[11px]"
                     >
-                      <Check className="w-3 h-3 text-sb-good mr-1 shrink-0 stroke-[2.5]" />
+                      <Check className="w-3 h-3 text-sb-good mr-stack-2xs shrink-0 stroke-[2.5]" />
                       {s}
                     </span>
                   ))}
@@ -339,15 +341,15 @@ export function JobCard({
             )}
 
             {missingSkills.length > 0 && (
-              <div className="space-y-1">
+              <div className="space-y-stack-2xs">
                 <span className="text-xs font-bold uppercase tracking-wider text-sb-text-2">
                   Belum ditemukan:
                 </span>
-                <div className="flex flex-wrap items-center gap-1.5">
+                <div className="flex flex-wrap items-center gap-stack-2xs">
                   {missingSkills.map((s) => (
                     <span
                       key={s}
-                      className="px-2 py-0.5 rounded-full bg-sb-mist-faint text-sb-text-2 border border-sb-border font-medium text-[11px]"
+                      className="px-stack-xs py-stack-3xs rounded-full bg-sb-mist-faint text-sb-text-2 border border-sb-border font-medium text-[11px]"
                     >
                       {s}
                     </span>
@@ -359,14 +361,14 @@ export function JobCard({
         )}
       </CardContent>
 
-      <CardFooter className="px-5 py-3.5 justify-between items-center bg-white/60 border-t border-sb-border rounded-b-[20px] gap-2 mt-auto">
+      <CardFooter className="px-stack-lg py-stack-sm justify-between items-center bg-white/60 border-t border-sb-border rounded-b-[20px] gap-stack-xs mt-auto">
         {sourceUrl && sourceUrl.trim() !== "" ? (
           <div className="min-w-0">
             <a
               href={sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs font-bold text-sb-navy hover:text-sb-blue underline underline-offset-3 decoration-sb-sky"
+              className="inline-flex items-center gap-stack-2xs text-xs font-bold text-sb-navy hover:text-sb-blue underline underline-offset-3 decoration-sb-sky"
             >
               <span>Sumber Asli</span>
               <ExternalLink className="w-3.5 h-3.5 shrink-0" />
@@ -379,7 +381,7 @@ export function JobCard({
             variant="outline"
             size="sm"
             onClick={onViewDetails}
-            className="shrink-0 text-xs whitespace-nowrap px-3 ml-auto"
+            className="shrink-0 text-xs whitespace-nowrap px-stack-sm ml-auto"
           >
             Detail
           </Button>

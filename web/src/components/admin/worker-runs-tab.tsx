@@ -21,7 +21,7 @@ const RUN_COLUMNS: Column<WorkerRunRecord>[] = [
     key: "retrieval_method",
     header: "Metode",
     render: (row) => (
-      <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-sb-mist-soft text-sb-navy">
+      <span className="font-mono text-[11px] px-stack-xs py-stack-3xs rounded bg-sb-mist-soft text-sb-navy">
         {row.retrieval_method}
       </span>
     ),
@@ -30,7 +30,7 @@ const RUN_COLUMNS: Column<WorkerRunRecord>[] = [
     key: "status",
     header: "Status",
     render: (row) => (
-      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-sb-good/10 text-sb-good border border-sb-good/30">
+      <span className="inline-flex items-center gap-stack-2xs text-xs font-semibold px-stack-xs py-stack-3xs rounded-full bg-sb-good/10 text-sb-good border border-sb-good/30">
         <CheckCircle2 className="w-3 h-3 text-sb-good" />
         {row.status}
       </span>
@@ -65,7 +65,7 @@ interface WorkerRunsTabProps {
 
 export function WorkerRunsTab({ runs, isSubmitting, onTrigger }: WorkerRunsTabProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-stack-xl">
       <Card>
         <CardHeader>
           <CardTitle>Ambil lowongan terbaru</CardTitle>
@@ -74,7 +74,7 @@ export function WorkerRunsTab({ runs, isSubmitting, onTrigger }: WorkerRunsTabPr
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-stack-sm">
             {WORKER_TRIGGERS.map((trigger) => (
               <Button
                 key={trigger.source}

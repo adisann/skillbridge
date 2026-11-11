@@ -50,11 +50,11 @@ export function RootShell({ children }: { children: React.ReactNode }) {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mobile Header with Hamburger Menu button */}
-        <header className="md:hidden h-14 px-4 bg-white border-b border-sb-border shadow-2xs flex items-center justify-between sticky top-0 z-30 shrink-0">
+        <header className="md:hidden h-14 px-stack-md bg-white border-b border-sb-border shadow-2xs flex items-center justify-between sticky top-0 z-30 shrink-0">
           <button
             type="button"
             onClick={() => setIsMobileSidebarOpen(true)}
-            className="p-2 -ml-2 rounded-xl text-sb-text-2 hover:text-sb-navy hover:bg-white/70 transition-colors cursor-pointer"
+            className="p-stack-xs -ml-stack-xs rounded-xl text-sb-text-2 hover:text-sb-navy hover:bg-sb-mist-faint transition-colors cursor-pointer"
             aria-label="Buka menu navigasi"
           >
             <Menu className="w-5 h-5" />

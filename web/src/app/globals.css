@@ -1,30 +1,34 @@
 @import "tailwindcss";
 
 :root {
-  /* Palet utama */
-  --sb-navy:  #1B365D;  /* judul & teks utama, ikon kuat — BUKAN latar */
-  --sb-blue:  #005A9C;  /* aksen teks, link, ikon, status aktif, ring fokus — BUKAN latar */
-  --sb-sky:   #60C1E5;  /* latar tombol primary, bar grafik, cincin skor, kotak piksel */
-  --sb-mist:  #A0E0EF;  /* chip, border aktif, orb latar, track grafik */
+  /* Palet identitas SkillBridge: Biru penghubung, Biru malam, Putih sejuk, Jingga peluang */
+  --sb-navy:   #111A2E;  /* Biru malam: judul, teks utama, ikon kuat */
+  --sb-blue:   #1E40AF;  /* Biru penghubung: logo, link, tombol utama, ring fokus */
+  --sb-blue-hover: #1A3796;
+  --sb-orange: #D65B06;  /* Jingga peluang: aksen dekoratif kecil (bukan teks kecil) */
+  --sb-cool:   #F4F6FA;  /* Putih sejuk: latar halaman */
+  --sb-sky:    #7B98E6;  /* tint biru: bar grafik, cincin skor, ubin aktif (teks di atasnya navy) */
+  --sb-mist:   #C3D1F4;  /* tint biru muda: chip, border aktif, track grafik */
 
   /* Turunan (boleh sebagai latar) */
-  --sb-sky-hover:  #7FCDEA;                     /* hover tombol primary */
-  --sb-mist-soft:  rgba(160, 224, 239, 0.28);  /* latar section, chip lembut */
-  --sb-mist-faint: rgba(160, 224, 239, 0.14);  /* latar halaman di atas putih */
-  --sb-border:     rgba(0, 90, 156, 0.14);     /* border kartu & divider */
+  --sb-sky-hover:  #93ABEB;                     /* hover tombol primary */
+  --sb-mist-soft:  #E1E8F9;                     /* chip, ubin ikon, latar aktif (solid agar kontras) */
+  --sb-mist-faint: #EEF2FA;                     /* latar section/kotak di atas putih (solid) */
+  --sb-border:     rgba(30, 64, 175, 0.18);     /* border kartu & divider */
 
   /* Teks */
   --sb-text:   var(--sb-navy);                 /* teks utama */
-  --sb-text-2: rgba(27, 54, 93, 0.88);         /* teks sekunder: navy transparan, kontras ~5:1, BUKAN abu */
+  --sb-text-2: rgba(17, 26, 46, 0.78);        /* teks sekunder: biru malam transparan, kontras >7:1 */
 
   --sb-white: #FFFFFF;
   --sb-black: #0A0A0A;                          /* opsional, sangat jarang */
 
   /* Kaca */
-  --sb-glass-bg:        rgba(255, 255, 255, 0.66);
-  --sb-glass-bg-strong: rgba(255, 255, 255, 0.86);
+  /* Kartu dan panel solid putih: gradient hanya di latar halaman, tidak tembus ke kartu */
+  --sb-glass-bg:        #FFFFFF;
+  --sb-glass-bg-strong: #FFFFFF;
   --sb-glass-border:    var(--sb-border);
-  --sb-glass-shadow:    0 1px 2px rgba(27, 54, 93, 0.05), 0 18px 48px -16px rgba(0, 90, 156, 0.18);
+  --sb-glass-shadow:    0 1px 2px rgba(17, 26, 46, 0.05), 0 18px 48px -16px rgba(30, 64, 175, 0.18);
   --sb-glass-blur:      18px;
 
   /* Status */
@@ -34,7 +38,7 @@
   --sb-good-soft: rgba(21, 128, 61, 0.12);
   --sb-critical: #B91C1C;
 
-  --background: #FFFFFF;
+  --background: var(--sb-cool);
   --foreground: var(--sb-text);
 }
 
@@ -43,6 +47,49 @@
   --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* Token jarak: SATU skala untuk seluruh UI (padding, margin, gap, space-*).
+     Pakai sebagai p-stack-md, gap-stack-xs, space-y-stack-lg, mt-stack-sm, dst.
+     Jangan menulis angka spasi langsung (p-3, gap-[13px]) di komponen. */
+  --spacing-stack-3xs: 0.125rem; /*   2px: garis/padding vertikal chip */
+  --spacing-stack-2xs: 0.25rem;  /*   4px: ikon ↔ teks rapat */
+  --spacing-stack-xs: 0.5rem;    /*   8px: antar-elemen kecil, padding chip */
+  --spacing-stack-sm: 0.75rem;   /*  12px: label ↔ judul, padding kontrol */
+  --spacing-stack-md: 1rem;      /*  16px: antar-kelompok di dalam kartu */
+  --spacing-stack-lg: 1.25rem;   /*  20px: antar-bagian kartu, padding kartu di HP */
+  --spacing-stack-xl: 1.5rem;    /*  24px: antar-kartu desktop, padding kartu */
+  --spacing-stack-2xl: 2rem;     /*  32px: blok besar, padding halaman desktop */
+  --spacing-stack-3xl: 2.5rem;   /*  40px */
+  --spacing-stack-4xl: 3rem;     /*  48px */
+  --spacing-stack-5xl: 4rem;     /*  64px: padding section landing */
+  --spacing-stack-6xl: 5rem;     /*  80px */
+  --spacing-stack-7xl: 6rem;     /*  96px */
+  --spacing-stack-8xl: 7rem;     /* 112px: section landing besar */
+}
+
+/* Kerangka halaman aplikasi: padding seragam di semua halaman (HP → tablet → desktop) */
+@utility page-shell {
+  padding-inline: var(--spacing-stack-md);
+  padding-block: var(--spacing-stack-lg);
+  @media (width >= 40rem) {
+    padding-inline: var(--spacing-stack-xl);
+    padding-block: var(--spacing-stack-xl);
+  }
+  @media (width >= 64rem) {
+    padding-inline: var(--spacing-stack-2xl);
+  }
+}
+
+/* Tumpukan bagian halaman: jarak vertikal antar-bagian yang sama di semua halaman */
+@utility page-stack {
+  & > :not(:last-child) {
+    margin-block-end: var(--spacing-stack-md);
+  }
+  @media (width >= 40rem) {
+    & > :not(:last-child) {
+      margin-block-end: var(--spacing-stack-lg);
+    }
+  }
 }
 
 /* Transisi UI standar: hanya properti yang berubah saat interaksi (bukan "all"), ease-out kuat, 160ms.
@@ -53,9 +100,33 @@
   transition-timing-function: var(--tw-ease, var(--ease-out-strong));
 }
 
+@utility select-control {
+  @apply appearance-none pl-stack-sm pr-stack-2xl;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23111A2E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--spacing-stack-sm) center;
+  background-size: var(--spacing-stack-md);
+  text-overflow: ellipsis;
+}
+
+/* Semua dropdown satu pilihan memakai ruang panah yang sama, termasuk varian chip. */
+select:where(:not([multiple]):not([size])) {
+  @apply select-control;
+}
+
+@media (forced-colors: active) {
+  select:where(:not([multiple]):not([size])) {
+    @apply appearance-auto pr-stack-sm;
+    background-image: none;
+  }
+}
+
 @theme inline {
   --color-sb-navy: var(--sb-navy);
   --color-sb-blue: var(--sb-blue);
+  --color-sb-blue-hover: var(--sb-blue-hover);
+  --color-sb-orange: var(--sb-orange);
+  --color-sb-cool: var(--sb-cool);
   --color-sb-sky: var(--sb-sky);
   --color-sb-mist: var(--sb-mist);
   --color-sb-sky-hover: var(--sb-sky-hover);
@@ -75,6 +146,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
+  --font-display: var(--font-display);
 }
 
 html {
@@ -82,7 +154,7 @@ html {
 }
 
 body {
-  background-color: #FFFFFF;
+  background-color: var(--sb-cool);
   color: var(--sb-text);
   font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   overflow-x: hidden;
@@ -91,24 +163,27 @@ body {
 
 /* Background Radial Orbs for Real Glass Depth */
 .bg-radial-orbs {
-  background-color: #FFFFFF;
+  /* Gradient tipis hanya di latar halaman */
+  background-color: var(--sb-cool);
   background-image:
-    radial-gradient(circle at 10% 8%, rgba(160, 224, 239, 0.45), transparent 32rem),
-    radial-gradient(circle at 92% 16%, rgba(96, 193, 229, 0.30), transparent 36rem),
-    radial-gradient(circle at 45% 88%, rgba(160, 224, 239, 0.40), transparent 30rem),
-    linear-gradient(180deg, #FFFFFF 0%, var(--sb-mist-faint) 45%, #FFFFFF 100%);
+    radial-gradient(circle at 8% 6%, rgba(195, 209, 244, 0.35), transparent 30rem),
+    radial-gradient(circle at 94% 14%, rgba(123, 152, 230, 0.14), transparent 34rem),
+    linear-gradient(180deg, #F7F9FD 0%, var(--sb-cool) 100%);
   background-attachment: fixed;
 }
 
 /* Typography & Metric Monospace */
+/* Angka metrik: font dan jarak huruf sama dengan teks biasa (tanpa angka tabular yang melebar).
+   Penekanan cukup lewat tebal huruf. Monospace hanya untuk data teknis di admin (class font-mono). */
 .font-mono-metric {
-  font-family: var(--font-mono), "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-variant-numeric: tabular-nums;
+  font-family: inherit;
+  font-variant-numeric: normal;
 }
 
-/* Heading line balance for clean mobile wrapping */
+/* Heading: Archivo (identitas), seimbang saat membungkus di mobile */
 h1, h2, h3 {
   text-wrap: balance;
+  font-family: var(--font-display), var(--font-sans), sans-serif;
 }
 
 /* Thin Scrollbar for Panels */
@@ -143,13 +218,13 @@ h1, h2, h3 {
 .glass-header {
   background: var(--sb-glass-bg-strong);
   border-color: var(--sb-glass-border);
-  box-shadow: 0 10px 30px -10px rgba(0, 90, 156, 0.10);
+  box-shadow: 0 10px 30px -10px rgba(30, 64, 175, 0.10);
   backdrop-filter: blur(20px) saturate(145%);
   -webkit-backdrop-filter: blur(20px) saturate(145%);
 }
 
 .glass-soft {
-  background: rgba(255, 255, 255, 0.65);
+  background: #FFFFFF;
   border: 1px solid var(--sb-border);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(12px);
@@ -161,9 +236,9 @@ h1, h2, h3 {
 .page-banner {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, var(--sb-mist-soft) 0%, var(--sb-mist-faint) 55%, #FFFFFF 100%);
+  background: #FFFFFF; /* kartu tanpa gradient */
   border: 1px solid var(--sb-border);
-  box-shadow: 0 10px 30px -10px rgba(0, 90, 156, 0.08);
+  box-shadow: 0 10px 30px -10px rgba(30, 64, 175, 0.08);
   border-radius: 24px;
 }
 
@@ -184,7 +259,7 @@ a.sb-link:hover {
 .gradient-button {
   color: var(--sb-navy);
   background-color: var(--sb-sky);
-  box-shadow: 0 4px 14px -2px rgba(0, 90, 156, 0.20);
+  box-shadow: 0 4px 14px -2px rgba(30, 64, 175, 0.20);
   transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
   font-weight: 700;
 }
@@ -192,7 +267,7 @@ a.sb-link:hover {
 .gradient-button:hover {
   background-color: var(--sb-sky-hover);
   transform: translateY(-1px);
-  box-shadow: 0 8px 20px -2px rgba(0, 90, 156, 0.28);
+  box-shadow: 0 8px 20px -2px rgba(30, 64, 175, 0.28);
 }
 
 .gradient-button:active {
@@ -206,8 +281,8 @@ a.sb-link:hover {
 
 .lift-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(0, 90, 156, 0.24);
-  box-shadow: 0 20px 45px -10px rgba(0, 90, 156, 0.12);
+  border-color: rgba(30, 64, 175, 0.24);
+  box-shadow: 0 20px 45px -10px rgba(30, 64, 175, 0.12);
 }
 
 /* Animations & Transitions */
@@ -267,7 +342,7 @@ a.sb-link:hover {
 /* Floating cards animation */
 @keyframes sb-float {
   0%, 100% {
-    transform: translate3d(0, 0, 0) rotate(0deg);
+    transform: translate3d(0, var(--float-down, 0px), 0) rotate(0deg);
   }
   50% {
     transform: translate3d(0, var(--float-y, -10px), 0) rotate(var(--float-r, 0.4deg));
@@ -312,6 +387,20 @@ a.sb-link:hover {
 .sb-merge-card {
   animation: sb-merge-loop 11s ease-in-out infinite;
   will-change: transform, opacity;
+}
+
+/* Garis penghubung ikut masuk ke kartu tengah, lalu tumbuh lagi (selaras dengan sb-merge-loop) */
+@keyframes sb-merge-line {
+  0%, 46% { stroke-dashoffset: 0; opacity: 1; }
+  62%, 74% { stroke-dashoffset: -1; opacity: 0; }
+  92%, 100% { stroke-dashoffset: 0; opacity: 1; }
+}
+.sb-merge-line {
+  stroke-dasharray: 1 1;
+  animation: sb-merge-line 11s ease-in-out infinite;
+}
+.sb-merge-paused .sb-merge-line {
+  animation-play-state: paused;
 }
 
 .sb-merge-paused .sb-merge-card {
@@ -368,15 +457,20 @@ a.sb-link:hover {
 @media (max-width: 767px) {
   .sb-float {
     --float-y: -5px !important;
+    --float-down: 5px !important;
   }
 }
 
 /* Form input focus styles */
+[data-slot="card-header"] + [data-slot="card-content"] {
+  @apply pt-0;
+}
+
 input:focus,
 select:focus,
 textarea:focus {
   border-color: var(--sb-blue) !important;
-  box-shadow: 0 0 0 2px rgba(0, 90, 156, 0.25) !important;
+  box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.25) !important;
   outline: none !important;
 }
 
@@ -418,6 +512,7 @@ html.js-ready .reveal-item.is-revealed {
 
   .sb-float,
   .sb-merge-card,
+  .sb-merge-line,
   .sb-arrow,
   .sb-box-pulse {
     animation: none !important;
@@ -433,18 +528,14 @@ html.js-ready .reveal-item.is-revealed {
   .gradient-button:active {
     transform: none !important;
   }
-
-  .parallax-layer {
-    transform: none !important;
-  }
 }
 
 
-.sb-dialog { border-radius: 24px; border: 1px solid var(--sb-border); font-family: var(--font-sans), sans-serif; color: var(--sb-navy); padding: 1.5rem; }
+.sb-dialog { @apply p-stack-xl; border-radius: 24px; border: 1px solid var(--sb-border); font-family: var(--font-sans), sans-serif; color: var(--sb-navy); }
 .sb-dialog-title { font-size: 1.3rem; line-height: 1.5; }
 .sb-dialog-text { color: var(--sb-navy); font-size: .95rem; }
-.sb-dialog-actions { gap: .75rem; }
-.sb-dialog-confirm,.sb-dialog-danger,.sb-dialog-cancel { border-radius: 999px; padding: .75rem 1.5rem; font-size: .875rem; font-weight: 700; cursor: pointer; }
+.sb-dialog-actions { @apply gap-stack-sm; }
+.sb-dialog-confirm,.sb-dialog-danger,.sb-dialog-cancel { @apply px-stack-xl py-stack-sm; border-radius: 999px; font-size: .875rem; font-weight: 700; cursor: pointer; }
 .sb-dialog-confirm { background: var(--sb-sky); color: var(--sb-navy); }
 .sb-dialog-danger { background: var(--sb-critical); color: white; }
 .sb-dialog-cancel { background: white; color: var(--sb-blue); border: 1px solid var(--sb-border); }
@@ -474,3 +565,130 @@ html.js-ready .reveal-item.is-revealed {
 @keyframes hero-demo-swap-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 @keyframes hero-demo-scan { from { transform: translateY(-100%); } to { transform: translateY(400%); } }
 @keyframes hero-demo-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+
+/* ------------------------------------------------------------------ */
+/* Revisi desain landing: gradient tipis, katalog layar aplikasi       */
+/* ------------------------------------------------------------------ */
+/* Hero + statistik: SATU latar bersama (tanpa sambungan antar-section).
+   Atas Putih sejuk; lapisan gelombang biru yang diburamkan (LandingTopWave) membuatnya
+   menggelap perlahan dengan tepi lembut bergelombang sampai Biru penghubung di strip statistik. */
+.landing-top {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  /* Dasar polos: semua penggelapan datang dari lapisan gelombang yang urut terang → gelap,
+     jadi di setiap kolom warnanya selalu makin tua ke bawah (tidak ada warna muda lagi setelah tua) */
+  background: #F4F6FA;
+}
+.landing-top > section {
+  background: transparent;
+}
+/* Tepi bawah blok atas (dan tepi atas blok bawah) dikunci ke #1E40AF solid,
+   warna yang sama dengan baris piksel pertama, supaya sambungannya mulus */
+.landing-top::after,
+.landing-bottom::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 72px;
+  z-index: 1;
+  pointer-events: none;
+}
+.landing-top::after {
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(30, 64, 175, 0) 0%, #1E40AF 100%);
+}
+.landing-bottom::before {
+  top: 0;
+  background: linear-gradient(0deg, rgba(30, 64, 175, 0) 0%, #1E40AF 100%);
+}
+.landing-top-wave {
+  position: absolute;
+  left: -8%;
+  width: 116%;
+  bottom: -60px;
+  height: calc(60% + 60px);
+  z-index: 0;
+  filter: blur(28px);
+  pointer-events: none;
+}
+.landing-top-wave--flip {
+  bottom: auto;
+  top: -60px;
+  /* Lebih panjang dari gelombang hero: tua di atas, memudar perlahan sampai sekitar dasar kartu penutup */
+  height: calc(92% + 60px);
+  transform: scaleY(-1);
+}
+/* Blok penutup: kebalikan blok atas, Biru penghubung di atas → Putih sejuk di bawah (menuju footer) */
+.landing-bottom {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  /* Kebalikan blok atas: dasar polos, gelombang terbalik yang urut tua → muda dari atas */
+  background: #F4F6FA;
+}
+.landing-grad-solution {
+  background:
+    radial-gradient(900px 600px at 100% 0%, rgba(123, 152, 230, 0.12), rgba(123, 152, 230, 0) 60%),
+    radial-gradient(1000px 700px at 0% 70%, rgba(195, 209, 244, 0.3), rgba(195, 209, 244, 0) 65%),
+    var(--sb-cool);
+  border-block: 1px solid var(--sb-border);
+}
+.landing-grad-fields {
+  background:
+    radial-gradient(900px 520px at 8% 0%, rgba(123, 152, 230, 0.12), rgba(123, 152, 230, 0) 62%),
+    radial-gradient(820px 520px at 96% 100%, rgba(195, 209, 244, 0.35), rgba(195, 209, 244, 0) 64%),
+    var(--sb-cool);
+}
+/* Kartu penutup: tanpa gradient (gradient hanya di latar section) */
+.landing-grad-closing {
+  background: #FFFFFF;
+}
+.landing-card-shadow {
+  box-shadow: 0 1px 2px rgba(17, 26, 46, 0.06), 0 10px 28px -14px rgba(30, 64, 175, 0.3);
+}
+
+.sb-catalog-track {
+  display: flex;
+  @apply gap-stack-lg;
+  width: max-content;
+  animation: sb-catalog-marquee 60s linear infinite;
+}
+.sb-catalog-track[data-reverse="true"] {
+  animation-direction: reverse;
+  animation-duration: 70s;
+}
+.sb-catalog:hover .sb-catalog-track,
+.sb-catalog[data-paused="true"] .sb-catalog-track {
+  animation-play-state: paused;
+}
+@keyframes sb-catalog-marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sb-catalog-track { animation: none; }
+}
+
+/* Pita piksel di bawah strip statistik: kotak berwarna solid, menurun dari biru ke putih */
+.sb-pixel-band {
+  background: #FFFFFF;
+}
+.sb-pixel-grid {
+  display: grid;
+}
+.sb-pixel-grid > span {
+  aspect-ratio: 1 / 1;
+}
+/* Beberapa piksel aksen berganti warna pelan (solid, tanpa transparan) */
+.sb-pixel-cell[data-twinkle="true"] {
+  animation: sb-pixel-swap 5s steps(1, end) infinite;
+}
+@keyframes sb-pixel-swap {
+  0%, 100% { background: var(--c1); }
+  50% { background: var(--c2); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sb-pixel-cell[data-twinkle="true"] { animation: none; }
+}

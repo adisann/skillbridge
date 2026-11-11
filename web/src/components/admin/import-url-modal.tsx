@@ -28,7 +28,7 @@ export function ImportUrlModal({ isExtracting, onSubmit, onClose }: ImportUrlMod
   return (
     <ModalShell size="compact" onClose={onClose}>
       <ModalHeader onClose={onClose}>
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-stack-xs">
           <div className="w-8 h-8 rounded-lg bg-sb-mist-faint text-sb-blue flex items-center justify-center">
             <Link2 className="w-4 h-4" />
           </div>
@@ -39,7 +39,7 @@ export function ImportUrlModal({ isExtracting, onSubmit, onClose }: ImportUrlMod
         </div>
       </ModalHeader>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-stack-md">
         <div>
           <TextInput
             label="URL Lowongan Pekerjaan *"
@@ -49,14 +49,14 @@ export function ImportUrlModal({ isExtracting, onSubmit, onClose }: ImportUrlMod
             required
             disabled={isExtracting}
           />
-          <p className="text-[11px] text-sb-text-2 mt-1">
+          <p className="text-[11px] text-sb-text-2 mt-stack-2xs">
             Mendukung link dari Greenhouse, Lever, LinkedIn, JobStreet, atau situs karir perusahaan resmi.
           </p>
         </div>
 
-        <div className="space-y-1.5 pt-1">
+        <div className="space-y-stack-2xs pt-stack-2xs">
           <span className="text-[11px] font-semibold text-sb-text-2">Contoh Tautan Siap Uji Demo:</span>
-          <div className="flex flex-col gap-1 text-[11px]">
+          <div className="flex flex-col gap-stack-2xs text-[11px]">
             {DEMO_LINKS.map((link) => (
               <button
                 key={link.url}

@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
-import { Check, Plus, AlertCircle, ChevronDown } from "lucide-react";
+import React, { useRef, useState } from "react";
+import { Pagination } from "./pagination";
+import { Check, Plus, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatPercent } from "@/lib/copy";
 import { CVSkillStatus } from "./badge";
@@ -24,9 +25,9 @@ interface MarketSkillBarChartProps {
   onToggleUserClaimed?: (skillName: string) => void;
   className?: string;
   isLoggedIn?: boolean;
-  /** Jumlah skill yang tampil pertama kali; sisanya lewat tombol "Tampilkan lebih banyak". */
+  /** Jumlah skill per halaman (bisa diubah pengguna: 10, 15, atau 30). */
   pageSize?: number;
-  /** Aksi per skill (mis. "Saya kuasai", "Tambah ke rencana belajar"), tampil di bawah bar. */
+  /** Aksi per skill (mis. "Saya kuasai", "Tambah ke rencana belajar"), tampil sebaris di kanan jumlah permintaan. */
   renderActions?: (item: MarketSkillItem) => React.ReactNode;
 }
 
@@ -41,19 +42,29 @@ export function MarketSkillBarChart({
   pageSize = 15,
   renderActions,
 }: MarketSkillBarChartProps) {
-  const [visibleCount, setVisibleCount] = useState(pageSize);
-  const visibleSkills = skills.slice(0, visibleCount);
-  const remaining = skills.length - visibleSkills.length;
+  // Paginasi: daftar skill tidak memanjang terus di mobile; ukuran halaman bisa diubah
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(pageSize);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const totalPages = Math.max(1, Math.ceil(skills.length / perPage));
+  const currentPage = Math.min(page, totalPages);
+  const offset = (currentPage - 1) * perPage;
+  const visibleSkills = skills.slice(offset, offset + perPage);
+  const goToPage = (next: number) => {
+    setPage(next);
+    rootRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <div
+      ref={rootRef}
       className={cn(
-        "glass-panel rounded-2xl p-5 sm:p-6 space-y-4",
+        "glass-panel rounded-2xl p-stack-lg sm:p-stack-xl space-y-stack-md scroll-mt-stack-6xl",
         className
       )}
     >
       {/* Metadata bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-sb-border text-xs text-sb-text-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-stack-xs pb-stack-sm border-b border-sb-border text-xs text-sb-text-2">
         <div>
           Bidang: <span className="font-semibold text-sb-navy">{roleFilterLabel}</span>
         </div>
@@ -63,7 +74,7 @@ export function MarketSkillBarChart({
       </div>
 
       {/* Bar Chart Rows */}
-      <div className="space-y-3 pt-1">
+      <div className="space-y-stack-sm pt-stack-2xs">
         {visibleSkills.map((item, idx) => {
           const isFoundInCV = Boolean(isLoggedIn && item.status === "found");
           const isMissing = item.status === "missing";
@@ -71,13 +82,13 @@ export function MarketSkillBarChart({
           return (
             <div
               key={item.skillName}
-              className="group p-3.5 rounded-xl border border-sb-border bg-white/70 hover:bg-white hover:border-sb-blue/30 hover:shadow-2xs transition-ui space-y-2.5"
+              className="group p-stack-sm rounded-xl border border-sb-blue/35 bg-white hover:border-sb-blue hover:shadow-2xs transition-ui space-y-stack-xs"
             >
               {/* Row Header: Rank, Name, Badges & Actions */}
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+              <div className="flex flex-wrap items-center justify-between gap-stack-xs">
+                <div className="flex flex-wrap items-center gap-stack-xs sm:gap-stack-xs">
                   <span className="w-5 text-xs font-bold text-sb-text-2 font-mono-metric">
-                    #{idx + 1}
+                    #{offset + idx + 1}
                   </span>
                   <span className="text-sm font-bold text-sb-navy">
                     {item.skillName}
@@ -86,33 +97,35 @@ export function MarketSkillBarChart({
                   {/* Status Teks Non-Warna hanya jika sudah login */}
                   {isLoggedIn && (
                     isFoundInCV ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-sb-good/10 text-sb-good border border-sb-good/30">
+                      <span className="inline-flex items-center gap-stack-2xs px-stack-xs py-stack-3xs rounded-full text-[11px] font-semibold bg-sb-good/10 text-sb-good border border-sb-good/30">
                         <Check className="w-3 h-3 text-sb-good stroke-[2.5]" />
                         Tercantum di CV
                       </span>
                     ) : (item.status === "needs_verification" || item.status === "user_added") ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-sb-warning/15 text-sb-warning border border-sb-warning/30">
+                      <span className="inline-flex items-center gap-stack-2xs px-stack-xs py-stack-3xs rounded-full text-[11px] font-semibold bg-sb-warning/15 text-sb-warning border border-sb-warning/30">
                         <AlertCircle className="w-3 h-3 text-sb-warning" />
                         {item.status === "user_added" ? "Ditambahkan oleh pengguna" : "Perlu verifikasi"}
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-sb-mist-soft text-sb-navy border border-sb-border">
+                      <span className="inline-flex items-center gap-stack-2xs px-stack-xs py-stack-3xs rounded-full text-[11px] font-semibold bg-sb-mist-soft text-sb-navy border border-sb-border">
                         Belum ditemukan di CV
                       </span>
                     )
                   )}
 
                   {isLoggedIn && item.isCustomLearned && (
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-sb-warning/10 text-sb-warning border border-sb-warning/20">
+                    <span className="text-xs font-semibold px-stack-xs py-stack-3xs rounded-full bg-sb-warning/10 text-sb-warning border border-sb-warning/20">
                       Diklaim mandiri
                     </span>
                   )}
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <div className="text-right flex items-baseline gap-1.5">
+                {/* Kanan: aksi lalu jumlah permintaan (jumlah selalu paling kanan), satu baris dan sejajar tengah */}
+                <div className="ml-auto flex flex-wrap items-center justify-end gap-stack-xs sm:gap-stack-sm">
+                  {renderActions?.(item)}
+                  <div className="text-right flex items-baseline gap-stack-2xs">
                     <span className="text-xs font-medium text-sb-text-2">
-                      Diminta di <strong className="text-sb-navy font-semibold font-mono-metric">{item.count}</strong> dari {totalSampleN} lowongan
+                      Diminta di <strong className="text-sb-navy font-semibold font-mono-metric">{item.count}</strong> dari {totalSampleN} lowongan target
                     </span>
                     <span className="text-[11px] font-semibold text-sb-blue font-mono-metric">
                       ({formatPercent(item.percentage)}%)
@@ -124,7 +137,7 @@ export function MarketSkillBarChart({
                     <button
                       type="button"
                       onClick={() => onAddLearning(item.skillName)}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-sb-mist-soft text-sb-navy hover:bg-sb-mist border border-sb-border transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-stack-2xs px-stack-xs py-stack-2xs text-xs font-semibold rounded-full bg-sb-mist-soft text-sb-navy hover:bg-sb-mist border border-sb-border transition-colors cursor-pointer"
                       title="Tambahkan skill ini ke rencana belajar"
                     >
                       <Plus className="w-3.5 h-3.5 text-sb-blue" />
@@ -145,28 +158,25 @@ export function MarketSkillBarChart({
                 />
               </div>
 
-              {(() => {
-                const actions = renderActions?.(item);
-                return actions ? <div className="flex flex-wrap items-center justify-end gap-2 pt-0.5">{actions}</div> : null;
-              })()}
 
             </div>
           );
         })}
       </div>
 
-      {remaining > 0 && (
-        <div className="flex justify-center pt-1">
-          <button
-            type="button"
-            onClick={() => setVisibleCount((n) => n + pageSize)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-full border border-sb-border bg-white text-sb-navy hover:border-sb-blue/40 hover:bg-sb-mist-faint transition-ui cursor-pointer"
-          >
-            Tampilkan lebih banyak
-            <span className="text-xs font-medium text-sb-text-2">({Math.min(remaining, pageSize)} skill lagi)</span>
-            <ChevronDown className="w-4 h-4 text-sb-blue" />
-          </button>
-        </div>
+      {skills.length > 10 && (
+        <Pagination
+          currentPage={currentPage}
+          totalItems={skills.length}
+          pageSize={perPage}
+          onPageChange={goToPage}
+          onPageSizeChange={(size) => {
+            setPerPage(size);
+            setPage(1);
+          }}
+          pageSizeOptions={[10, 15, 30]}
+          itemLabel="skill"
+        />
       )}
     </div>
   );

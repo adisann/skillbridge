@@ -238,7 +238,7 @@ function AsyncTaskToastContainer({
   return (
     <div
       aria-live="polite"
-      className="fixed top-5 right-5 z-[9999] flex flex-col gap-3 max-w-sm sm:max-w-md w-full pointer-events-none"
+      className="fixed top-5 right-5 z-[9999] flex flex-col gap-stack-sm max-w-sm sm:max-w-md w-full pointer-events-none"
     >
       {tasks.map((task) => (
         <AsyncTaskToastItem key={task.id} task={task} onDismiss={onDismiss} />
@@ -263,7 +263,7 @@ function AsyncTaskToastItem({
 
   return (
     <div
-      className={`pointer-events-auto rounded-2xl border p-4 shadow-xl backdrop-blur-md transition-[transform,opacity] duration-300 ease-out-strong ${
+      className={`pointer-events-auto rounded-2xl border p-stack-md shadow-xl backdrop-blur-md transition-[transform,opacity] duration-300 ease-out-strong ${
         isRunning
           ? "bg-white/95 border-sb-border shadow-sb-blue/10"
           : isSuccess
@@ -271,9 +271,9 @@ function AsyncTaskToastItem({
           : "bg-white/95 border-red-200 shadow-red-500/10"
       }`}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-stack-sm">
         {/* Status Icon */}
-        <div className="shrink-0 mt-0.5">
+        <div className="shrink-0 mt-stack-3xs">
           {isRunning && (
             <div className="w-8 h-8 rounded-xl bg-sb-mist-soft text-sb-blue flex items-center justify-center animate-pulse border border-sb-border">
               <Loader2 className="w-4 h-4 animate-spin text-sb-blue" />
@@ -293,9 +293,9 @@ function AsyncTaskToastItem({
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-stack-xs mb-stack-2xs">
             <span
-              className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+              className={`text-[10px] font-bold px-stack-xs py-stack-3xs rounded-full uppercase tracking-wider ${
                 isRunning
                   ? "bg-sb-mist-soft text-sb-navy"
                   : isSuccess
@@ -317,31 +317,31 @@ function AsyncTaskToastItem({
           <h4 className="text-sm font-bold text-sb-navy leading-snug">{task.title}</h4>
 
           {task.description && (
-            <p className="text-xs text-sb-text-2 mt-0.5 line-clamp-2 leading-relaxed">
+            <p className="text-xs text-sb-text-2 mt-stack-3xs line-clamp-2 leading-relaxed">
               {task.description}
             </p>
           )}
 
           {isRunning && (
-            <p className="text-[11px] text-sb-text-2 font-medium mt-1.5 flex items-center gap-1.5">
+            <p className="text-[11px] text-sb-text-2 font-medium mt-stack-2xs flex items-center gap-stack-2xs">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-sb-sky animate-ping" />
               Navigasi tetap aktif • Kamu bebas berpindah halaman
             </p>
           )}
 
           {isError && task.error && (
-            <div className="mt-2 p-2 rounded-lg bg-red-50 text-[11px] text-red-700 border border-red-100">
+            <div className="mt-stack-xs p-stack-xs rounded-lg bg-red-50 text-[11px] text-red-700 border border-red-100">
               {task.error}
             </div>
           )}
 
           {/* Action Button */}
           {task.action && (isSuccess || !isRunning) && (
-            <div className="mt-3 pt-2 border-t border-sb-border flex items-center gap-2">
+            <div className="mt-stack-sm pt-stack-xs border-t border-sb-border flex items-center gap-stack-xs">
               {task.action.url ? (
                 <a
                   href={task.action.url}
-                  className="inline-flex items-center gap-1 text-xs font-bold text-sb-blue hover:underline"
+                  className="inline-flex items-center gap-stack-2xs text-xs font-bold text-sb-blue hover:underline"
                 >
                   {task.action.label}
                   <ExternalLink className="w-3 h-3" />
@@ -353,7 +353,7 @@ function AsyncTaskToastItem({
                     task.action?.onClick?.(task.data);
                     onDismiss(task.id);
                   }}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-sb-sky text-sb-navy hover:bg-sb-sky-hover transition-colors shadow-xs"
+                  className="inline-flex items-center gap-stack-2xs text-xs font-bold px-stack-sm py-stack-2xs rounded-lg bg-sb-sky text-sb-navy hover:bg-sb-sky-hover transition-colors shadow-xs"
                 >
                   {task.action.label}
                   <ArrowRight className="w-3 h-3" />
@@ -367,7 +367,7 @@ function AsyncTaskToastItem({
         <button
           type="button"
           onClick={() => onDismiss(task.id)}
-          className="text-sb-text-2 hover:text-sb-navy p-1 rounded-lg hover:bg-sb-mist-soft transition-colors shrink-0"
+          className="text-sb-text-2 hover:text-sb-navy p-stack-2xs rounded-lg hover:bg-sb-mist-soft transition-colors shrink-0"
           title="Tutup Notifikasi"
         >
           <X className="w-4 h-4" />

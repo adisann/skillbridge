@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SkillBridgeLogo } from "@/components/ui/logo";
-import { NAV_LINKS } from "@/components/layout/nav-links";
+import { NAV_LINKS, isNavLinkActive } from "@/components/layout/nav-links";
 import { NavbarMobileMenu } from "@/components/layout/navbar-mobile-menu";
 import { useAuth } from "@/lib/supabase/auth-context";
 import { cn } from "@/lib/utils";
@@ -63,43 +63,52 @@ export function Navbar() {
                 isOpen
                   ? "bg-white border-b border-sb-border shadow-xs h-16"
                   : isScrolled
-                  ? "bg-white/88 backdrop-blur-[20px] backdrop-saturate-[150%] border-b border-sb-border shadow-[0_4px_20px_-4px_rgba(0,90,156,0.10),0_1px_3px_rgba(27,54,93,0.05)] h-16"
+                  ? "bg-white border-b border-sb-border shadow-[0_4px_20px_-4px_rgba(30,64,175,0.10),0_1px_3px_rgba(17,26,46,0.05)] h-16"
                   : "bg-transparent border-b border-transparent shadow-none h-[72px]"
               )
             : "sticky top-0 bg-white border-b border-sb-border shadow-2xs h-16"
         )}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-stack-md sm:px-stack-xl lg:px-stack-2xl h-full flex items-center justify-between gap-stack-md">
           {/* Brand Logo & Left Nav */}
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-stack-2xl">
             <SkillBridgeLogo size="md" />
 
             {/* Desktop Left Navigation Links */}
-            <nav className="hidden md:flex items-center gap-6" aria-label="Navigasi Utama">
-              {NAV_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="py-2 text-sm font-semibold transition-colors text-sb-text-2 hover:text-sb-navy"
-                >
-                  {link.label}
-                </Link>
-              ))}
+            <nav className="hidden md:flex items-center gap-stack-xl" aria-label="Navigasi Utama">
+              {NAV_LINKS.map((link) => {
+                const active = isNavLinkActive(pathname, link.href);
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    aria-current={active ? "page" : undefined}
+                    className={cn(
+                      "relative py-stack-xs text-sm font-semibold transition-colors",
+                      active
+                        ? "text-sb-blue after:absolute after:left-0 after:right-0 after:-bottom-0.5 after:h-0.5 after:rounded-full after:bg-sb-blue"
+                        : "text-sb-text-2 hover:text-sb-navy"
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
             </nav>
           </div>
 
           {/* Right CTA / Auth Status */}
-          <div className="hidden sm:flex items-center gap-3" suppressHydrationWarning>
+          <div className="hidden sm:flex items-center gap-stack-sm" suppressHydrationWarning>
             {!isMounted ? (
               <div className="w-32 h-8 bg-sb-mist-soft animate-pulse rounded-full" />
             ) : isAuthenticated && user ? (
               /* Sudah login: satu tombol Buka Dashboard dan avatar kecil */
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-stack-xs">
                 <Link href="/dashboard">
                   <Button
                     variant="primary"
                     size="sm"
-                    className="text-xs bg-sb-sky text-sb-navy font-bold hover:bg-sb-sky-hover shadow-xs"
+                    className="text-xs bg-sb-blue text-white font-bold hover:bg-sb-blue-hover shadow-xs"
                   >
                     Buka Dashboard
                   </Button>
@@ -117,12 +126,12 @@ export function Navbar() {
               </div>
             ) : (
               /* Belum login: hanya Masuk (pendaftaran publik ditutup) */
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-stack-xs">
                 <Link href="/login">
                   <Button
                     variant="primary"
                     size="sm"
-                    className="text-xs bg-sb-sky text-sb-navy font-bold hover:bg-sb-sky-hover shadow-xs"
+                    className="text-xs bg-sb-blue text-white font-bold hover:bg-sb-blue-hover shadow-xs"
                   >
                     Masuk
                   </Button>
@@ -132,7 +141,7 @@ export function Navbar() {
           </div>
 
           {/* Mobile Menu Toggle Button */}
-          <div className="md:hidden flex items-center gap-2">
+          <div className="md:hidden flex items-center gap-stack-xs">
             {isMounted && isAuthenticated && user && (
               <Link
                 href="/dashboard"
@@ -144,7 +153,7 @@ export function Navbar() {
             <button
               type="button"
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 rounded-xl text-sb-text-2 hover:text-sb-navy hover:bg-white/70 focus:outline-hidden cursor-pointer"
+              className="p-stack-xs rounded-xl text-sb-text-2 hover:text-sb-navy hover:bg-sb-mist-faint focus:outline-hidden cursor-pointer"
               aria-label="Navigasi menu"
             >
               {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}

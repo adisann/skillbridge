@@ -1,6 +1,6 @@
 "use client";
 
-import { TrackedJob, JobStage } from "@/types/tracker";
+import type { TrackedJob, JobStage } from "@/types/tracker";
 
 const BASE_STORAGE_KEY = "skillbridge_job_tracker_v2";
 
@@ -20,7 +20,7 @@ export interface ServerSavedJob {
   seniority?: string;
   sourceName?: string;
   sourceUrl?: string;
-  matchScore?: number;
+  matchScore?: number | null;
   matchStatus?: "match" | "underqualified" | "potentially_overqualified" | "insufficient_evidence";
   matchedSkills?: string[];
   missingSkills?: string[];
@@ -72,9 +72,9 @@ export function mergeServerAndLocalJobs(serverJobs: ServerSavedJob[], userId?: s
       seniority: sj.seniority || "Junior",
       sourceName: sj.sourceName || "Internal",
       sourceUrl: sj.sourceUrl,
-      matchScore: sj.matchScore ?? 80,
-      matchStatus: sj.matchStatus || "match",
-      matchedSkills: sj.matchedSkills || ["SQL", "Excel"],
+      matchScore: sj.matchScore ?? 0,
+      matchStatus: sj.matchScore == null ? "insufficient_evidence" : sj.matchStatus || "insufficient_evidence",
+      matchedSkills: sj.matchedSkills || [],
       missingSkills: sj.missingSkills || [],
       stage: (local.stage as JobStage) || "bookmarked",
       priority: typeof local.priority === "number" ? local.priority : 4,
@@ -101,9 +101,9 @@ export function mergeServerAndLocalJobs(serverJobs: ServerSavedJob[], userId?: s
         seniority: item.seniority || "Mid",
         sourceName: item.sourceName || "Manual Target",
         sourceUrl: item.sourceUrl,
-        matchScore: item.matchScore ?? 85,
-        matchStatus: item.matchStatus || "match",
-        matchedSkills: item.matchedSkills || ["SQL", "Python"],
+        matchScore: 0,
+        matchStatus: "insufficient_evidence",
+        matchedSkills: [],
         missingSkills: item.missingSkills || [],
         stage: item.stage || "bookmarked",
         priority: item.priority ?? 3,

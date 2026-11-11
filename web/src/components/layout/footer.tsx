@@ -1,14 +1,18 @@
 import React from "react";
 import Link from "next/link";
 import { SkillBridgeLogo } from "../ui/logo";
+import { UI_COPY } from "@/lib/copy";
 
 export function Footer() {
   return (
-    <footer className="border-t border-sb-border bg-white/70 backdrop-blur-md text-xs mt-auto">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <SkillBridgeLogo size="sm" />
+    <footer className="border-t border-sb-border bg-white text-xs mt-auto">
+      <div className="max-w-7xl mx-auto px-stack-md sm:px-stack-xl lg:px-stack-2xl py-stack-xl flex flex-col sm:flex-row items-center justify-between gap-stack-md">
+        <div className="flex flex-col items-center sm:items-start gap-stack-2xs">
+          <SkillBridgeLogo size="sm" />
+          <span className="text-xs text-sb-text-2">{UI_COPY.tagline}</span>
+        </div>
 
-        <div className="flex items-center gap-6 text-xs text-sb-text-2 font-medium">
+        <div className="flex items-center gap-stack-xl text-xs text-sb-text-2 font-medium">
           <Link href="/lowongan" className="hover:text-sb-navy transition-colors">
             Lowongan
           </Link>

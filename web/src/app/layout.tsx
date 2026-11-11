@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import { Onest, Archivo, JetBrains_Mono } from "next/font/google";
 import "sweetalert2/dist/sweetalert2.min.css";
 import "./globals.css";
 import { RootShell } from "@/components/layout/root-shell";
@@ -9,10 +9,18 @@ import { CareerProvider, CareerContent } from "@/context/career-context";
 import { LearningProvider } from "@/context/learning-context";
 import { AsyncTaskProvider } from "@/context/async-task-context";
 
-const plusJakartaSans = Plus_Jakarta_Sans({
+// Identitas: Onest untuk teks, Archivo untuk judul dan wordmark
+const onest = Onest({
   variable: "--font-sans",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
+});
+
+const archivo = Archivo({
+  variable: "--font-display",
+  subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
   display: "swap",
 });
 
@@ -24,7 +32,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SkillBridge | Pencocokan CV & Analisis Kebutuhan Skill Pasar Kerja",
+  title: "SkillBridge | Keahlian bertemu kesempatan",
   description:
     "SkillBridge membantu pencari kerja mengetahui lowongan yang relevan dengan CV mereka, gap skill yang belum ditemukan, dan skill pasar yang paling sering diminta.",
 };
@@ -37,7 +45,7 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`${plusJakartaSans.variable} ${jetbrainsMono.variable} h-full antialiased scroll-smooth`}
+      className={`${onest.variable} ${archivo.variable} ${jetbrainsMono.variable} h-full antialiased scroll-smooth`}
       suppressHydrationWarning
     >
       <body
