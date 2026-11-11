@@ -14,12 +14,12 @@ interface LogoProps {
  * yang menyatukan keahlian kandidat dengan kebutuhan dunia kerja.
  * Dipakai komponen di bawah dan disalin apa adanya ke `app/icon.svg` (favicon).
  */
-export const SKILLBRIDGE_MARK_VIEWBOX = "0 0 100 60";
-export const SKILLBRIDGE_MARK_PATH =
+const SKILLBRIDGE_MARK_VIEWBOX = "0 0 100 60";
+const SKILLBRIDGE_MARK_PATH =
   "M0 60V0H19V20C19 9 33 2 50 2C67 2 81 9 81 20V0H100V60H81V40C81 27 67 18 50 18C33 18 19 27 19 40V60Z";
 
 /** Tanda logo. Warna mengikuti `currentColor`, ukuran lewat `className` (mis. `h-6 w-auto`). */
-export function SkillBridgeMark({ className }: { className?: string }) {
+function SkillBridgeMark({ className }: { className?: string }) {
   return (
     <svg viewBox={SKILLBRIDGE_MARK_VIEWBOX} className={className} aria-hidden="true" focusable="false">
       <path d={SKILLBRIDGE_MARK_PATH} fill="currentColor" />

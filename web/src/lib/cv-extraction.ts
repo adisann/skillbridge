@@ -4,7 +4,7 @@
  * File ini sengaja tanpa import alias "@/" agar bisa diuji langsung dengan node --test.
  */
 
-export interface SkillRule {
+interface SkillRule {
   name: string;
   regex: RegExp;
 }
@@ -80,7 +80,7 @@ const EXPERIENCE_HEADING = /^(?:pengalaman(?:\s+(?:kerja|profesional|magang|orga
 const OTHER_HEADING = /^(?:pendidikan|riwayat\s+pendidikan|education|keahlian|skills?|kemampuan|proyek|projects?|sertifikasi|certifications?|pelatihan|trainings?|organisasi|organizations?|penghargaan|awards?|prestasi|achievements?|publikasi|publications?|bahasa|languages?|referensi|references?|ringkasan|summary|profil|profile|tentang\s+saya|about\s+me|kontak|contact|volunteer(?:ing)?|kegiatan)\s*:?$/i;
 
 /** Ambil teks bagian pengalaman kerja. Kosong bila CV tidak punya judul bagian yang dikenali. */
-export function experienceSection(text: string): string {
+function experienceSection(text: string): string {
   const lines = text.split(/\r?\n/);
   const out: string[] = [];
   let inside = false;
@@ -149,7 +149,7 @@ export function monthsFromDateRanges(text: string, now: Date = new Date()): numb
  * Tahun dan bulan hanya dijumlahkan bila berada dalam satu frasa yang sama; bila ada beberapa frasa,
  * diambil yang terbesar (frasa ringkasan biasanya sudah mencakup semuanya).
  */
-export function monthsFromExplicitDuration(text: string): number | null {
+function monthsFromExplicitDuration(text: string): number | null {
   const lower = text.toLowerCase();
   let best: number | null = null;
   const phrase = /(\d+(?:[.,]\d+)?)\s*\+?\s*(tahun|thn|years?|yrs?)(?:\s*(?:dan|and|,)?\s*(\d+)\s*(bulan|months?|mos?)\b)?|(\d+)\s*(bulan|months?|mos?)\b/g;

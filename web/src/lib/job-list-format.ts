@@ -103,7 +103,6 @@ export function formatJobListItem(j: RawPublicJob, candidate?: CandidateProfile 
   };
 }
 
-export type FormattedJobListItem = ReturnType<typeof formatJobListItem>;
 
 /** Jumlah lowongan aktif per bidang, untuk statistik landing page. */
 export function countJobsPerCategory(jobs: RawPublicJob[]): Record<string, number> {

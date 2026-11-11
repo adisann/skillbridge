@@ -63,6 +63,26 @@ const PRIORITY_TONE: Record<string, string> = {
   Rendah: "bg-sb-mist-soft text-sb-navy border-sb-border",
 };
 
+function PrioritySelect({ skillName, value, disabled, className, onChange }: {
+  skillName: string;
+  value: string;
+  disabled: boolean;
+  className: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <select
+      aria-label={`Prioritas ${skillName}`}
+      value={value}
+      disabled={disabled}
+      onChange={(event) => onChange(event.target.value)}
+      className={cn("rounded-full border font-semibold focus:outline-none focus:ring-2 focus:ring-sb-blue", PRIORITY_TONE[value] ?? PRIORITY_TONE.Rendah, className)}
+    >
+      {LEARNING_PRIORITIES.map((priority) => <option key={priority} value={priority}>{priority}</option>)}
+    </select>
+  );
+}
+
 /** Urutan manual disimpan per akun di browser (kolom urutan belum ada di database). */
 function useCustomOrder(userKey: string) {
   const storageKey = `sb-learning-order:${userKey}`;
@@ -343,17 +363,13 @@ export function LearningPlanList({ userKey }: { userKey: string }) {
                       </label>
                       {/* HP & tablet: prioritas dan menu ⋯ di kanan nama skill, supaya satu item cukup 2–3 baris */}
                       <div className="lg:hidden flex items-center gap-stack-2xs shrink-0">
-                        <select
-                          aria-label={`Prioritas ${item.skillName}`}
+                        <PrioritySelect
+                          skillName={item.skillName}
                           value={priority}
                           disabled={busy}
-                          onChange={(e) => void run(item.id, () => learning.update(item.id, { priority: e.target.value }))}
-                          className={cn("h-7 rounded-full border pl-stack-xs pr-stack-2xs text-[11px] font-semibold focus:outline-none focus:ring-2 focus:ring-sb-blue", PRIORITY_TONE[priority] ?? PRIORITY_TONE.Rendah)}
-                        >
-                          {LEARNING_PRIORITIES.map((p) => (
-                            <option key={p} value={p}>{p}</option>
-                          ))}
-                        </select>
+                          onChange={(priority) => void run(item.id, () => learning.update(item.id, { priority }))}
+                          className="h-7 pl-stack-xs pr-stack-2xs text-[11px]"
+                        />
                         <div className="relative">
                           <button
                             type="button"
@@ -411,17 +427,13 @@ export function LearningPlanList({ userKey }: { userKey: string }) {
                     </div>
 
                     <div className="hidden lg:block">
-                      <select
-                        aria-label={`Prioritas ${item.skillName}`}
+                      <PrioritySelect
+                        skillName={item.skillName}
                         value={priority}
                         disabled={busy}
-                        onChange={(e) => void run(item.id, () => learning.update(item.id, { priority: e.target.value }))}
-                        className={cn("h-8 rounded-full border px-stack-sm text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-sb-blue", PRIORITY_TONE[priority] ?? PRIORITY_TONE.Rendah)}
-                      >
-                        {LEARNING_PRIORITIES.map((p) => (
-                          <option key={p} value={p}>{p}</option>
-                        ))}
-                      </select>
+                        onChange={(priority) => void run(item.id, () => learning.update(item.id, { priority }))}
+                        className="h-8 px-stack-sm text-xs"
+                      />
                     </div>
 
                     <div className={cn("lg:col-start-auto min-w-0 ml-stack-4xl lg:ml-0", !item.notes && noteEditId !== item.id && "hidden lg:block")}>

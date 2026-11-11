@@ -4,7 +4,7 @@ import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export interface SearchableOption {
+interface SearchableOption {
   value: string;
   label: string;
   description?: string;
