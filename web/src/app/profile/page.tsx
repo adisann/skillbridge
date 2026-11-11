@@ -21,12 +21,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { ProtectedRoute } from "@/components/layout/protected-route";
-import { AlertBanner } from "@/components/ui/error";
 import { SkeletonCard } from "@/components/ui/loading";
 import { useAuth } from "@/lib/supabase/auth-context";
 import { fetchDeduped } from "@/lib/fetcher";
 import { JOB_CATEGORIES } from "@/lib/job-categories";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import { useAsyncTask } from "@/context/async-task-context";
 
 interface ResumeSummary {
   filename?: string;
@@ -46,11 +46,11 @@ export default function ProfilePage() {
 
 function ProfileContent() {
   const { user, isAdmin, logout, updateUserTargetRole, resetDemoState } = useAuth();
+  const { showToast } = useAsyncTask();
   const [resume, setResume] = useState<ResumeSummary | null>(null);
   const [learningCount, setLearningCount] = useState<number>(0);
   const [savedJobsCount, setSavedJobsCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [notification, setNotification] = useState<string | null>(null);
   const [isResetting, setIsResetting] = useState(false);
   const [specificPosition, setSpecificPosition] = useState("");
 
@@ -92,17 +92,24 @@ function ProfileContent() {
   }, [user]);
 
   const handleFieldChange = async (fieldLabel: string) => {
-    try { await updateUserTargetRole(fieldLabel); } catch (e) { setNotification((e as Error).message); return; }
-    setNotification(`Target bidang kerja berhasil diperbarui menjadi ${fieldLabel}.`);
-    setTimeout(() => setNotification(null), 3000);
+    try {
+      await updateUserTargetRole(fieldLabel);
+      showToast(`Target bidang kerja diperbarui ke ${fieldLabel}.`);
+    } catch (error) {
+      showToast((error as Error).message, "error");
+    }
   };
 
   const handleSpecificPositionSave = async () => {
-    if (!specificPosition.trim()) return;
-    try { await updateUserTargetRole(specificPosition.trim()); } catch (e) { setNotification((e as Error).message); return; }
-    setNotification(`Target posisi berhasil disimpan: ${specificPosition.trim()}`);
-    setSpecificPosition("");
-    setTimeout(() => setNotification(null), 3000);
+    const position = specificPosition.trim();
+    if (!position) return;
+    try {
+      await updateUserTargetRole(position);
+      showToast(`Target posisi ${position} tersimpan.`);
+      setSpecificPosition("");
+    } catch (error) {
+      showToast((error as Error).message, "error");
+    }
   };
 
   const handleResetDemo = async () => {
@@ -110,12 +117,12 @@ function ProfileContent() {
     setIsResetting(true);
     try {
       await resetDemoState();
-      setNotification("Akun demo berhasil direset ke kondisi awal.");
+      showToast("Akun demo dikembalikan ke kondisi awal.");
       setTimeout(() => {
         window.location.reload();
       }, 1000);
     } catch {
-      setNotification("Gagal mereset state demo.");
+      showToast("Gagal mengembalikan akun demo ke kondisi awal.", "error");
       setIsResetting(false);
     }
   };
@@ -134,13 +141,13 @@ function ProfileContent() {
       {/* Page Banner (Replaces dark hero) */}
       <div className="page-banner rounded-3xl p-stack-lg sm:p-stack-xl relative overflow-hidden">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-stack-xl">
-          <div className="flex items-center gap-stack-md">
+          <div className="flex min-w-0 items-center gap-stack-md">
             <div className="w-16 h-16 rounded-2xl bg-sb-mist text-sb-navy font-extrabold text-xl flex items-center justify-center shadow-sm ring-1 ring-white/50 shrink-0">
               {getUserInitials(user?.fullName)}
             </div>
-            <div className="space-y-stack-2xs">
+            <div className="min-w-0 space-y-stack-2xs">
               <div className="flex flex-wrap items-center gap-stack-xs">
-                <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-sb-navy">
+                <h1 className="wrap-anywhere text-xl sm:text-2xl font-extrabold tracking-tight text-sb-navy">
                   {user?.fullName || "Pengguna SkillBridge"}
                 </h1>
                 <span className="text-[11px] font-bold px-stack-xs py-stack-3xs rounded-full bg-sb-mist-soft text-sb-blue border border-sb-border">
@@ -154,8 +161,8 @@ function ProfileContent() {
                 )}
               </div>
               <div className="flex items-center gap-stack-2xs text-xs text-sb-text-2">
-                <Mail className="w-3.5 h-3.5 text-sb-blue" />
-                <span className="font-mono-metric">{user?.email}</span>
+                <Mail className="w-3.5 h-3.5 shrink-0 text-sb-blue" />
+                <span className="wrap-anywhere font-mono-metric">{user?.email}</span>
               </div>
             </div>
           </div>
@@ -173,14 +180,6 @@ function ProfileContent() {
           </div>
         </div>
       </div>
-
-      {notification && (
-        <AlertBanner
-          type="success"
-          title="Pembaruan Berhasil"
-          message={notification}
-        />
-      )}
 
       {isLoading ? (
         <div className="space-y-stack-xl">
@@ -221,16 +220,17 @@ function ProfileContent() {
 
               {/* Specific Position Input */}
               <div className="pt-stack-xs border-t border-sb-border">
-                <label className="block text-xs font-bold text-sb-navy mb-stack-2xs">
+                <label htmlFor="profile-position" className="block text-xs font-bold text-sb-navy mb-stack-2xs">
                   Posisi Spesifik (Opsional)
                 </label>
-                <div className="flex items-center gap-stack-xs">
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-stack-xs">
                   <input
+                    id="profile-position"
                     type="text"
                     value={specificPosition}
                     onChange={(e) => setSpecificPosition(e.target.value)}
                     placeholder={`cth. ${user?.targetRole || "UX Researcher, Data Scientist, Frontend Developer"}`}
-                    className="flex-1 h-10 px-stack-sm rounded-xl border border-sb-border bg-white/80 text-xs font-semibold text-sb-navy focus:outline-none focus:ring-2 focus:ring-sb-blue"
+                    className="h-10 w-full min-w-0 px-stack-sm rounded-xl border border-sb-border bg-white/80 text-xs font-semibold text-sb-navy focus:outline-none focus:ring-2 focus:ring-sb-blue"
                   />
                   <Button
                     variant="primary"
@@ -242,7 +242,7 @@ function ProfileContent() {
                     Simpan Posisi
                   </Button>
                 </div>
-                <p className="text-[11px] text-sb-text-2 mt-stack-2xs">
+                <p className="mt-stack-2xs wrap-anywhere text-[11px] text-sb-text-2">
                   Target saat ini: <strong className="text-sb-navy font-semibold">{user?.targetRole || "Data & Analitik"}</strong>
                 </p>
               </div>

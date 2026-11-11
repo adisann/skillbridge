@@ -27,18 +27,11 @@ const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>
 };
 
 interface LandingFieldsProps {
-  jobCounts: Record<string, number>;
+  jobCounts: Record<string, number> | null;
 }
 
 export function LandingFields({ jobCounts }: LandingFieldsProps) {
-  const visibleCategories = JOB_CATEGORIES.filter((c) => {
-    if (c.slug === "lainnya") return false;
-    // Sembunyikan bidang tanpa lowongan jika data sudah dimuat
-    if (Object.keys(jobCounts).length > 0) {
-      return (jobCounts[c.slug] || 0) > 0;
-    }
-    return true;
-  });
+  const visibleCategories = JOB_CATEGORIES.filter((category) => category.slug !== "lainnya");
 
   return (
     <section className="py-stack-6xl sm:py-stack-8xl landing-grad-fields border-y border-sb-border">
@@ -52,7 +45,7 @@ export function LandingFields({ jobCounts }: LandingFieldsProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-stack-md sm:gap-stack-lg">
           {visibleCategories.map((cat) => {
             const Icon = CATEGORY_ICONS[cat.iconName] || Briefcase;
-            const count = jobCounts[cat.slug];
+            const count = jobCounts?.[cat.slug] ?? 0;
 
             return (
               <Link
@@ -75,13 +68,11 @@ export function LandingFields({ jobCounts }: LandingFieldsProps) {
                 </div>
 
                 <div className="pt-stack-xs border-t border-sb-border flex items-center justify-between text-xs">
-                  {typeof count === "number" && count >= 10 ? (
-                    <span className="font-semibold text-sb-blue font-mono-metric">
-                      {count} {UI_COPY.landing.fieldsJobsSuffix}
-                    </span>
-                  ) : (
-                    <span className="text-sb-text-2">{UI_COPY.landing.fieldsViewPositions}</span>
-                  )}
+                  <span className="font-semibold text-sb-blue font-mono-metric">
+                    {jobCounts === null
+                      ? UI_COPY.landing.statsUnavailable
+                      : `${count.toLocaleString("id-ID")} ${UI_COPY.landing.fieldsJobsSuffix}`}
+                  </span>
                   <ArrowRight className="w-4 h-4 text-sb-text-2 group-hover:text-sb-blue group-hover:translate-x-0.5 transition-ui" />
                 </div>
               </Link>

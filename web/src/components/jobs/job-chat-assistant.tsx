@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useId } from "react";
 import Link from "next/link";
 import {
   MessageSquare,
@@ -47,6 +47,7 @@ const QUICK_QUESTIONS = [
   "Keterampilan apa yang perlu saya tingkatkan?",
   "Apakah pengalaman kerja wajib untuk posisi ini?",
 ];
+const MAX_QUESTION_LENGTH = 300;
 
 let messageCounter = 0;
 function createMessageId(prefix: string): string {
@@ -89,7 +90,8 @@ export function JobChatAssistant({
   const [isMaximized, setIsMaximized] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const counterId = useId();
+  const panelRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -101,14 +103,28 @@ export function JobChatAssistant({
     hasCv: false,
   });
 
-  // Focus input when dialog opens
   useEffect(() => {
-    if (isOpen) {
-      const timer = setTimeout(() => {
-        inputRef.current?.focus();
-      }, 150);
-      return () => clearTimeout(timer);
-    }
+    if (!isOpen || !window.matchMedia("(pointer: fine)").matches) return;
+    inputRef.current?.focus({ preventScroll: true });
+  }, [isOpen]);
+
+  useEffect(() => {
+    const panel = panelRef.current;
+    const viewport = window.visualViewport;
+    if (!isOpen || !panel || !viewport) return;
+
+    const updateViewport = () => {
+      panel.style.setProperty("--chat-viewport-height", `${viewport.height}px`);
+      panel.style.setProperty("--chat-viewport-top", `${viewport.offsetTop}px`);
+      panel.style.setProperty("--chat-viewport-bottom", `${Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)}px`);
+    };
+    updateViewport();
+    viewport.addEventListener("resize", updateViewport);
+    viewport.addEventListener("scroll", updateViewport);
+    return () => {
+      viewport.removeEventListener("resize", updateViewport);
+      viewport.removeEventListener("scroll", updateViewport);
+    };
   }, [isOpen]);
 
   // Handle ESC key to close modal
@@ -130,8 +146,9 @@ export function JobChatAssistant({
   };
 
   const scrollToBottomIfNear = useCallback((force = false, behavior: ScrollBehavior = "smooth") => {
-    if (force || isNearBottomRef.current) {
-      messagesEndRef.current?.scrollIntoView({ behavior });
+    const container = scrollContainerRef.current;
+    if (container && (force || isNearBottomRef.current)) {
+      container.scrollTo({ top: container.scrollHeight, behavior });
     }
   }, []);
 
@@ -334,13 +351,6 @@ export function JobChatAssistant({
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
   const handleClearChat = () => {
     if (isStreaming) {
       handleStopGenerating();
@@ -504,17 +514,18 @@ export function JobChatAssistant({
       {/* Floating Dialog Modal */}
       {isOpen && (
         <div
+          ref={panelRef}
           role="dialog"
           aria-label={`Asisten AI Lowongan - ${jobTitle}`}
           className={cn(
-            "fixed z-50 flex flex-col overflow-hidden bg-white border border-sb-border shadow-2xl animate-pop-in origin-bottom-right",
+            "fixed bottom-[calc(var(--chat-viewport-bottom,0px)+var(--chat-gap))] z-50 flex flex-col overflow-hidden rounded-2xl border border-sb-border bg-white shadow-2xl animate-pop-in origin-bottom-right",
             isMaximized
-              ? "inset-2 sm:inset-6 md:inset-10 rounded-2xl"
-              : "right-3 bottom-3 sm:right-6 sm:bottom-6 w-[calc(100vw-1.5rem)] sm:w-[440px] h-[580px] sm:h-[620px] max-h-[88vh] rounded-2xl"
+              ? "inset-x-(--chat-gap) top-[calc(var(--chat-viewport-top,0px)+var(--chat-gap))] [--chat-gap:0.5rem] sm:[--chat-gap:1.5rem] md:[--chat-gap:2.5rem]"
+              : "inset-x-(--chat-gap) h-[36rem] max-h-[calc(var(--chat-viewport-height,100dvh)-2*var(--chat-gap))] [--chat-gap:0.75rem] sm:left-auto sm:h-[39rem] sm:w-[27.5rem] sm:[--chat-gap:1.5rem]"
           )}
         >
           {/* Header Panel */}
-          <div className="px-stack-md py-stack-sm sm:px-stack-md sm:py-stack-sm bg-sb-mist-soft text-sb-navy border-b border-sb-border flex items-center justify-between shrink-0 select-none">
+          <div className="px-stack-md py-stack-sm bg-sb-mist-soft text-sb-navy border-b border-sb-border flex items-center justify-between shrink-0 select-none">
             <div className="flex items-center gap-stack-xs min-w-0 pr-stack-xs">
               <div className="w-8 h-8 rounded-xl bg-white border border-sb-border flex items-center justify-center shrink-0 shadow-2xs">
                 <Bot className="w-4 h-4 text-sb-blue" />
@@ -524,9 +535,6 @@ export function JobChatAssistant({
                   <h3 className="text-sm font-bold tracking-tight truncate text-sb-navy">
                     SkillBridge AI
                   </h3>
-                  <span className="inline-flex items-center gap-stack-2xs text-xs font-semibold px-stack-xs py-stack-3xs rounded-full bg-white text-sb-blue border border-sb-border shrink-0">
-                    Kontekstual
-                  </span>
                 </div>
                 <p className="text-[11px] text-sb-text-2 truncate mt-stack-3xs">
                   {jobTitle} • {company}
@@ -577,7 +585,7 @@ export function JobChatAssistant({
           <div
             ref={scrollContainerRef}
             onScroll={handleScroll}
-            className="flex-1 min-h-0 overflow-y-auto p-stack-md sm:p-stack-md space-y-stack-md bg-sb-mist-faint/30"
+            className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-stack-md space-y-stack-md bg-sb-mist-faint/30"
           >
             {messages.length === 0 ? (
               <div className="space-y-stack-md py-stack-xs">
@@ -625,7 +633,7 @@ export function JobChatAssistant({
                   )}
 
                   <div
-                    className={`max-w-[85%] sm:max-w-[80%] rounded-2xl p-stack-sm sm:p-stack-sm shadow-2xs space-y-stack-xs ${
+                    className={`min-w-0 max-w-[85%] sm:max-w-[80%] wrap-anywhere rounded-2xl p-stack-sm shadow-2xs space-y-stack-xs ${
                       msg.role === "user"
                         ? "bg-sb-mist-soft text-sb-navy border border-sb-border rounded-tr-xs font-medium"
                         : "bg-white text-sb-navy border border-sb-border rounded-tl-xs"
@@ -664,7 +672,6 @@ export function JobChatAssistant({
               </div>
             )}
 
-            <div ref={messagesEndRef} />
           </div>
 
           {/* Quick chips bar when conversation has started */}
@@ -688,7 +695,7 @@ export function JobChatAssistant({
           )}
 
           {/* Input Footer */}
-          <div className="p-stack-sm sm:p-stack-sm bg-white border-t border-sb-border shrink-0">
+          <div className="p-stack-sm bg-white border-t border-sb-border shrink-0">
             {errorMessage && (
               <div className="mb-stack-xs p-stack-xs rounded-lg bg-red-50 border border-red-200 flex items-center gap-stack-xs text-xs text-red-700">
                 <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
@@ -708,28 +715,25 @@ export function JobChatAssistant({
                 e.preventDefault();
                 handleSendMessage();
               }}
-              className="flex items-center gap-stack-xs"
+              className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-stack-xs gap-y-stack-2xs"
             >
-              <div className="relative flex-1">
-                <input
+              <input
                   ref={inputRef}
                   type="text"
                   aria-label="Pertanyaan untuk asisten AI"
+                  aria-describedby={counterId}
                   value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value.slice(0, 300))}
-                  onKeyDown={handleKeyDown}
+                  maxLength={MAX_QUESTION_LENGTH}
+                  onChange={(e) => setInputValue(e.target.value)}
                   disabled={isStreaming || isAnalyzing}
                   placeholder={
                     isStreaming
                       ? "Asisten AI sedang menyusun jawaban..."
-                      : "Ketik pertanyaan seputar lowongan ini..."
+                      : "Tulis pertanyaan…"
                   }
-                  className="w-full text-xs sm:text-sm px-stack-sm py-stack-xs rounded-xl border border-sb-border bg-sb-mist-faint/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue focus:border-transparent transition-ui pr-stack-4xl disabled:opacity-60 text-sb-navy placeholder:text-sb-text-2"
+                  enterKeyHint="send"
+                  className="min-h-11 w-full min-w-0 text-base sm:text-sm px-stack-sm py-stack-xs rounded-xl border border-sb-border bg-sb-mist-faint/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue focus:border-transparent transition-ui disabled:opacity-60 text-sb-navy placeholder:text-sb-text-2"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-sb-text-2">
-                  {inputValue.length}/300
-                </span>
-              </div>
 
               {isStreaming || isAnalyzing ? (
                 <Button
@@ -739,7 +743,7 @@ export function JobChatAssistant({
                   onClick={handleStopGenerating}
                   title="Hentikan respons AI"
                   aria-label="Hentikan respons"
-                  className="shrink-0 rounded-xl gap-stack-2xs"
+                  className="min-h-11 min-w-11 rounded-xl gap-stack-2xs"
                 >
                   <Square className="w-3.5 h-3.5 fill-current" aria-hidden="true" />
                   <span className="hidden sm:inline">Hentikan</span>
@@ -750,18 +754,17 @@ export function JobChatAssistant({
                   variant="primary"
                   size="md"
                   disabled={!inputValue.trim()}
-                  className="shrink-0 rounded-xl"
+                  className="min-h-11 min-w-11 rounded-xl"
                   aria-label="Kirim pesan"
                 >
                   <Send className="w-4 h-4" aria-hidden="true" />
                   <span className="hidden sm:inline">Kirim</span>
                 </Button>
               )}
+              <span id={counterId} className="col-span-2 justify-self-end text-[11px] tabular-nums text-sb-text-2">
+                {inputValue.length}/{MAX_QUESTION_LENGTH}
+              </span>
             </form>
-
-            <div className="flex items-center justify-between text-[11px] text-sb-text-2 pt-stack-xs px-stack-2xs">
-              <span>{isStreaming ? "Klik 'Hentikan' untuk membatalkan" : "Tekan Enter untuk mengirim"}</span>
-            </div>
           </div>
         </div>
       )}

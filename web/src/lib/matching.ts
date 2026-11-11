@@ -134,7 +134,7 @@ export function calculateJobMatch(
     const key = getCanonicalSkill(skill);
     let status: RequirementStatus = "belum_ditemukan";
     let statusLabel: RequirementEvaluation["statusLabel"] = "Belum ditemukan di CV";
-    let evidence = "Belum ditemukan di CV-mu.";
+    let evidence = "";
     if (allCandidateSkills.has(key) && (claimed.has(key) || review.has(key))) {
       status = "belum_cukup_bukti";
       statusLabel = "Belum cukup bukti";
@@ -145,7 +145,7 @@ export function calculateJobMatch(
       status = "cocok";
       statusLabel = "Cocok di CV";
       const entry = !Array.isArray(candidate) && Object.entries(candidate.evidence || {}).find(([name]) => getCanonicalSkill(name) === key);
-      evidence = entry ? `Cuplikan CV: ${entry[1]}` : "Skill tersimpan sebagai hasil CV; cuplikan bukti belum tersedia.";
+      if (entry && entry[1].trim()) evidence = `Cuplikan CV: ${entry[1]}`;
     } else {
       const related = RELATED_SKILLS_MAP[key] || [];
       const found = related.find((name) => canonicalCandidateSkills.has(getCanonicalSkill(name)));

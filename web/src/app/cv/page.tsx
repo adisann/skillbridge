@@ -62,6 +62,14 @@ const EMPTY_RESUME: ExtractedResumeState = {
 };
 
 export default function CVPage() {
+  return (
+    <ProtectedRoute>
+      <CVContent />
+    </ProtectedRoute>
+  );
+}
+
+function CVContent() {
   const { user } = useAuth();
   const career = useCareer();
   const targetRole = career.targetRole || user?.targetRole || "";
@@ -79,8 +87,8 @@ export default function CVPage() {
   const saveLock = useRef(false);
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedDraft, setHasUnsavedDraft] = useState(false);
-  const { runTask } = useAsyncTask();
-  const [notification, setNotification] = useState<{ type: "success" | "error" | "info"; message: string } | null>(null);
+  const { runTask, showToast } = useAsyncTask();
+  const [loadError, setLoadError] = useState("");
 
   // Muat resume aktif yang tersimpan di database jika ada
   useEffect(() => {
@@ -122,7 +130,7 @@ export default function CVPage() {
           setSkillDetails(data.resume.skillDetails || []);
         }
       } catch (e) {
-        if (isMounted) setNotification({ type: "error", message: (e as Error).message });
+        if (isMounted) setLoadError((e as Error).message);
       }
     };
     loadSavedCV();
@@ -136,10 +144,7 @@ export default function CVPage() {
     if (!file) return;
 
     if (!consentGiven) {
-      setNotification({
-        type: "error",
-        message: "Harap setujui persetujuan pemrosesan data CV terlebih dahulu.",
-      });
+      showToast("Setujui pemrosesan data CV sebelum mengunggah berkas.", "error");
       return;
     }
 
@@ -147,15 +152,15 @@ export default function CVPage() {
     const ext = file.name.toLowerCase().split(".").pop();
     if (ext !== "pdf" && ext !== "docx") {
       if (fileInputRef.current) fileInputRef.current.value = "";
-      setNotification({ type: "error", message: "Format file tidak didukung. Unggah CV dalam format PDF atau DOCX." });
+      showToast("Format file tidak didukung. Unggah CV dalam format PDF atau DOCX.", "error");
       return;
     }
     if (file.size === 0 || file.size > 4 * 1024 * 1024) {
       if (fileInputRef.current) fileInputRef.current.value = "";
-      setNotification({
-        type: "error",
-        message: file.size === 0 ? "Berkas kosong. Pilih CV dalam format PDF atau DOCX." : "Ukuran berkas melebihi batas maksimal 4 MB.",
-      });
+      showToast(
+        file.size === 0 ? "Berkas kosong. Pilih CV dalam format PDF atau DOCX." : "Ukuran berkas melebihi batas maksimal 4 MB.",
+        "error",
+      );
       return;
     }
 
@@ -166,6 +171,7 @@ export default function CVPage() {
       type: "cv_upload",
       title: `Memproses CV: ${targetFile.name}`,
       description: "Mengunggah berkas CV & mengekstrak keterampilan kerja...",
+      success: { title: "CV selesai diproses.", description: "Tinjau skill hasil ekstraksi, lalu klik Simpan CV & analisis." },
       promise: async () => {
         setIsLoading(true);
         try {
@@ -195,10 +201,6 @@ export default function CVPage() {
           setManualSkills([]);
           setSkillDetails(data.skillDetails || []);
           setHasUnsavedDraft(true);
-          setNotification({
-            type: "info",
-            message: `Berkas '${data.filename}' berhasil diproses. Tinjau dan koreksi keahlian di bawah, lalu klik 'Simpan CV & analisis'.`,
-          });
 
           return uploadedState;
         } finally {
@@ -251,8 +253,8 @@ export default function CVPage() {
     saveLock.current = true;
     runTask({
       type: "cv_save_match",
-      title: "Sinkronisasi CV & Pencocokan Lowongan",
-      description: `Menyimpan ${skills.length} keahlian & menghitung skor kecocokan lowongan...`,
+      title: "Menyimpan CV…",
+      success: { title: "CV tersimpan.", description: "Profil siap digunakan untuk analisis lowongan." },
       promise: async () => {
         setIsSaving(true);
         try {
@@ -267,10 +269,6 @@ export default function CVPage() {
           setSkillDetails(previous => previous.map(detail => ({ ...detail, needsReview: false })));
           setHasUnsavedDraft(false);
           await career.refresh();
-          setNotification({
-            type: "success",
-            message: `Berhasil disubmit! ${data.message} Profil siap digunakan untuk analisis lowongan.`,
-          });
           return data;
         } finally {
           saveLock.current = false;
@@ -304,7 +302,6 @@ export default function CVPage() {
       if (data.success) {
         setSkills([]);
         setManualSkills([]); setSkillDetails([]);
-        await career.refresh();
         setCurrentResume({
           candidateName: "Dokumen Telah Dihapus",
           filename: "-",
@@ -316,23 +313,20 @@ export default function CVPage() {
           summary: "Seluruh data CV telah dibersihkan secara permanen dari server dan basis data.",
           skills: [],
         });
-        setNotification({
-          type: "info",
-          message: "Data CV dan seluruh hasil ekstraksi telah berhasil dihapus secara permanen.",
+        showToast("CV dihapus.");
+        await career.refresh().catch(() => {
+          showToast("Daftar CV gagal diperbarui. Muat ulang halaman.", "error");
         });
       }
-    } catch {
-      setNotification({
-        type: "error",
-        message: "Gagal menghapus data CV.",
-      });
+    } catch (error) {
+      showToast((error as Error).message || "Gagal menghapus data CV.", "error");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <ProtectedRoute>
+    <>
       <div className="max-w-5xl mx-auto page-shell page-stack">
         {/* Dark Hero Banner */}
         <div className="page-banner rounded-3xl p-stack-lg sm:p-stack-xl text-sb-navy relative overflow-hidden">
@@ -360,13 +354,7 @@ export default function CVPage() {
           </div>
         </div>
 
-        {notification && (
-          <AlertBanner
-            type={notification.type}
-            title={notification.type === "success" ? "Berhasil" : notification.type === "error" ? "Peringatan" : "Informasi"}
-            message={notification.message}
-          />
-        )}
+        {loadError && <AlertBanner type="error" title="Gagal memuat CV" message={loadError} />}
 
         <CareerContextBar beforeChange={async () => !hasUnsavedDraft || await confirmAction("Tinggalkan perubahan CV yang belum disimpan?", { destructive: false, confirmText: "Ya, lanjutkan" })} />
 
@@ -501,7 +489,7 @@ export default function CVPage() {
                             const years = experienceInYears(part === "years" ? e.target.value : parts.years, part === "months" ? e.target.value : parts.months);
                             setCurrentResume((prev) => ({ ...prev, experienceYears: years, experienceTargetRole: targetRole }));
                             setHasUnsavedDraft(true);
-                          } catch (err) { setNotification({ type: "error", message: (err as Error).message }); }
+                          } catch (err) { showToast((err as Error).message, "error"); }
                         }} className="block w-full max-w-28 px-stack-sm py-stack-xs rounded-lg border border-sb-border bg-white" />
                     </label>)}
                   </div>
@@ -633,7 +621,7 @@ export default function CVPage() {
                 {isSaving ? (
                   <>
                     <Spinner size="sm" className="mr-stack-xs" />
-                    Menyimpan & Menghitung Kecocokan...
+                    Menyimpan CV…
                   </>
                 ) : (
                   <>
@@ -651,7 +639,7 @@ export default function CVPage() {
           </CardFooter>
         </Card>
       </div>
-    </ProtectedRoute>
+    </>
   );
 }
 

@@ -43,9 +43,9 @@ export default function LoginPage() {
         <div className="text-center space-y-stack-xs">
           <SkillBridgeLogo size="lg" />
           <p className="text-sm font-medium text-sb-text-2">{UI_COPY.tagline}</p>
-          <h2 className="text-2xl font-extrabold text-sb-navy tracking-tight pt-stack-xs">
+          <h1 className="text-2xl font-extrabold text-sb-navy tracking-tight pt-stack-xs">
             Masuk ke Akun SkillBridge
-          </h2>
+          </h1>
           <p className="text-xs text-sb-text-2">
             Akses dashboard rekomendasi karier dan analisis skill pasar kerja
           </p>

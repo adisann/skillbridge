@@ -6,9 +6,11 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useMemo,
   ReactNode,
 } from "react";
 import { Loader2, CheckCircle2, AlertCircle, X, ArrowRight, ExternalLink } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type AsyncTaskStatus = "running" | "success" | "error";
 
@@ -36,11 +38,18 @@ interface RunTaskOptions<T = unknown> {
   type?: string;
   title: string;
   description?: string;
+  success?: { title: string; description?: string };
   promise: Promise<T> | (() => Promise<T>);
   onSuccess?: (data: T) => void;
   onError?: (err: Error) => void;
   action?: AsyncTaskAction<T>;
   autoDismissMs?: number; // default 8000ms after success
+}
+
+interface Toast {
+  id: number;
+  message: string;
+  type: "success" | "error";
 }
 
 interface AsyncTaskContextType {
@@ -49,6 +58,7 @@ interface AsyncTaskContextType {
   dismissTask: (id: string) => void;
   clearAllTasks: () => void;
   activeTasksCount: number;
+  showToast: (message: string, type?: Toast["type"]) => void;
 }
 
 const STORAGE_KEY = "skillbridge_async_tasks_v2";
@@ -83,6 +93,17 @@ function getInitialTasks(): AsyncTask[] {
 
 export function AsyncTaskProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasks] = useState<AsyncTask[]>(getInitialTasks);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const nextToastId = React.useRef(0);
+
+  const showToast = useCallback((message: string, type: Toast["type"] = "success") => {
+    const id = ++nextToastId.current;
+    setToasts((current) => [{ id, message, type }, ...current].slice(0, 3));
+  }, []);
+
+  const dismissToast = useCallback((id: number) => {
+    setToasts((current) => current.filter((toast) => toast.id !== id));
+  }, []);
 
   // Simpan tugas ke localStorage saat ada perubahan
   useEffect(() => {
@@ -143,6 +164,7 @@ export function AsyncTaskProvider({ children }: { children: ReactNode }) {
             if (t.id === taskId) {
               return {
                 ...t,
+                ...options.success,
                 status: "success",
                 completedAt: Date.now(),
                 data,
@@ -198,19 +220,22 @@ export function AsyncTaskProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const activeTasksCount = tasks.filter((t) => t.status === "running").length;
+  const value = useMemo(() => ({
+    tasks, runTask, dismissTask, clearAllTasks, activeTasksCount, showToast,
+  }), [tasks, runTask, dismissTask, clearAllTasks, activeTasksCount, showToast]);
 
   return (
-    <AsyncTaskContext.Provider
-      value={{
-        tasks,
-        runTask,
-        dismissTask,
-        clearAllTasks,
-        activeTasksCount,
-      }}
-    >
+    <AsyncTaskContext.Provider value={value}>
       {children}
-      <AsyncTaskToastContainer tasks={tasks} onDismiss={dismissTask} />
+      <div className="pointer-events-none fixed inset-x-2 top-2 z-[9999] flex max-h-[calc(100dvh-1rem)] min-w-0 flex-col gap-stack-xs overflow-y-auto p-2 sm:left-auto sm:right-3 sm:top-3 sm:w-[25rem]">
+        <div aria-live="polite" aria-relevant="additions" className="sr-only">
+          {toasts.filter((toast) => toast.type === "success").map((toast) => (
+            <span key={toast.id}>{toast.message}</span>
+          ))}
+        </div>
+        {toasts.map((toast) => <ToastItem key={toast.id} toast={toast} onDismiss={dismissToast} />)}
+        <AsyncTaskToastContainer tasks={tasks} onDismiss={dismissTask} />
+      </div>
     </AsyncTaskContext.Provider>
   );
 }
@@ -223,9 +248,64 @@ export function useAsyncTask() {
   return context;
 }
 
-/**
- * Global Toast Container Component (Top-Right Corner)
- */
+function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: number) => void }) {
+  const [focused, setFocused] = useState(false);
+  const isError = toast.type === "error";
+
+  useEffect(() => {
+    if (focused) return;
+    const timer = setTimeout(() => onDismiss(toast.id), isError ? 8000 : 5000);
+    return () => clearTimeout(timer);
+  }, [focused, isError, onDismiss, toast.id]);
+
+  return (
+    <ToastFrame
+      status={toast.type}
+      onDismiss={() => onDismiss(toast.id)}
+      onFocusChange={setFocused}
+    >
+      <p role={isError ? "alert" : undefined} className="text-sm font-semibold text-sb-navy">
+        {toast.message}
+      </p>
+    </ToastFrame>
+  );
+}
+
+const TOAST_STATUS = {
+  running: { Icon: Loader2, border: "border-sb-border", icon: "text-sb-blue motion-safe:animate-spin" },
+  success: { Icon: CheckCircle2, border: "border-emerald-200", icon: "text-sb-good" },
+  error: { Icon: AlertCircle, border: "border-red-200", icon: "text-sb-critical" },
+};
+
+function ToastFrame({ status, onDismiss, onFocusChange, children }: {
+  status: AsyncTaskStatus;
+  onDismiss: () => void;
+  onFocusChange?: (focused: boolean) => void;
+  children: ReactNode;
+}) {
+  const { Icon, border, icon } = TOAST_STATUS[status];
+
+  return (
+    <div className={cn(
+      "pointer-events-auto grid w-full min-w-0 shrink-0 animate-drop-in grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-stack-xs rounded-2xl border bg-white py-stack-2xs pl-stack-sm pr-stack-2xs shadow-md",
+      border,
+    )}>
+      <Icon aria-hidden="true" className={cn("mt-3 h-5 w-5", icon)} />
+      <div className="min-w-0 wrap-anywhere py-stack-xs">{children}</div>
+      <button
+        type="button"
+        aria-label="Tutup notifikasi"
+        onClick={onDismiss}
+        onFocus={() => onFocusChange?.(true)}
+        onBlur={() => onFocusChange?.(false)}
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sb-text-2 hover:bg-sb-mist-soft focus-visible:outline-2 focus-visible:outline-sb-blue"
+      >
+        <X aria-hidden="true" className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
+
 function AsyncTaskToastContainer({
   tasks,
   onDismiss,
@@ -233,13 +313,8 @@ function AsyncTaskToastContainer({
   tasks: AsyncTask[];
   onDismiss: (id: string) => void;
 }) {
-  if (tasks.length === 0) return null;
-
   return (
-    <div
-      aria-live="polite"
-      className="fixed top-5 right-5 z-[9999] flex flex-col gap-stack-sm max-w-sm sm:max-w-md w-full pointer-events-none"
-    >
+    <div aria-live="polite" className="flex min-w-0 flex-col gap-stack-xs">
       {tasks.map((task) => (
         <AsyncTaskToastItem key={task.id} task={task} onDismiss={onDismiss} />
       ))}
@@ -247,132 +322,44 @@ function AsyncTaskToastContainer({
   );
 }
 
-/**
- * Individual Toast Item
- */
-function AsyncTaskToastItem({
-  task,
-  onDismiss,
-}: {
+function AsyncTaskToastItem({ task, onDismiss }: {
   task: AsyncTask;
   onDismiss: (id: string) => void;
 }) {
-  const isRunning = task.status === "running";
-  const isSuccess = task.status === "success";
-  const isError = task.status === "error";
+  const { action, description, error, status, title } = task;
+  const detail = status === "error" ? error : description;
+  const actionClass = "inline-flex max-w-full items-center gap-stack-2xs text-left text-xs font-bold text-sb-blue hover:underline";
 
   return (
-    <div
-      className={`pointer-events-auto rounded-2xl border p-stack-md shadow-xl backdrop-blur-md transition-[transform,opacity] duration-300 ease-out-strong ${
-        isRunning
-          ? "bg-white/95 border-sb-border shadow-sb-blue/10"
-          : isSuccess
-          ? "bg-white/95 border-emerald-200 shadow-emerald-500/10"
-          : "bg-white/95 border-red-200 shadow-red-500/10"
-      }`}
-    >
-      <div className="flex items-start justify-between gap-stack-sm">
-        {/* Status Icon */}
-        <div className="shrink-0 mt-stack-3xs">
-          {isRunning && (
-            <div className="w-8 h-8 rounded-xl bg-sb-mist-soft text-sb-blue flex items-center justify-center animate-pulse border border-sb-border">
-              <Loader2 className="w-4 h-4 animate-spin text-sb-blue" />
-            </div>
-          )}
-          {isSuccess && (
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            </div>
-          )}
-          {isError && (
-            <div className="w-8 h-8 rounded-xl bg-red-50 text-red-600 flex items-center justify-center border border-red-100">
-              <AlertCircle className="w-4 h-4 text-red-600" />
-            </div>
-          )}
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-stack-xs mb-stack-2xs">
-            <span
-              className={`text-[10px] font-bold px-stack-xs py-stack-3xs rounded-full uppercase tracking-wider ${
-                isRunning
-                  ? "bg-sb-mist-soft text-sb-navy"
-                  : isSuccess
-                  ? "bg-emerald-100 text-emerald-700"
-                  : "bg-red-100 text-red-700"
-              }`}
+    <ToastFrame status={status} onDismiss={() => onDismiss(task.id)}>
+      <p className="text-sm font-semibold leading-snug text-sb-navy">
+        {status === "running" && <span className="sr-only">Sedang diproses. </span>}
+        {status === "error" && <span className="text-sb-critical">Gagal. </span>}
+        {title}
+      </p>
+      {detail && <p className="mt-stack-3xs text-xs leading-relaxed text-sb-text-2">{detail}</p>}
+      {action && status !== "running" && (
+        <div className="mt-stack-xs">
+          {action.url ? (
+            <a href={action.url} className={actionClass}>
+              {action.label}
+              <ExternalLink aria-hidden="true" className="h-3 w-3 shrink-0" />
+            </a>
+          ) : action.onClick ? (
+            <button
+              type="button"
+              onClick={() => {
+                action.onClick?.(task.data);
+                onDismiss(task.id);
+              }}
+              className={actionClass}
             >
-              {isRunning ? "Memproses Latar Belakang" : isSuccess ? "Berhasil Selesai" : "Gagal"}
-            </span>
-            <span className="text-[10px] text-sb-text-2">
-              {new Date(task.startedAt).toLocaleTimeString("id-ID", {
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit",
-              })}
-            </span>
-          </div>
-
-          <h4 className="text-sm font-bold text-sb-navy leading-snug">{task.title}</h4>
-
-          {task.description && (
-            <p className="text-xs text-sb-text-2 mt-stack-3xs line-clamp-2 leading-relaxed">
-              {task.description}
-            </p>
-          )}
-
-          {isRunning && (
-            <p className="text-[11px] text-sb-text-2 font-medium mt-stack-2xs flex items-center gap-stack-2xs">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-sb-sky animate-ping" />
-              Navigasi tetap aktif • Kamu bebas berpindah halaman
-            </p>
-          )}
-
-          {isError && task.error && (
-            <div className="mt-stack-xs p-stack-xs rounded-lg bg-red-50 text-[11px] text-red-700 border border-red-100">
-              {task.error}
-            </div>
-          )}
-
-          {/* Action Button */}
-          {task.action && (isSuccess || !isRunning) && (
-            <div className="mt-stack-sm pt-stack-xs border-t border-sb-border flex items-center gap-stack-xs">
-              {task.action.url ? (
-                <a
-                  href={task.action.url}
-                  className="inline-flex items-center gap-stack-2xs text-xs font-bold text-sb-blue hover:underline"
-                >
-                  {task.action.label}
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              ) : task.action.onClick ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    task.action?.onClick?.(task.data);
-                    onDismiss(task.id);
-                  }}
-                  className="inline-flex items-center gap-stack-2xs text-xs font-bold px-stack-sm py-stack-2xs rounded-lg bg-sb-sky text-sb-navy hover:bg-sb-sky-hover transition-colors shadow-xs"
-                >
-                  {task.action.label}
-                  <ArrowRight className="w-3 h-3" />
-                </button>
-              ) : null}
-            </div>
-          )}
+              {action.label}
+              <ArrowRight aria-hidden="true" className="h-3 w-3 shrink-0" />
+            </button>
+          ) : null}
         </div>
-
-        {/* Close Button */}
-        <button
-          type="button"
-          onClick={() => onDismiss(task.id)}
-          className="text-sb-text-2 hover:text-sb-navy p-stack-2xs rounded-lg hover:bg-sb-mist-soft transition-colors shrink-0"
-          title="Tutup Notifikasi"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      </div>
-    </div>
+      )}
+    </ToastFrame>
   );
 }

@@ -11,6 +11,7 @@ import { LearningPlanList } from "@/components/learning-plan-list";
 import { useAuth } from "@/lib/supabase/auth-context";
 import { useLearning } from "@/context/learning-context";
 import { useCareer } from "@/context/career-context";
+import { useAsyncTask } from "@/context/async-task-context";
 import { LEARNING_PRIORITIES, normalizeSkillName } from "@/lib/learning";
 import { fetchDeduped } from "@/lib/fetcher";
 
@@ -35,12 +36,12 @@ function ProgressContent() {
   const learning = useLearning();
   const { user } = useAuth();
   const career = useCareer();
+  const { showToast } = useAsyncTask();
   const targetRole = career.targetRole || user?.targetRole;
   const [savedJobs, setSavedJobs] = useState<SavedJobItem[]>([]);
   const [tab, setTab] = useState("learning");
   const [newTitle, setNewTitle] = useState("");
   const [priority, setPriority] = useState("Tinggi");
-  const [feedback, setFeedback] = useState("");
   const [error, setError] = useState("");
   const [savedLoading, setSavedLoading] = useState(true);
   const addLock = useRef(false);
@@ -57,10 +58,10 @@ function ProgressContent() {
   const add = async (e: React.FormEvent) => {
     e.preventDefault();
     if (addLock.current || !newTitle.trim()) return;
-    addLock.current = true; setAdding(true); setError(""); setFeedback("");
+    addLock.current = true; setAdding(true); setError("");
     try {
       const result = await learning.add(newTitle, "Ditambahkan oleh pengguna.", priority);
-      if (result) setFeedback(`${result.skillName}: sudah ditambahkan. Prioritas dan catatan yang sudah ada dipertahankan.`);
+      if (result) showToast(`${result.skillName} ada di rencana belajar.`);
     } catch (e) { setError((e as Error).message); }
     finally { addLock.current = false; setAdding(false); }
   };
@@ -103,7 +104,7 @@ function ProgressContent() {
       <form onSubmit={add} className="space-y-stack-sm pt-stack-md">
         <div className="flex flex-col sm:flex-row sm:items-end gap-stack-sm">
           <label className="flex-1 text-sm font-semibold text-sb-navy">Skill yang ingin dipelajari
-            <input className="block w-full border border-sb-border rounded-xl p-stack-sm mt-stack-2xs" value={newTitle} maxLength={200} onChange={(e) => { setNewTitle(e.target.value); setFeedback(""); }} placeholder="cth. SQL, React, Teamwork" />
+            <input className="block w-full border border-sb-border rounded-xl p-stack-sm mt-stack-2xs" value={newTitle} maxLength={200} onChange={(e) => setNewTitle(e.target.value)} placeholder="cth. SQL, React, Teamwork" />
           </label>
           <label className="text-sm font-semibold text-sb-navy">Prioritas belajar
             <select className="block border border-sb-border rounded-xl p-stack-sm mt-stack-2xs bg-white" value={priority} onChange={(e) => setPriority(e.target.value)}>{LEARNING_PRIORITIES.map((p) => <option key={p}>{p}</option>)}</select>
@@ -113,7 +114,6 @@ function ProgressContent() {
         <p className="text-xs text-sb-text-2">Prioritas menentukan urutan fokus belajar, bukan tingkat penguasaan skill. Prioritas otomatis dapat kamu ubah.</p>
 
       </form></details>
-      <p role="status" className="text-xs text-sb-good">{feedback}</p>
       {learning.loadError && <p role="alert" className="text-sm text-sb-critical">{learning.loadError} <button onClick={() => void learning.reload()} className="underline">Coba lagi</button></p>}
       {learning.isLoading ? <SkeletonCard /> : !uniqueItems.length ? <p className="text-sm text-sb-text-2 p-stack-xl">Belum ada target belajar. Tambahkan skill di atas atau dari Tren Skill dan detail lowongan.</p> : <LearningPlanList userKey={user?.id || "guest"} />}
     </section>

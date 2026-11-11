@@ -44,7 +44,7 @@ export default async function HomePage() {
         <LandingAppCatalog />
       </div>
       <LandingHowItWorks />
-      <LandingFields jobCounts={jobCounts} />
+      <LandingFields jobCounts={statsFailed ? null : jobCounts} />
       <LandingTrust />
       {/* Kebalikan blok atas: piksel naik ke biru gelap, lalu terang perlahan lewat gelombang ke footer */}
       <LandingPixelBand direction="up" />

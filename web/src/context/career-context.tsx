@@ -38,7 +38,11 @@ function useCareerState() {
       if (patch.targetRole) await updateUserTargetRole(patch.targetRole);
       else await fetchDeduped("/api/career-context", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(patch) });
       await refresh();
-    } catch (e) { setError((e as Error).message); }
+      return true;
+    } catch (e) {
+      setError((e as Error).message);
+      return false;
+    }
     finally { setBusy(false); }
   };
   return { ...data, revision, busy, error, refresh, change, activeResume: data.resumes.find((r) => r.is_active) };

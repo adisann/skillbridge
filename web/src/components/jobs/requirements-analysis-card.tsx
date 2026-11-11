@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LearningButton } from "@/components/learning-button";
 import { CheckCircle2, MinusCircle, HelpCircle } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { RequirementEvaluation } from "@/lib/matching";
 
@@ -18,6 +18,7 @@ function StatusIcon({ status }: { status: RequirementEvaluation["status"] }) {
 }
 
 function RequirementRow({ req, jobId }: { req: RequirementEvaluation; jobId?: string }) {
+  const hasDetails = req.evidence || req.status !== "cocok";
   return (
     <tr className="block sm:table-row py-stack-sm sm:py-0 hover:bg-sb-mist-faint/50 transition-colors">
       <td className="block sm:table-cell py-stack-xs sm:py-stack-sm px-stack-sm font-bold text-sb-navy">{req.skill}</td>
@@ -44,7 +45,11 @@ function RequirementRow({ req, jobId }: { req: RequirementEvaluation; jobId?: st
           {req.statusLabel}
         </span>
       </td>
-      <td className="block sm:table-cell py-stack-xs sm:py-stack-sm px-stack-sm text-sb-text-2"><p className="italic mb-stack-xs">{req.evidence}</p>
+      <td className={cn(
+        "space-y-stack-xs px-stack-sm py-stack-xs text-sb-text-2 sm:table-cell sm:py-stack-sm",
+        hasDetails ? "block" : "hidden",
+      )}>
+        {req.evidence && <p className="wrap-anywhere">{req.evidence}</p>}
         {req.status === "belum_ditemukan" && <LearningButton size="chip" skillName={req.skill} sourceJobId={jobId} reason="Belum ditemukan di CV saat meninjau persyaratan lowongan." />}
         {req.status === "belum_cukup_bukti" && <Link className="text-[11px] font-semibold text-sb-blue underline" href={`/cv?skill=${encodeURIComponent(req.skill)}#review-skills`}>Tinjau skill</Link>}
       </td>
@@ -58,9 +63,6 @@ export function RequirementsAnalysisCard({ evaluations, jobId }: { evaluations: 
     <Card>
       <CardHeader>
         <CardTitle>Analisis Persyaratan Kualifikasi</CardTitle>
-        <CardDescription>
-          Evaluasi otomatis kesesuaian antara kualifikasi lowongan dengan isi CV aktifmu.
-        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
@@ -70,7 +72,7 @@ export function RequirementsAnalysisCard({ evaluations, jobId }: { evaluations: 
                 <th className="py-stack-sm px-stack-sm">Kualifikasi</th>
                 <th className="py-stack-sm px-stack-sm">Tipe</th>
                 <th className="py-stack-sm px-stack-sm">Status CV</th>
-                <th className="py-stack-sm px-stack-sm">Bukti dari Dokumen</th>
+                <th className="py-stack-sm px-stack-sm">Bukti &amp; Tindakan</th>
               </tr>
             </thead>
             <tbody className="block sm:table-row-group divide-y divide-sb-border">

@@ -35,12 +35,6 @@ const STATUS_LABEL: Record<RequirementStatus, RequirementEvaluation["statusLabel
   belum_ditemukan: "Belum ditemukan di CV",
 };
 
-const STATUS_EVIDENCE: Record<RequirementStatus, string> = {
-  cocok: "Tercantum pada kualifikasi CV-mu.",
-  belum_cukup_bukti: "Ditemukan kompetensi pendukung di CV-mu.",
-  belum_ditemukan: "Belum ada di CV-mu",
-};
-
 function evaluateSkill(job: JobDetailData, skill: string, id: string, isMandatory: boolean): RequirementEvaluation {
   const status: RequirementStatus = job.matchedSkills.includes(skill)
     ? "cocok"
@@ -48,7 +42,7 @@ function evaluateSkill(job: JobDetailData, skill: string, id: string, isMandator
       ? "belum_cukup_bukti"
       : "belum_ditemukan";
 
-  return { id, skill, isMandatory, status, statusLabel: STATUS_LABEL[status], evidence: STATUS_EVIDENCE[status] };
+  return { id, skill, isMandatory, status, statusLabel: STATUS_LABEL[status], evidence: "" };
 }
 
 /** Evaluasi dari backend; bila belum ada, direkonstruksi dari skill lowongan dan hasil match. */

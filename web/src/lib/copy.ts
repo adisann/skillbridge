@@ -139,7 +139,6 @@ export const UI_COPY = {
     // 4. Bidang Kerja
     fieldsTitle: "Mulai dari bidang yang kamu tuju.",
     fieldsJobsSuffix: "lowongan",
-    fieldsViewPositions: "Lihat posisi",
 
     // 5. Cara Kerja
     howItWorksTitle: "Tiga langkah, lalu kamu tahu harus mulai dari mana.",

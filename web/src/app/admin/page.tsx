@@ -19,6 +19,14 @@ import type { AdminTab } from "@/types/admin";
 const NOTIFICATION_TITLES = { success: "Berhasil", error: "Gagal", info: "Informasi" } as const;
 
 export default function AdminPage() {
+  return (
+    <ProtectedRoute requireAdmin>
+      <AdminContent />
+    </ProtectedRoute>
+  );
+}
+
+function AdminContent() {
   const router = useRouter();
   const tab = useSearchParams().get("tab");
   const activeTab: AdminTab = tab === "skills" || tab === "runs" ? tab : "jobs";
@@ -28,7 +36,7 @@ export default function AdminPage() {
   const { add, edit, url, ocr } = actions;
 
   return (
-    <ProtectedRoute requireAdmin={true}>
+    <>
       <div className="max-w-6xl mx-auto page-shell page-stack">
         <AdminHeader
           isSubmitting={actions.isSubmitting}
@@ -110,6 +118,6 @@ export default function AdminPage() {
           />
         )}
       </div>
-    </ProtectedRoute>
+    </>
   );
 }

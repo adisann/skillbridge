@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Check, ChevronDown, FileText, Pencil, Trash2, X } from "lucide-react";
 import { useCareer } from "@/context/career-context";
+import { useAsyncTask } from "@/context/async-task-context";
 import { Button } from "@/components/ui/button";
 import { JOB_CATEGORIES } from "@/lib/job-categories";
 import { clearDedupedCache, fetchDeduped } from "@/lib/fetcher";
@@ -175,12 +176,12 @@ function ResumeRow({
   resume: { id: string; filename: string; is_active: boolean };
   disabled: boolean;
   onActivate: () => void;
-  onChanged: (message: string) => void;
+  onChanged: (message: string) => Promise<void>;
 }) {
+  const { showToast } = useAsyncTask();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(resume.filename);
   const [working, setWorking] = useState(false);
-  const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   const rename = async () => {
@@ -191,7 +192,6 @@ function ResumeRow({
       return;
     }
     setWorking(true);
-    setError("");
     try {
       clearDedupedCache();
       await fetchDeduped("/api/cv/rename", {
@@ -200,9 +200,9 @@ function ResumeRow({
         body: JSON.stringify({ resumeId: resume.id, filename: next }),
       });
       setEditing(false);
-      onChanged("Nama CV diperbarui.");
+      await onChanged("Nama CV diperbarui.");
     } catch (e) {
-      setError((e as Error).message);
+      showToast((e as Error).message, "error");
     } finally {
       setWorking(false);
     }
@@ -216,7 +216,6 @@ function ResumeRow({
     });
     if (!ok) return;
     setWorking(true);
-    setError("");
     try {
       clearDedupedCache();
       await fetchDeduped("/api/cv/delete", {
@@ -224,9 +223,10 @@ function ResumeRow({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ resumeId: resume.id }),
       });
-      onChanged("CV dihapus.");
+      await onChanged("CV dihapus.");
     } catch (e) {
-      setError((e as Error).message);
+      showToast((e as Error).message, "error");
+    } finally {
       setWorking(false);
     }
   };
@@ -315,16 +315,26 @@ function ResumeRow({
           </>
         )}
       </div>
-      {error && <p role="alert" className="mt-stack-2xs text-xs text-sb-critical">{error}</p>}
     </li>
   );
 }
 
 export function CareerContextBar({ beforeChange }: { beforeChange?: () => boolean | Promise<boolean> }) {
   const career = useCareer();
-  const [notice, setNotice] = useState("");
+  const { showToast } = useAsyncTask();
   const change = async (patch: { resumeId?: string; targetRole?: string }) => {
-    if (!beforeChange || await beforeChange()) return career.change(patch);
+    if (beforeChange && !await beforeChange()) return;
+    if (await career.change(patch)) {
+      showToast(patch.resumeId ? "CV aktif diperbarui." : "Target karier diperbarui.");
+    }
+  };
+  const refreshAfterChange = async (message: string) => {
+    showToast(message);
+    try {
+      await career.refresh();
+    } catch {
+      showToast("Daftar CV gagal diperbarui. Muat ulang halaman.", "error");
+    }
   };
   const savedTargets = Array.from(new Set([...career.targetRoles, career.targetRole].filter(Boolean)));
 
@@ -365,10 +375,7 @@ export function CareerContextBar({ beforeChange }: { beforeChange?: () => boolea
                   resume={r}
                   disabled={career.busy}
                   onActivate={() => void change({ resumeId: r.id })}
-                  onChanged={(message) => {
-                    setNotice(message);
-                    void career.refresh();
-                  }}
+                  onChanged={refreshAfterChange}
                 />
               ))}
             </ul>
@@ -389,9 +396,9 @@ export function CareerContextBar({ beforeChange }: { beforeChange?: () => boolea
           </p>
         </div>
 
-        {(notice || career.error) && (
-          <p role={career.error ? "alert" : "status"} className={cn("lg:col-span-2 text-xs", career.error ? "text-sb-critical" : "text-sb-good")}>
-            {career.error || notice}
+        {career.error && (
+          <p role="alert" className="lg:col-span-2 text-xs text-sb-critical">
+            {career.error}
           </p>
         )}
       </section>

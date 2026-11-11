@@ -494,23 +494,26 @@ export function LearningPlanList({ userKey }: { userKey: string }) {
   return (
     <div className="space-y-stack-sm">
       <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-stack-sm">
-        <div role="group" aria-label="Filter status belajar" className="inline-flex flex-wrap max-w-full rounded-xl border border-sb-border bg-white p-stack-2xs self-start">
+        <div role="group" aria-label="Filter status belajar" className="grid w-full min-w-0 grid-cols-3 gap-stack-2xs rounded-xl border border-sb-border bg-white p-stack-2xs sm:w-auto sm:self-start">
           {([
-            ["all", "Semua"],
-            ["todo", "Belum dipelajari"],
-            ["done", "Sudah dipelajari"],
-          ] as const).map(([value, label]) => (
+            ["all", "Semua", "Semua"],
+            ["todo", "Belum dipelajari", "Belum"],
+            ["done", "Selesai dipelajari", "Selesai"],
+          ] as const).map(([value, label, shortLabel]) => (
             <button
               key={value}
               type="button"
+              aria-label={`${label} (${counts[value]})`}
               aria-pressed={status === value}
               onClick={() => setStatus(value)}
               className={cn(
-                "px-stack-sm py-stack-2xs rounded-lg text-xs font-semibold transition-colors",
+                "flex min-h-11 min-w-0 flex-col items-center justify-center rounded-lg px-stack-2xs py-stack-2xs text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-sb-blue sm:flex-row sm:gap-stack-2xs sm:px-stack-sm",
                 status === value ? "bg-sb-sky text-sb-navy" : "text-sb-text-2 hover:text-sb-navy"
               )}
             >
-              {label} <span className="font-mono-metric">({counts[value]})</span>
+              <span className="sm:hidden">{shortLabel}</span>
+              <span className="hidden sm:inline">{label}</span>
+              <span className="font-mono-metric text-[11px]">{counts[value]}</span>
             </button>
           ))}
         </div>
