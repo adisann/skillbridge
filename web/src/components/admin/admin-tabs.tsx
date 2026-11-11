@@ -4,7 +4,7 @@ import type { AdminTab } from "@/types/admin";
 interface AdminTabsProps {
   activeTab: AdminTab;
   onChange: (tab: AdminTab) => void;
-  counts: Record<AdminTab, number>;
+  counts: Record<AdminTab, number | null>;
 }
 
 const TABS = [
@@ -29,7 +29,7 @@ export function AdminTabs({ activeTab, onChange, counts }: AdminTabsProps) {
           }`}
         >
           <Icon className="hidden sm:block w-4 h-4 shrink-0" />
-          <span>{label}<span className="block sm:inline text-[11px] font-normal"> ({counts[id]})</span></span>
+          <span>{label}<span className="block sm:inline text-[11px] font-normal"> ({counts[id] ?? "—"})</span></span>
         </button>
       ))}
     </nav>

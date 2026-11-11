@@ -73,18 +73,7 @@ function getInitialTasks(): AsyncTask[] {
     const parsed: AsyncTask[] = JSON.parse(saved);
     const now = Date.now();
     const twoHours = 2 * 60 * 60 * 1000;
-    return parsed
-      .filter((t) => now - t.startedAt < twoHours)
-      .map((t) => {
-        if (t.status === "running") {
-          return {
-            ...t,
-            status: "success" as AsyncTaskStatus,
-            description: `${t.description || ""} (Dipulihkan setelah refresh halaman)`.trim(),
-          };
-        }
-        return t;
-      });
+    return parsed.filter((t) => t.status !== "running" && now - t.startedAt < twoHours);
   } catch (e) {
     console.warn("[AsyncTask] Gagal membaca state dari localStorage:", e);
     return [];
@@ -338,7 +327,7 @@ function AsyncTaskToastItem({ task, onDismiss }: {
         {title}
       </p>
       {detail && <p className="mt-stack-3xs text-xs leading-relaxed text-sb-text-2">{detail}</p>}
-      {action && status !== "running" && (
+      {action && status === "success" && (
         <div className="mt-stack-xs">
           {action.url ? (
             <a href={action.url} className={actionClass}>

@@ -347,10 +347,10 @@ export function LearningPlanList({ userKey }: { userKey: string }) {
                       >
                         <GripVertical className="w-4 h-4" />
                       </span>
-                      <label className="flex-1 min-w-0 flex items-center lg:items-start gap-stack-xs cursor-pointer">
+                      <div className="flex min-w-0 flex-1 items-center gap-stack-xs lg:items-start">
                         <input
                           type="checkbox"
-                          className="lg:mt-stack-3xs w-4 h-4 shrink-0"
+                          className="size-6 shrink-0 cursor-pointer accent-sb-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sb-blue disabled:cursor-default lg:mt-stack-3xs lg:size-4"
                           checked={item.isDone}
                           disabled={busy}
                           onChange={(e) => void run(item.id, () => learning.update(item.id, { isDone: e.target.checked }))}
@@ -360,7 +360,7 @@ export function LearningPlanList({ userKey }: { userKey: string }) {
                           <span className={cn("block text-sm font-bold text-sb-navy break-words", item.isDone && "line-through text-sb-text-2")}>{item.skillName}</span>
                           <span className="hidden lg:block mt-stack-3xs"><DemandText skillName={item.skillName} demand={demand} /></span>
                         </span>
-                      </label>
+                      </div>
                       {/* HP & tablet: prioritas dan menu ⋯ di kanan nama skill, supaya satu item cukup 2–3 baris */}
                       <div className="lg:hidden flex items-center gap-stack-2xs shrink-0">
                         <PrioritySelect
@@ -423,7 +423,7 @@ export function LearningPlanList({ userKey }: { userKey: string }) {
                       </div>
                       </div>
                       {/* HP & tablet: permintaan skill di baris kedua (di luar baris atas), rata dengan nama skill */}
-                      <div className="lg:hidden ml-stack-4xl mt-stack-3xs"><DemandText skillName={item.skillName} demand={demand} /></div>
+                      <div className="ml-14 mt-stack-3xs lg:hidden"><DemandText skillName={item.skillName} demand={demand} /></div>
                     </div>
 
                     <div className="hidden lg:block">
@@ -436,7 +436,7 @@ export function LearningPlanList({ userKey }: { userKey: string }) {
                       />
                     </div>
 
-                    <div className={cn("lg:col-start-auto min-w-0 ml-stack-4xl lg:ml-0", !item.notes && noteEditId !== item.id && "hidden lg:block")}>
+                    <div className={cn("ml-14 min-w-0 lg:col-start-auto lg:ml-0", !item.notes && noteEditId !== item.id && "hidden lg:block")}>
                       <NotesCell
                         key={`${item.id}-${item.notes}-${noteEditId === item.id}`}
                         item={item}

@@ -4,10 +4,13 @@
  * Free Tier provides 10,000 credits/pages per month.
  */
 
+import { setTimeout as sleep } from "node:timers/promises";
+
 interface LlamaParseOptions {
   tier?: "fast" | "cost_effective" | "agentic";
   version?: string;
   maxTimeoutMs?: number;
+  signal?: AbortSignal;
 }
 
 interface LlamaParseV2UploadResponse {
@@ -51,6 +54,9 @@ export async function parseDocumentWithLlamaParse(
   const tier = options.tier || "cost_effective";
   const version = options.version || "latest";
   const maxTimeoutMs = options.maxTimeoutMs || 25000;
+  const signal = options.signal
+    ? AbortSignal.any([options.signal, AbortSignal.timeout(maxTimeoutMs)])
+    : AbortSignal.timeout(maxTimeoutMs);
 
   // Siapkan multipart/form-data
   const formData = new FormData();
@@ -64,6 +70,7 @@ export async function parseDocumentWithLlamaParse(
   // Step 1: Upload dokumen & inisiasi parse job
   let uploadRes = await fetch("https://api.cloud.llamaindex.ai/api/v2/parse/upload", {
     method: "POST",
+    signal,
     headers: {
       Authorization: `Bearer ${apiKey}`,
     },
@@ -77,6 +84,7 @@ export async function parseDocumentWithLlamaParse(
     v1FormData.append("file", fileBlob, filename);
     uploadRes = await fetch("https://api.cloud.llamaindex.ai/api/parsing/upload", {
       method: "POST",
+      signal,
       headers: {
         Authorization: `Bearer ${apiKey}`,
       },
@@ -102,12 +110,13 @@ export async function parseDocumentWithLlamaParse(
   const pollIntervalMs = 1500;
 
   while (Date.now() - startTime < maxTimeoutMs) {
-    await new Promise((r) => setTimeout(r, pollIntervalMs));
+    await sleep(pollIntervalMs, undefined, { signal });
 
     // Coba ambil status v2 dengan expand=markdown
     const statusRes = await fetch(
       `https://api.cloud.llamaindex.ai/api/v2/parse/${jobId}?expand=markdown`,
       {
+        signal,
         headers: {
           Authorization: `Bearer ${apiKey}`,
         },
@@ -133,6 +142,7 @@ export async function parseDocumentWithLlamaParse(
       const v1StatusRes = await fetch(
         `https://api.cloud.llamaindex.ai/api/parsing/job/${jobId}`,
         {
+          signal,
           headers: {
             Authorization: `Bearer ${apiKey}`,
           },
@@ -144,6 +154,7 @@ export async function parseDocumentWithLlamaParse(
           const v1MarkdownRes = await fetch(
             `https://api.cloud.llamaindex.ai/api/parsing/job/${jobId}/result/markdown`,
             {
+              signal,
               headers: {
                 Authorization: `Bearer ${apiKey}`,
               },

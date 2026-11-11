@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { AlertBanner } from "@/components/ui/error";
+import { AlertBanner, ErrorState } from "@/components/ui/error";
 import { SkeletonTable } from "@/components/ui/loading";
 import { ProtectedRoute } from "@/components/layout/protected-route";
 import { AdminHeader } from "@/components/admin/admin-header";
@@ -31,7 +31,7 @@ function AdminContent() {
   const tab = useSearchParams().get("tab");
   const activeTab: AdminTab = tab === "skills" || tab === "runs" ? tab : "jobs";
   const setActiveTab = (next: AdminTab) => router.replace(`/admin?tab=${next}`, { scroll: false });
-  const { jobs, runs, skills, sources, isLoading, notification, setNotification, refetch } = useAdminData();
+  const { jobs, runs, skills, sources, isLoading, loadErrors, notification, setNotification, refetch } = useAdminData();
   const actions = useAdminJobActions({ refetch, notify: setNotification });
   const { add, edit, url, ocr } = actions;
 
@@ -57,13 +57,19 @@ function AdminContent() {
         <AdminTabs
           activeTab={activeTab}
           onChange={setActiveTab}
-          counts={{ jobs: jobs.length, skills: skills.length, runs: runs.length }}
+          counts={{
+            jobs: loadErrors.jobs ? null : jobs.length,
+            skills: loadErrors.skills ? null : skills.length,
+            runs: loadErrors.runs ? null : runs.length,
+          }}
         />
 
         {isLoading ? (
           <div className="space-y-stack-md py-stack-2xl">
             <SkeletonTable rows={5} />
           </div>
+        ) : loadErrors[activeTab] ? (
+          <ErrorState message={loadErrors[activeTab]} onRetry={() => void refetch()} />
         ) : (
           <>
             {activeTab === "jobs" && (

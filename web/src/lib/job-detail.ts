@@ -62,7 +62,10 @@ const HTML_ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot
 
 function decodeEntities(text: string): string {
   return text.replace(/&(#\d+|[a-z]+);/gi, (match, code: string) => {
-    if (code.startsWith("#")) return String.fromCodePoint(Number(code.slice(1)));
+    if (code.startsWith("#")) {
+      const point = Number(code.slice(1));
+      return point <= 0x10ffff ? String.fromCodePoint(point) : match;
+    }
     return HTML_ENTITIES[code.toLowerCase()] ?? match;
   });
 }

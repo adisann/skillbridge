@@ -27,6 +27,14 @@ function errorMessage(err: unknown): string {
   return (err as Error).message;
 }
 
+async function readImportedJob(response: Response, fallbackMessage: string): Promise<ExtractedJob> {
+  const data: { error?: string; job?: ExtractedJob } | null = await response.json().catch(() => null);
+  if (!response.ok || data?.error || !data?.job?.title || !data.job.description) {
+    throw new Error(data?.error || fallbackMessage);
+  }
+  return data.job;
+}
+
 /** Aksi admin untuk lowongan: tambah, ekstraksi URL/OCR, edit, hapus, duplikasi, dan impor CSV. */
 export function useAdminJobActions({ refetch, notify }: UseAdminJobActionsOptions) {
   const { runTask } = useAsyncTask();
@@ -103,13 +111,11 @@ export function useAdminJobActions({ refetch, notify }: UseAdminJobActionsOption
     runTask({
       type: "url_import",
       title: "Mengekstrak Lowongan dari Tautan",
-      description: `${targetUrl.slice(0, 50)}...`,
+      success: { title: "Draf lowongan siap ditinjau.", description: "Periksa data sebelum menyimpan ke katalog." },
       promise: async () => {
         try {
           const res = await postJson("/api/admin/jobs/import-link", { url: targetUrl });
-          const data = await res.json();
-          if (!res.ok || data.error) throw new Error(data.error || "Gagal mengekstrak tautan lowongan.");
-          return data.job;
+          return await readImportedJob(res, "Gagal mengekstrak tautan lowongan.");
         } finally {
           setIsExtractingUrl(false);
         }
@@ -125,17 +131,16 @@ export function useAdminJobActions({ refetch, notify }: UseAdminJobActionsOption
 
     runTask({
       type: "ocr_import",
-      title: `OCR Poster: ${targetFile.name}`,
-      description: "Membaca teks flyer via Multi-Tier OCR (Gemini Vision → Groq → LlamaParse)...",
+      title: "Membaca poster lowongan…",
+      description: targetFile.name,
+      success: { title: "Poster selesai dibaca.", description: "Periksa data sebelum menyimpan ke katalog." },
       promise: async () => {
         try {
           const formData = new FormData();
           formData.append("file", targetFile);
 
           const res = await fetch("/api/admin/jobs/import-ocr", { method: "POST", body: formData });
-          const data = await res.json();
-          if (!res.ok || data.error) throw new Error(data.error || "Gagal melakukan OCR pada poster.");
-          return data.job;
+          return await readImportedJob(res, "Gagal melakukan OCR pada poster.");
         } finally {
           setIsExtractingOcr(false);
         }

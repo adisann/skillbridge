@@ -1,15 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import type { AdminJob, AdminNotification, JobSourceItem, SkillItem, WorkerRunRecord } from "@/types/admin";
+import type { AdminJob, AdminNotification, AdminTab, JobSourceItem, SkillItem, WorkerRunRecord } from "@/types/admin";
 
-async function fetchAdminData() {
-  const [jobsRes, runsRes, skillsRes] = await Promise.all([
-    fetch("/api/admin/jobs"),
-    fetch("/api/admin/worker-runs"),
-    fetch("/api/admin/skills"),
-  ]);
-  if (![jobsRes, runsRes, skillsRes].every(r => r.ok)) throw new Error("Gagal memuat data admin");
-  const [jobsData, runsData, skillsData] = await Promise.all([jobsRes.json(), runsRes.json(), skillsRes.json()]);
-  return { jobsData, runsData, skillsData };
+async function fetchAdminData<T>(path: string): Promise<T> {
+  const response = await fetch(path);
+  if (response.status === 401) throw new Error("Sesi berakhir. Masuk kembali untuk memuat data.");
+  if (response.status === 403) throw new Error("Akun ini tidak memiliki izin administrator.");
+  if (!response.ok) throw new Error(`Server mengembalikan HTTP ${response.status}. Coba muat ulang.`);
+  return response.json() as Promise<T>;
 }
 
 /** Data katalog admin (lowongan, riwayat worker, taksonomi skill) beserta notifikasi status. */
@@ -19,20 +16,29 @@ export function useAdminData() {
   const [skills, setSkills] = useState<SkillItem[]>([]);
   const [sources, setSources] = useState<JobSourceItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadErrors, setLoadErrors] = useState<Partial<Record<AdminTab, string>>>({});
   const [notification, setNotification] = useState<AdminNotification | null>(null);
 
   const refetch = useCallback(async () => {
-    try {
-      const { jobsData, runsData, skillsData } = await fetchAdminData();
-      if (jobsData.jobs) setJobs(jobsData.jobs);
-      if (runsData.runs) setRuns(runsData.runs);
-      if (skillsData.skills) setSkills(skillsData.skills);
-      if (skillsData.sources) setSources(skillsData.sources);
-    } catch {
-      setNotification({ type: "error", message: "Gagal memuat data dari database Supabase." });
-    } finally {
-      setIsLoading(false);
+    const [jobResult, skillResult, runResult] = await Promise.allSettled([
+      fetchAdminData<{ jobs: AdminJob[] }>("/api/admin/jobs"),
+      fetchAdminData<{ skills: SkillItem[]; sources: JobSourceItem[] }>("/api/admin/skills"),
+      fetchAdminData<{ runs: WorkerRunRecord[] }>("/api/admin/worker-runs"),
+    ]);
+    if (jobResult.status === "fulfilled") setJobs(jobResult.value.jobs);
+    if (runResult.status === "fulfilled") setRuns(runResult.value.runs);
+    if (skillResult.status === "fulfilled") {
+      setSkills(skillResult.value.skills);
+      setSources(skillResult.value.sources);
     }
+    const errors: Partial<Record<AdminTab, string>> = {};
+    const sections = { jobs: jobResult, skills: skillResult, runs: runResult } as const;
+    for (const tab of ["jobs", "skills", "runs"] as const) {
+      const result = sections[tab];
+      if (result.status === "rejected") errors[tab] = (result.reason as Error).message;
+    }
+    setLoadErrors(errors);
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
@@ -41,5 +47,5 @@ export function useAdminData() {
     return () => clearTimeout(timer);
   }, [refetch]);
 
-  return { jobs, runs, skills, sources, isLoading, notification, setNotification, refetch };
+  return { jobs, runs, skills, sources, isLoading, loadErrors, notification, setNotification, refetch };
 }

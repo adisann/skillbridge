@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     }
 
     const base64Data = Buffer.from(await file.arrayBuffer()).toString("base64");
-    const extracted = await extractJobFromImage(base64Data, mimeType, file.name);
+    const extracted = await extractJobFromImage(base64Data, mimeType, file.name, { requireDescription: false });
 
     const company = (extracted.company || "").trim();
     return NextResponse.json({

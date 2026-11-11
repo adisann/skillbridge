@@ -3,6 +3,9 @@ import { getAuthenticatedAdmin } from "@/lib/supabase/server";
 import { extractJobFromText } from "@/lib/ai/extractor";
 import { enforceRateLimits } from "@/lib/rate-limit";
 import { adminAiImportRules } from "@/lib/rate-limit-policies";
+import { readJobStreetPosting } from "@/lib/jobstreet-posting";
+
+export const maxDuration = 30;
 
 function isSafePublicUrl(urlString: string): { isSafe: boolean; reason?: string } {
   try {
@@ -88,8 +91,6 @@ export async function POST(req: NextRequest) {
         signal: controller.signal,
       });
 
-      clearTimeout(timeout);
-
       if (!res.ok) {
         return NextResponse.json(
           { error: `Gagal mengakses URL lowongan (HTTP ${res.status}: ${res.statusText})` },
@@ -99,7 +100,6 @@ export async function POST(req: NextRequest) {
 
       html = await res.text();
     } catch (fetchErr: unknown) {
-      clearTimeout(timeout);
       const isAbort = fetchErr instanceof Error && fetchErr.name === "AbortError";
       return NextResponse.json(
         {
@@ -109,6 +109,26 @@ export async function POST(req: NextRequest) {
         },
         { status: 502 }
       );
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    if (/(^|\.)jobstreet\.com$/i.test(new URL(url).hostname)) {
+      const posting = readJobStreetPosting(html, url);
+      if (!posting) {
+        return NextResponse.json(
+          { error: "Halaman JobStreet tidak menampilkan isi lowongan. Periksa tautannya atau gunakan Tambah Manual." },
+          { status: 422 },
+        );
+      }
+
+      const text = [posting.title, posting.company, posting.location, posting.employmentType, posting.description].filter(Boolean).join("\n");
+      try {
+        const extracted = await extractJobFromText(text, url);
+        return NextResponse.json({ success: true, job: { ...extracted, ...posting } });
+      } catch {
+        return NextResponse.json({ success: true, job: posting });
+      }
     }
 
     // Sanitasi HTML sederhana untuk mengekstrak teks relevan
