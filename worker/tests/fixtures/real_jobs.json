@@ -1,0 +1,91 @@
+[
+  {
+    "id": "af29854f-0bdc-4e2f-8ebe-c4babc970b0c",
+    "source_name": "jobstreet",
+    "external_id": "95235274",
+    "source_url": "https://id.jobstreet.com/id/job/95235274",
+    "title": "Data Analyst Staff",
+    "canonical_title": "Data Analyst",
+    "company": "PT Pangan Lestari",
+    "location": "Surabaya, Jawa Timur",
+    "employment_type": "Full time",
+    "seniority": null,
+    "experience_years_min": 1,
+    "education": "Bachelor",
+    "description": "Kualifikasi\n• Pendidikan minimal S1 dari jurusan Statistika, Matematika, Akuntansi, atau Teknik.\n\n• Memiliki pengalaman kerja minimal 1 tahun di bidang data analysis, reporting, atau business analytics.\n\n• Menguasai Microsoft Excel, Word, dan PowerPoint (advanced level).\n\n• Terampil menggunakan Power BI untuk pembuatan dashboard dan visualisasi data.\n\n• Mampu mengolah dan menganalisis data dalam jumlah besar dengan ketelitian tinggi.\n\n• Memiliki kemampuan berpikir analitis dan numerik yang kuat.\n\n• Mampu bekerja sama dan berkoordinasi dengan baik lintas divisi.\n\n• Komunikatif, detail-oriented, dan mampu bekerja di bawah tenggat waktu.\n\nTugas dan Tanggung Jawab\n• Membuat dan mengembangkan dashboard sesuai kebutuhan analisis perusahaan.\n\n• Melakukan pengolahan dan analisis data untuk mendukung laporan kinerja penjualan dan operasional.\n\n• Menyajikan hasil analisis dalam bentuk laporan visual dan insight bisnis bagi manajemen.\n\n• Berkoordinasi dengan tim terkait untuk memastikan konsistensi, validitas, dan keakuratan data.\n\n• Mendukung proses pembuatan pelaporan melalui penyediaan data yang akurat dan relevan",
+    "content_hash": "52050bca7a6b2b29b0715ddac5913bc80189829bd170f74964807f10073f4f5b",
+    "retrieval_method": "jobspy",
+    "is_active": true,
+    "job_skills": [
+      {
+        "skills": {
+          "name": "Microsoft Excel"
+        },
+        "is_mandatory": true
+      },
+      {
+        "skills": {
+          "name": "Power BI"
+        },
+        "is_mandatory": true
+      }
+    ]
+  },
+  {
+    "id": "bea6d8ac-56fb-42b7-b675-b8164f5bea19",
+    "source_name": "linkedin",
+    "external_id": "li-4479993032",
+    "source_url": "https://www.linkedin.com/jobs/view/4479993032",
+    "title": "Data Analyst Operations",
+    "canonical_title": "Data Analyst",
+    "company": "Kredivo Group",
+    "location": "Jakarta Metropolitan Area",
+    "employment_type": "Full-time",
+    "seniority": "Mid",
+    "experience_years_min": 2,
+    "education": "Sarjana (S1)",
+    "description": "Our Data Analyst will be responsible for conducting data mining and in-depth analysis/research according to the assigned squad. The role will be working closely with the Product Manager and provide recommendations and insights that can enhance our business performance. Last but not least, he/she will also provide ad-hoc support for various projects.\nAbout The Job\nAnalyzing data and creating data quality reports.\nPerforming data reconciliation across multiple sources to ensure the accuracy of data report.\nSupporting initiatives for data integrity and normalization.\nIngesting and normalizing customer data.\nCommunicating with engineering and customer support teams.\nHelping our common interface standards (specifications) and collaborating with multiple teams to enhance it as needed.\nAbout You\nAt Least 2 Years of Experience and Knowledge of SQL and Database.\nHave a good understanding in SQL and Python/R\nHave a good abstraction logics\nExperience with Machine Learning method (Random Forest Regression, Logistics Regression, K-Means Clustering, Apriori , Eclat, Deep Learning and etc)\nWilling to learn something new\nDetail oriented\nCan able to work as a team and Individually",
+    "content_hash": "41a4314e1eab94e4efe24d8cd10720644b3834c3619c2d74f874127f503d8d90",
+    "retrieval_method": "jobspy",
+    "is_active": true,
+    "job_skills": [],
+    "required_skills": [
+      "SQL",
+      "Python",
+      "R",
+      "Machine Learning",
+      "Deep Learning"
+    ],
+    "preferred_skills": []
+  },
+  {
+    "id": "20fcddf4-d9b3-46b9-8f19-e23afc3d534f",
+    "source_name": "linkedin",
+    "external_id": "li-4461237545",
+    "source_url": "https://www.linkedin.com/jobs/view/4461237545",
+    "title": "Senior Data Analyst - Digital Lending & Analytics",
+    "canonical_title": "Data Analyst",
+    "company": "Amar Bank",
+    "location": "Jakarta, Jakarta, Indonesia",
+    "employment_type": "Full-time",
+    "seniority": "Senior",
+    "experience_years_min": 3,
+    "education": "Sarjana (S1)",
+    "description": "Who are we?\nAmar Bank is one of the most technologically advanced digital banks in Indonesia. Our leading\ndigital lending product, Tunaiku has the distinction of being the first FinTech product in\nIndonesia. We are also the first digital bank on the cloud. As the first profitable digital bank, we\nmanaged to get listed on the Indonesian Stock Exchange.\nHow did we manage to do that?\nWe are changing people’s perception of a bank. We believe we are the innovators who combine\ncustomer focus principles with creating technology-based impact. We incorporate freedom and\nflexibility as part of our startup working culture DNA to encourage innovation in creating better\nfinancial solutions for the banking industry. We think of ourselves as, ‘A technology company\nwith a banking license’. For this reason, we ‘Act like a FinTech, and think like a Bank.’\nHow did it all start?\nFounded on March 15, 1991, in Surabaya as PT Anglomas International Bank (Amin Bank), the\nbank was acquired by Tolaram Group and transformed to PT Bank Amar Indonesia (Amar Bank)\nin 2014. It has then undergone a significant digital transformation to become one of the\ncountry's forerunning fintech institutions through its award-winning digital lending platform,\nTunaiku.\nOur philosophy, mission, and vision\nTechnology must impact lives, must improve lives. We exist to provide banking to those who\n‘need’ and not only to those who ‘want’. Services when provided to those who need at the time\nof their need brings smiles. Our vision is to bring 200 million smiles.\nMore About The Bank With Startup Culture Environment\nConsist of 1000+ people, you will meet people who love to grow, dream big, and actually have\nfun at the workplace! We provide a great working environment that pushes people to grow\noutside their comfort zone. People with high drive and ambition find us a very attractive place to\nwork as their career growth matches their own drive and not any staid policies. Thus we hold\nthe honor of being awarded “Best Place to Work in Indonesia”.\nRecently Amar Bank was awarded as Inspirational Brand from APEA (Asia Pacific Enterprise\nAwards) 2022. Of course, our innovation won't stop here. So if you would love to be a part of it,\nhave a growth mindset, and are constantly hungry for challenges, we invite you to join us in our\njourney to ‘Impact Lives’.\nJoin us today and create #unlimitedinnovations!\nAbout The Role:\nAs a part of the Data Analyst team, you will collaborate with our Stakeholders to solve the problems with providing data & analytics solutions. You will play an essential role in the success of creating a data culture in the company by ensuring our Stakeholders can produce data-based decisions. If you are detail oriented and love to work with millions of data, this role can give you the chance to fully develop not only in technical aspects, but business & product acumen as well.\nWhat Will You Do:\nProvide analysis to measure impact of new feature, business flow, campaign and present the result in visual way to make data storytelling easier\nCreate new & manage automated report/dashboard based on requirement defined by Stakeholders to ensure Stakeholders consume correct and latest data\nCreate new & manage Data Mart to make work easier & faster\nEnsure correctness of data by collaborate with Data Engineer to maintain data quality aspect\nBecome strategic partner with Stakeholders from various background by advising new metrics, data source, visualization and other analytical methods for better data-based decisions\nMust be capable of tailoring complex messages into simplified and business applicable material\nAware of beside high accuracy, speed delivery of task as important as well\nStay up-to-date with data and analytics trend\nWhat You Need To Have:\nHave experience related with data analyst at least 3 years\nCan create user friendly and insightful dashboard/report using one of various BI Tools (Eg : Tableau, Power BI, Google Data Studio, etc)\nCan operate various type of data sources (eg. NoSQL, RDBMS, JSON, etc) to be implemented in analysis & report/dashboard\nHave experience to provide analysis (Descriptive/Diagnostic/Predictive/Prescriptive) with help of analytics tool (Eg : Big Query, Python, R, SPSS, etc)\nHave knowledge of Data Mining concept (Eg : Statistics, Machine Learning, Forecasting, etc)\nExperience to process Core Banking data and fully understand end to end flow process of Digital Lending\nCan explain of own project which he/she worked on using great storytelling skill\nThinks of a more holistic approach/cross functions\nComfortable working with million rows of data\nThinks out of the box to propose and implement an alternative solution if needed\nGood intrapersonal skills to collaborate within/across function\nSelf driven, high curiosity, problem solving mindset and very detail oriented\nPlus Point If You Have:\nHave experience using Google Big Query & Looker\nHave experience to explore data from 3rd party platform (eg : Web & Mobile Analytics Platform, Marketing Attribution Platform, API logging platform, etc)\nHave best practice to build Data Mart\nWe exist to innovate and maintain the architecture of Amar Bank's products. As part of our main focus to create through technology we ensure the process and technology we use helps maintain and build human connection at scale.\nIt’s our job to plan, monitor, and control the technology growth so we can provide a faster, more convenient, and more efficient way of performing business transactions.\nWe may use artificial intelligence (AI) tools to support parts of the hiring process, such as reviewing applications, analyzing resumes, or assessing responses and identifying potential inconsistencies or verification signals in application materials based on available information. These tools assist our recruitment team but do not replace human judgment. Final hiring decisions are ultimately made by humans. If you would like more information about how your data is processed, please contact us.",
+    "content_hash": "7bb109bf5b95daa668b7520fd5b9ae4f03196c6f3a5a70f66520090a4dc50f46",
+    "retrieval_method": "jobspy",
+    "is_active": true,
+    "job_skills": [],
+    "required_skills": [
+      "Python",
+      "R",
+      "Tableau",
+      "Power BI",
+      "Statistics",
+      "Machine Learning"
+    ],
+    "preferred_skills": [
+      "Looker"
+    ]
+  }
+]

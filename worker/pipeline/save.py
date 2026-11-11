@@ -222,26 +222,3 @@ class SupabaseStorage:
             logger.debug(f"Skill insert {skill_name}: {e}")
 
         return None
-
-    def export_jobs_to_seed(self, file_path: str = "worker/sources/jobs_seed.json") -> int:
-        """Mengekspor seluruh lowongan aktif dari Supabase ke file JSON untuk seed offline demo."""
-        if not self.client:
-            logger.warning("Tidak dapat ekspor seed tanpa koneksi Supabase.")
-            return 0
-
-        try:
-            import json
-            res = self.client.table("jobs").select(
-                "id, source_name, external_id, source_url, title, canonical_title, company, location, employment_type, seniority, experience_years_min, education, description, content_hash, retrieval_method, is_active, job_skills(is_mandatory, skills(name))"
-            ).eq("is_active", True).execute()
-
-            jobs_data = res.data or []
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
-            with open(file_path, "w", encoding="utf-8") as f:
-                json.dump(jobs_data, f, indent=2, ensure_ascii=False)
-
-            logger.info(f"Berhasil mengekspor {len(jobs_data)} lowongan ke {file_path}")
-            return len(jobs_data)
-        except Exception as e:
-            logger.error(f"Gagal mengekspor seed: {e}")
-            return 0

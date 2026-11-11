@@ -14,11 +14,14 @@ test("API Authentication and Role Protection Tests", async (t) => {
   for (const port of [3001, 3000]) {
     try {
       const ping = await fetch(`http://localhost:${port}/api/admin/skills`, {
-        signal: AbortSignal.timeout(1000),
+        signal: AbortSignal.timeout(3000),
       });
       if (ping.status === 401 || ping.status === 403) {
-        baseUrl = `http://localhost:${port}`;
-        break;
+        const body = await ping.json().catch(() => null);
+        if (body && typeof body.error === "string") {
+          baseUrl = `http://localhost:${port}`;
+          break;
+        }
       }
     } catch {
       // Port tidak aktif, coba port berikutnya

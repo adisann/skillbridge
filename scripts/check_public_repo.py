@@ -43,7 +43,7 @@ def inspect(path, data, scope):
                     findings.append({"scope": scope, "path": path, "line": number, "kind": "service_role_jwt"})
             except (ValueError, json.JSONDecodeError):
                 pass
-        if scope == "working-tree" and path.endswith("jobs_seed.json") and (re.search(r"[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}", line) or re.search(r"(?<!\w)(?:\+62|08)\d[\d -]{7,12}\d(?!\w)", line)):
+        if scope == "working-tree" and path == "worker/tests/fixtures/real_jobs.json" and (re.search(r"[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}", line) or re.search(r"(?<!\w)(?:\+62|08)\d[\d -]{7,12}\d(?!\w)", line)):
             contacts.append({"path": path, "line": number})
 
 allowed = {".ts", ".tsx", ".js", ".mjs", ".cjs", ".py", ".json", ".md", ".yaml", ".yml", ".sql", ".example", ".txt", ".drawio", ".svg", ".xml"}

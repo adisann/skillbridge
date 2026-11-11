@@ -9,7 +9,6 @@ import { formatDeadlineDate } from "@/lib/job-detail";
 import type { JobDetailData } from "@/types/job";
 import { SalaryText } from "@/components/ui/salary-text";
 import { formatGpa } from "@/lib/gpa";
-import { DEMO_JOB_NOTICE } from "@/lib/demo-jobs";
 import { MatchExplanation } from "@/components/ui/match-explanation";
 
 interface JobDetailHeaderProps {
@@ -29,11 +28,6 @@ export function JobDetailHeader({ job, isGuest, isSaved, onToggleSave, onOpenCha
   return (
     <Card>
       <CardContent className="pt-stack-lg sm:pt-stack-xl space-y-stack-lg">
-        {job.isDemo && (
-          <p role="note" className="rounded-xl border border-sb-warning/40 bg-sb-warning/10 px-stack-md py-stack-sm text-sm text-sb-navy">
-            <strong>Lowongan contoh.</strong> {DEMO_JOB_NOTICE}
-          </p>
-        )}
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-stack-xl">
           <div className="space-y-stack-sm max-w-2xl">
             <span className="inline-flex px-stack-sm py-stack-2xs rounded-full bg-sb-mist-soft text-sb-navy border border-sb-border text-xs font-bold">

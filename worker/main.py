@@ -20,7 +20,6 @@ from worker.sources import (
     LinkedInSource,
     JobstreetSource,
     GlintsSource,
-    SeedSource,
     JobSource
 )
 from worker.pipeline import (
@@ -54,10 +53,8 @@ def get_source_by_name(source_name: str, limit: int = 25) -> JobSource:
         return JobstreetSource(limit=limit)
     elif name == "glints":
         return GlintsSource(limit=limit)
-    elif name == "seed":
-        return SeedSource()
     else:
-        raise ValueError(f"Sumber tidak dikenal: '{source_name}'. Pilihan: greenhouse, lever, linkedin, jobstreet, glints, seed.")
+        raise ValueError(f"Sumber tidak dikenal: '{source_name}'. Pilihan: greenhouse, lever, linkedin, jobstreet, glints.")
 
 
 async def run_worker(source_name: str, limit: int = 15):
@@ -87,8 +84,6 @@ async def run_worker(source_name: str, limit: int = 15):
     retrieval_method = getattr(source, "name", "public_api")
     if retrieval_method in ("linkedin", "jobstreet"):
         retrieval_method = "jobspy"
-    elif retrieval_method == "seed":
-        retrieval_method = "seed"
     else:
         retrieval_method = "public_api"
 
@@ -237,16 +232,10 @@ async def run_all_sources(limit: int = 10):
 
 def main():
     parser = argparse.ArgumentParser(description="SkillBridge Automated Job Worker")
-    parser.add_argument("--source", type=str, default="greenhouse", help="Pilihan: greenhouse, lever, linkedin, jobstreet, glints, seed, all")
+    parser.add_argument("--source", type=str, default="greenhouse", help="Pilihan: greenhouse, lever, linkedin, jobstreet, glints, all")
     parser.add_argument("--limit", type=int, default=10, help="Jumlah lowongan maksimal yang diambil")
-    parser.add_argument("--export-seed", action="store_true", help="Ekspor database lowongan Supabase menjadi file seed JSON")
 
     args = parser.parse_args()
-
-    if args.export_seed:
-        storage = SupabaseStorage()
-        storage.export_jobs_to_seed()
-        return
 
     if args.source.lower() == "all":
         asyncio.run(run_all_sources(limit=args.limit))

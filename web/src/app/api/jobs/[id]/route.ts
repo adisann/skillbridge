@@ -21,7 +21,7 @@ export async function GET(
       .eq("id", jobId)
       .single();
 
-    if (jobErr || !job) {
+    if (jobErr || !job || isDemoJob(job)) {
       return NextResponse.json({ error: "Lowongan tidak ditemukan" }, { status: 404 });
     }
 
@@ -37,12 +37,9 @@ export async function GET(
         ? "Business Analyst"
         : job.canonical_title;
 
-    const isDemo = isDemoJob(job);
-
     return NextResponse.json({
       job: {
         id: job.id,
-        isDemo,
         externalId: job.external_id,
         title: job.title,
         canonicalTitle: correctedCanonicalTitle,
@@ -62,8 +59,7 @@ export async function GET(
         description: job.description,
         contentHash: job.content_hash || "default_hash",
         sourceName: job.source_name,
-        // URL sumber lowongan contoh tidak valid (milik lowongan lain / placeholder), jadi tidak ditampilkan
-        sourceUrl: isDemo ? null : job.source_url,
+        sourceUrl: job.source_url,
         retrievalMethod: job.retrieval_method,
         retrievedAt: job.retrieved_at,
         expiresAt: job.expires_at || null,
@@ -76,7 +72,7 @@ export async function GET(
         matchedSkills: activeResume ? liveMatch.matchedSkills : [],
         missingSkills: activeResume ? liveMatch.missingSkills : matchJob.requiredSkills,
         unprovenSkills: activeResume ? liveMatch.unprovenSkills : [],
-        factorsSupporting: activeResume ? liveMatch.factorsSupporting : isDemo ? [] : ["Lowongan aktif dari sumber yang tercantum."],
+        factorsSupporting: activeResume ? liveMatch.factorsSupporting : ["Lowongan aktif dari sumber yang tercantum."],
         factorsLimiting: activeResume ? liveMatch.factorsLimiting : ["CV belum terunggah. Unggah CV untuk mengevaluasi kecocokan."],
         scoreBreakdown: activeResume ? liveMatch.breakdown : [],
         requirementsEvaluation: activeResume ? liveMatch.requirementsEvaluation : [],

@@ -84,7 +84,7 @@ test("Frekuensi pasar menggabungkan terjemahan pada level satu posting unik", ()
 });
 
 test("Amar: contoh alat dikelompokkan, BigQuery tetap tambahan dari Plus Point", () => {
-  const seed = JSON.parse(readFileSync(new URL("../../worker/sources/jobs_seed.json", import.meta.url), "utf8"));
+  const seed = JSON.parse(readFileSync(new URL("../../worker/tests/fixtures/real_jobs.json", import.meta.url), "utf8"));
   const source = seed.find((j: { company: string; title: string }) => j.company === "Amar Bank" && j.title.includes("Digital Lending"));
   ok(source);
   const role = { title: source.title, requiredSkills: [...source.required_skills, "SPSS"], preferredSkills: ["BigQuery", "Looker"], description: source.description, experienceYearsMin: 3 };
@@ -193,7 +193,7 @@ test("Satu dari lima skill wajib belum ditemukan tetap menjadi gap meski skor 88
 });
 
 test("Kredivo: Python/R dari deskripsi asli adalah alternatif, bukan dua kewajiban", () => {
-  const seed = JSON.parse(readFileSync(new URL("../../worker/sources/jobs_seed.json", import.meta.url), "utf8"));
+  const seed = JSON.parse(readFileSync(new URL("../../worker/tests/fixtures/real_jobs.json", import.meta.url), "utf8"));
   const source = seed.find((j: { company: string; title: string }) => j.company === "Kredivo Group" && j.title === "Data Analyst Operations");
   ok(source);
   for (const language of ["Python", "R"]) {
@@ -230,7 +230,7 @@ test("Alternatif hanya berlaku jika sumber menulis /, or, atau; and tetap dua sy
 });
 
 test("Power BI pada Pangan Lestari tidak dianggap cocok hanya karena ada Excel", () => {
-  const seed = JSON.parse(readFileSync(new URL("../../worker/sources/jobs_seed.json", import.meta.url), "utf8"));
+  const seed = JSON.parse(readFileSync(new URL("../../worker/tests/fixtures/real_jobs.json", import.meta.url), "utf8"));
   const source = seed.find((j: { company: string }) => j.company === "PT Pangan Lestari");
   const result = calculateJobMatch({ skills: ["Excel"], experienceYears: 2, education: "S1" }, {
     title: source.title, description: source.description, requiredSkills: source.job_skills.map((s: { skills: { name: string } }) => s.skills.name), experienceYearsMin: 1, education: "Bachelor",

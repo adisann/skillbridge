@@ -19,6 +19,7 @@ import { ActiveJobContext, CandidateCVContext, ChatMessage } from "@/lib/ai/type
 import { calculateJobMatch, getDisplayScore } from "@/lib/matching";
 import { loadCandidateProfile, toMatchCandidate } from "@/lib/candidate-profile";
 import { toMatchJob } from "@/lib/job-skills";
+import { isDemoJob } from "@/lib/demo-jobs";
 
 const MAX_MESSAGE_CHARS = 500;
 const MAX_HISTORY_MESSAGES = 6;
@@ -113,7 +114,7 @@ export async function POST(
       .eq("id", jobId)
       .single();
 
-    if (jobErr || !job) {
+    if (jobErr || !job || isDemoJob(job)) {
       return NextResponse.json(
         { error: "Lowongan pekerjaan tidak ditemukan pada basis data." },
         { status: 404 }
