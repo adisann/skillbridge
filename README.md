@@ -4,8 +4,10 @@ SkillBridge membantu pencari kerja membandingkan isi CV dengan persyaratan lowon
 
 ## Alur demo
 
+Mulai dari [demo SkillBridge](https://skillbridge-three-chi.vercel.app/).
+
 1. Buka **Lowongan** atau **Tren Skill** untuk melihat katalog dan kebutuhan skill tanpa masuk.
-2. Masuk dengan akun pelamar yang diberikan panitia atau tim. Buka **CV Saya** untuk meninjau CV aktif dan target karier.
+2. Masuk dengan akun pelamar yang dibagikan tim secara terpisah. Buka **CV Saya** untuk meninjau CV aktif dan target karier.
 3. Di **Lowongan**, buka detail posisi untuk melihat persyaratan, bukti kecocokan dari CV, dan deskripsi pekerjaan.
 4. Tambahkan skill dari **Tren Skill** ke **Rencana Belajar**. Lowongan yang disimpan dapat ditinjau di **Lamaran Saya**.
 
@@ -19,7 +21,9 @@ npm ci
 npm run dev
 ```
 
-Buka [localhost:3000](http://localhost:3000). Untuk memeriksa aplikasi, jalankan `npm test`, `npm run lint`, dan `npm run build` dari direktori `web`.
+Buka [localhost:3000](http://localhost:3000). Untuk memeriksa aplikasi, jalankan `npm test`, `npm run lint`, `npm run typecheck`, dan `npm run build` dari direktori `web`.
+
+Pada instalasi Supabase baru, buat akun pelamar untuk demo melalui Supabase Auth dan unggah CV sintetis. Akun seed hanya untuk data contoh dan memakai kata sandi acak. Simpan konfigurasi lokal di `web/.env.local` dan konfigurasi deployment di pengaturan layanan hosting.
 
 ## Struktur repositori
 

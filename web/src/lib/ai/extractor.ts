@@ -50,38 +50,44 @@ function geminiText(parts: { text?: string; thought?: boolean }[] | undefined): 
   return parts?.filter((part) => !part.thought).map((part) => part.text ?? "").join("") ?? "";
 }
 
+type GeminiInput = { text: string } | { inlineData: { mimeType: string; data: string } };
+
+function geminiModels(): string[] {
+  return [...new Set([process.env.AI_MODEL || "gemini-3.1-flash-lite", "gemini-3.8-flash", "gemini-2.5-flash"])];
+}
+
+function requestGemini(model: string, apiKey: string, parts: GeminiInput[], signal: AbortSignal) {
+  return fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+    signal,
+    body: JSON.stringify({
+      contents: [{ role: "user", parts }],
+      systemInstruction: { parts: [{ text: EXTRACTION_SYSTEM_PROMPT }] },
+      generationConfig: {
+        responseMimeType: "application/json",
+        temperature: 0.1,
+        thinkingConfig: { thinkingBudget: 0 },
+      },
+    }),
+  });
+}
+
 export async function extractJobFromText(
   rawText: string,
   sourceUrl?: string,
   { requireDescription = true, signal = AbortSignal.timeout(12000) }: ExtractionOptions = {},
 ): Promise<ExtractedJobData> {
   const apiKey = process.env.AI_API_KEY;
-  const primaryModel = process.env.AI_MODEL || "gemini-3.1-flash-lite";
 
   // Step 1: Coba gunakan Google Gemini (dengan fallback model)
   if (apiKey) {
     const geminiSignal = AbortSignal.any([signal, AbortSignal.timeout(6500)]);
-    const candidateModels = [...new Set([primaryModel, "gemini-3.8-flash", "gemini-2.5-flash"])];
-    for (const model of candidateModels) {
+    for (const model of geminiModels()) {
       if (geminiSignal.aborted) break;
       try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
         const userPrompt = `Ekstrak lowongan pekerjaan berikut ke dalam format JSON:\n\n${rawText.slice(0, 15000)}`;
-
-        const res = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-          signal: geminiSignal,
-          body: JSON.stringify({
-            contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-            systemInstruction: { parts: [{ text: EXTRACTION_SYSTEM_PROMPT }] },
-            generationConfig: {
-              responseMimeType: "application/json",
-              temperature: 0.1,
-              thinkingConfig: { thinkingBudget: 0 },
-            },
-          }),
-        });
+        const res = await requestGemini(model, apiKey, [{ text: userPrompt }], geminiSignal);
 
         if (res.ok) {
           const data = await res.json();
@@ -157,42 +163,17 @@ Catatan: JANGAN MENGARANG TAUTAN WEB! Isi "sourceUrl" dengan null jika tidak ada
   // Step 1: Coba Google Gemini Vision dengan Retry & Multi-Model
   if (apiKey) {
     const geminiSignal = AbortSignal.any([signal, AbortSignal.timeout(10000)]);
-    const candidateModels = [...new Set([
-      process.env.AI_MODEL || "gemini-3.1-flash-lite",
-      "gemini-3.8-flash",
-      "gemini-2.5-flash",
-    ])];
-
-    for (const model of candidateModels) {
+    for (const model of geminiModels()) {
       let attempts = 0;
       const maxAttempts = 2;
 
       while (attempts < maxAttempts && !geminiSignal.aborted) {
         attempts++;
         try {
-          const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-          const res = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-            signal: requestSignal(geminiSignal),
-            body: JSON.stringify({
-              contents: [
-                {
-                  role: "user",
-                  parts: [
-                    { inlineData: { mimeType, data: base64Data } },
-                    { text: prompt },
-                  ],
-                },
-              ],
-              systemInstruction: { parts: [{ text: EXTRACTION_SYSTEM_PROMPT }] },
-              generationConfig: {
-                responseMimeType: "application/json",
-                temperature: 0.1,
-                thinkingConfig: { thinkingBudget: 0 },
-              },
-            }),
-          });
+          const res = await requestGemini(model, apiKey, [
+            { inlineData: { mimeType, data: base64Data } },
+            { text: prompt },
+          ], requestSignal(geminiSignal));
 
           if (res.ok) {
             const data = await res.json();

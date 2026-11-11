@@ -3,7 +3,7 @@
 -- ==============================================================================
 
 -- 1. Create Demo Users in auth.users (if running on Supabase instance)
--- Menggunakan pgcrypto crypt() untuk hashing password aman
+-- Akun seed memakai kata sandi acak. Buat akun demo yang akan dipakai melalui Supabase Auth.
 do $$
 declare
   juri_uid uuid := '00000000-0000-0000-0000-000000000001';
@@ -18,17 +18,17 @@ begin
     values
       (
         juri_uid, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-        'juri@skillbridge.demo', crypt('DemoJuriInvofest2026!', gen_salt('bf')), now(),
+        'juri@skillbridge.demo', crypt(gen_random_uuid()::text, gen_salt('bf')), now(),
         '{"provider":"email","providers":["email"]}', '{"full_name":"Budi Pratama"}', now(), now()
       ),
       (
         admin_uid, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-        'admin@skillbridge.demo', crypt('AdminSkillBridge2026!', gen_salt('bf')), now(),
+        'admin@skillbridge.demo', crypt(gen_random_uuid()::text, gen_salt('bf')), now(),
         '{"provider":"email","providers":["email"]}', '{"full_name":"Administrator SkillBridge"}', now(), now()
       ),
       (
         userb_uid, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-        'userb@skillbridge.demo', crypt('UserBInvofest2026!', gen_salt('bf')), now(),
+        'userb@skillbridge.demo', crypt(gen_random_uuid()::text, gen_salt('bf')), now(),
         '{"provider":"email","providers":["email"]}', '{"full_name":"Rina Maharani"}', now(), now()
       )
     on conflict (id) do nothing;
@@ -45,14 +45,14 @@ begin
     full_name = excluded.full_name;
 end $$;
 
--- 2. Insert Resumes for Demo Users
+-- 2. Profil CV sintetis untuk demo, tanpa berkas yang disimpan di R2.
 insert into public.resumes (id, user_id, filename, file_url, parsed_text, education, experience_years, is_active)
 values
   (
     '22222222-0000-0000-0000-000000000001',
     '00000000-0000-0000-0000-000000000001',
     'CV_Budi_Pratama_DataAnalyst.pdf',
-    'https://r2.skillbridge.id/resumes/demo/budi_pratama.pdf',
+    null,
     'Lulusan S1 Matematika dengan 2 tahun pengalaman analisis data transaksi di perbankan digital. Mahir SQL PostgreSQL, Python Pandas, Microsoft Excel, dan visualisasi data.',
     'S1 Matematika & Statistika',
     2,
@@ -62,7 +62,7 @@ values
     '22222222-0000-0000-0000-000000000002',
     '00000000-0000-0000-0000-000000000003',
     'CV_Rina_FreshGraduate.pdf',
-    'https://r2.skillbridge.id/resumes/demo/rina_maharani.pdf',
+    null,
     'Fresh graduate Manajemen Bisnis dengan pengalaman menggunakan spreadsheet Excel dan Google Sheets.',
     'S1 Manajemen Bisnis',
     0,
