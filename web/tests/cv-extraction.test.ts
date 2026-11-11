@@ -4,6 +4,25 @@ import { detectSkills, extractExperienceYears, monthsFromDateRanges } from "../s
 
 const NOW = new Date(2026, 10, 10); // 10 Nov 2026
 
+test("CV mengekstrak terjemahan sebagai satu skill dan mempertahankan JLPT", () => {
+  const skills = detectSkills("Statistika, Statistik, Statistics. Analisis Data, Data Analisis, Data Analysis. Bahasa Jepang: JLPT N5.");
+  equal(skills.filter((s) => s === "Statistics").length, 1);
+  equal(skills.filter((s) => s === "Data Analysis").length, 1);
+  ok(skills.includes("Jepang (JLPT N5)"));
+  ok(!skills.includes("Jepang"));
+});
+
+test("Big Query dan Google Big Query dinormalisasi sebagai BigQuery", () => {
+  for (const name of ["BigQuery", "Big Query", "Google Big Query"]) ok(detectSkills(`Skills: ${name}`).includes("BigQuery"));
+  ok(detectSkills("IBM SPSS").includes("SPSS"));
+});
+
+test("CV mendeteksi bahasa dan level HSK tanpa mengarang level atau menggandakan Mandarin", () => {
+  equal(JSON.stringify(detectSkills("Bahasa: Mandarin, sertifikat HSK Level 5.")), JSON.stringify(["Mandarin (HSK 5)"]));
+  equal(JSON.stringify(detectSkills("Bahasa Mandarin aktif.")), JSON.stringify(["Mandarin"]));
+  ok(detectSkills("Sertifikat HSK 6").includes("Mandarin (HSK 6)"));
+});
+
 // CV sintetis mirip kasus auditor: 2 tahun pengalaman, ditulis sebagai rentang tanggal DAN durasi teks
 const AUDITOR_CV = `Rina Putri
 Data Analyst

@@ -1,4 +1,5 @@
 import { getServiceSupabase } from "@/lib/supabase/server";
+import { promptCacheKey } from "./cache-key";
 
 // In-Memory Fast LRU Cache fallback (works even if DB table is unmigrated or unreachable)
 interface MemoryCacheItem {
@@ -10,12 +11,12 @@ const memoryCache = new Map<string, MemoryCacheItem>();
 const MAX_MEMORY_ITEMS = 300;
 const DEFAULT_TTL_MS = 1000 * 60 * 60 * 24; // 24 hours
 
-function normalizeKey(str: string): string {
-  return str
-    .toLowerCase()
-    .replace(/[^\w\s]/gi, "")
-    .replace(/\s+/g, "_")
-    .slice(0, 80);
+function remember(memKey: string, responseText: string, provider: string) {
+  if (memoryCache.size >= MAX_MEMORY_ITEMS) {
+    const firstKey = memoryCache.keys().next().value;
+    if (firstKey) memoryCache.delete(firstKey);
+  }
+  memoryCache.set(memKey, { response: responseText, provider, expiresAt: Date.now() + DEFAULT_TTL_MS });
 }
 
 // ---------------------------------------------------------------------------
@@ -26,7 +27,7 @@ export async function getJobKnowledgeCache(
   contentHash: string,
   question: string
 ): Promise<{ text: string; provider: string } | null> {
-  const promptKey = normalizeKey(question);
+  const promptKey = promptCacheKey(question);
   const memKey = `job:${jobId}:${contentHash}:${promptKey}`;
 
   // Check Memory cache first
@@ -49,11 +50,7 @@ export async function getJobKnowledgeCache(
 
     if (!error && data?.response_text) {
       // Re-populate memory cache
-      memoryCache.set(memKey, {
-        response: data.response_text,
-        provider: data.provider || "Gemini",
-        expiresAt: Date.now() + DEFAULT_TTL_MS,
-      });
+      remember(memKey, data.response_text, data.provider || "Gemini");
       return { text: data.response_text, provider: `${data.provider || "Gemini"} (Cache)` };
     }
   } catch {
@@ -70,19 +67,11 @@ export async function setJobKnowledgeCache(
   responseText: string,
   provider: string
 ): Promise<void> {
-  const promptKey = normalizeKey(question);
+  const promptKey = promptCacheKey(question);
   const memKey = `job:${jobId}:${contentHash}:${promptKey}`;
 
   // Save to Memory
-  if (memoryCache.size >= MAX_MEMORY_ITEMS) {
-    const firstKey = memoryCache.keys().next().value;
-    if (firstKey) memoryCache.delete(firstKey);
-  }
-  memoryCache.set(memKey, {
-    response: responseText,
-    provider,
-    expiresAt: Date.now() + DEFAULT_TTL_MS,
-  });
+  remember(memKey, responseText, provider);
 
   // Save to Supabase DB asynchronously
   try {
@@ -115,7 +104,7 @@ export async function getCvAnalysisCache(
   contentHash: string,
   question: string
 ): Promise<{ text: string; provider: string } | null> {
-  const promptKey = normalizeKey(question);
+  const promptKey = promptCacheKey(question);
   const memKey = `cv:${userId}:${resumeId}:${jobId}:${contentHash}:${promptKey}`;
 
   const memItem = memoryCache.get(memKey);
@@ -136,11 +125,7 @@ export async function getCvAnalysisCache(
       .maybeSingle();
 
     if (!error && data?.response_text) {
-      memoryCache.set(memKey, {
-        response: data.response_text,
-        provider: data.provider || "Gemini",
-        expiresAt: Date.now() + DEFAULT_TTL_MS,
-      });
+      remember(memKey, data.response_text, data.provider || "Gemini");
       return { text: data.response_text, provider: `${data.provider || "Gemini"} (Cache)` };
     }
   } catch {
@@ -159,19 +144,11 @@ export async function setCvAnalysisCache(
   responseText: string,
   provider: string
 ): Promise<void> {
-  const promptKey = normalizeKey(question);
+  const promptKey = promptCacheKey(question);
   const memKey = `cv:${userId}:${resumeId}:${jobId}:${contentHash}:${promptKey}`;
 
   // Save to Memory
-  if (memoryCache.size >= MAX_MEMORY_ITEMS) {
-    const firstKey = memoryCache.keys().next().value;
-    if (firstKey) memoryCache.delete(firstKey);
-  }
-  memoryCache.set(memKey, {
-    response: responseText,
-    provider,
-    expiresAt: Date.now() + DEFAULT_TTL_MS,
-  });
+  remember(memKey, responseText, provider);
 
   // Save to Supabase DB asynchronously
   try {

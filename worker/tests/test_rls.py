@@ -10,7 +10,7 @@ def test_migration_files_exist_and_contain_required_rls():
     # 1. Pastikan ekstensi vector diaktifkan
     assert 'create extension if not exists "vector";' in content
 
-    # 2. Pastikan tabel inti flowchart dan AGENTS.md ada
+    # 2. Pastikan tabel inti skema SkillBridge tersedia
     required_tables = [
         "profiles",
         "resumes",

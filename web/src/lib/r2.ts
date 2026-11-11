@@ -63,7 +63,8 @@ export async function uploadToR2(
 
     return { key, presignedUrl };
   } catch (err) {
-    console.error("[R2 Upload Error]", err);
+    const failure = err as { name?: string; $metadata?: { httpStatusCode?: number } };
+    console.error("[R2 Upload Error]", failure.name, failure.$metadata?.httpStatusCode);
     throw new Error("Berkas CV belum berhasil disimpan. Coba unggah kembali atau hubungi admin jika masalah berlanjut.");
   }
 }
@@ -82,7 +83,7 @@ export async function deleteFromR2(key: string): Promise<boolean> {
       const e = err as { name?: string; $metadata?: { httpStatusCode?: number }; message?: string };
       // Berkas sudah tidak ada = tujuan penghapusan sudah tercapai
       if (e.name === "NoSuchKey" || e.$metadata?.httpStatusCode === 404) return true;
-      console.error(`[R2 Delete Error] percobaan ${attempt}:`, e.name, e.$metadata?.httpStatusCode, e.message);
+      console.error(`[R2 Delete Error] percobaan ${attempt}:`, e.name, e.$metadata?.httpStatusCode);
     }
   }
   return false;

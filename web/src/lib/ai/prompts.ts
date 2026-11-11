@@ -24,7 +24,7 @@ export function buildSystemInstruction(
 - Total Pengalaman Terdeteksi: ${formatExperience(cv.experienceYears)}
 - Pendidikan Terdeteksi: ${cv.education || "Tidak tertulis spesifik"}
 - IPK Tercantum: ${cv.gpa != null ? `${formatGpa(cv.gpa)} (skala 4,00)` : "Tidak tercantum di CV"}
-- Pengakuan mandiri (bukan bukti CV atau verifikasi independen): ${cv.claimedSkills?.join(", ") || "Tidak ada"}
+- Ditambahkan sendiri oleh pengguna di CV Saya (dikuasai pengguna, tidak terbaca dari teks CV): ${cv.claimedSkills?.join(", ") || "Tidak ada"}
 - Hasil ekstraksi perlu ditinjau: ${cv.reviewSkills?.join(", ") || "Tidak ada"}
 - Keterampilan Tercantum di CV: ${cv.skills.length > 0 ? cv.skills.join(", ") : "Belum ada skill terdaftar"}
 ${

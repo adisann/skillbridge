@@ -10,6 +10,7 @@ import type { JobDetailData } from "@/types/job";
 import { SalaryText } from "@/components/ui/salary-text";
 import { formatGpa } from "@/lib/gpa";
 import { DEMO_JOB_NOTICE } from "@/lib/demo-jobs";
+import { MatchExplanation } from "@/components/ui/match-explanation";
 
 interface JobDetailHeaderProps {
   job: JobDetailData;
@@ -79,12 +80,13 @@ export function JobDetailHeader({ job, isGuest, isSaved, onToggleSave, onOpenCha
 
           {!isGuest && (
             <div className="shrink-0">
-              <ScoreRing status={job.matchStatus} score={job.matchStatus === "insufficient_evidence" ? null : job.matchScore} size="lg" />
+              <ScoreRing status={job.matchStatus} reason={job.matchStatusReason} score={job.matchStatus === "insufficient_evidence" ? null : job.matchScore} size="lg" />
             </div>
           )}
         </div>
 
-        {!isGuest && <MatchBadge status={job.matchStatus} score={job.matchScore} />}
+        {!isGuest && <MatchBadge status={job.matchStatus} reason={job.matchStatusReason} score={job.matchScore} />}
+        {!isGuest && <MatchExplanation status={job.matchStatus} supporting={job.factorsSupporting} limiting={job.factorsLimiting} />}
 
         <div className="flex flex-wrap items-center gap-stack-sm pt-stack-lg border-t border-sb-border">
           {job.sourceUrl && job.sourceUrl.trim() !== "" ? (

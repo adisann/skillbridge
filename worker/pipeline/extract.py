@@ -2,6 +2,8 @@ import re
 import logging
 from typing import Optional
 from pydantic import BaseModel, Field
+from .languages import extract_language_requirements
+from .normalize import SHARED_SKILL_ALIASES
 
 logger = logging.getLogger(__name__)
 
@@ -36,16 +38,19 @@ def extract_min_gpa(text: str) -> Optional[float]:
 
 # Heuristik rule-based ekstraksi awal sebagai fallback cepat
 KNOWN_SKILLS = [
-    "SQL", "PostgreSQL", "MySQL", "BigQuery", "Snowflake", "Python", "R",
+    "SQL", "PostgreSQL", "MySQL", "BigQuery", "SPSS", "Snowflake", "Python", "R",
     "Excel", "Microsoft Excel", "Google Sheets", "Tableau", "Power BI", "Looker", "Metabase", "Pandas", "NumPy",
     "A/B Testing", "Statistics", "Machine Learning", "Deep Learning", "Data Science", "DBT", "Airflow", "ETL",
     "Data Modeling", "Data Warehousing", "Data Visualization", "Data Cleaning", "Data Analysis", "Data Analytics",
     "E-Commerce Analytics", "Product Analytics", "Business Analytics", "Git", "Google Analytics", "Web Scraping",
     "Jira", "Agile", "Scrum", "Business Process Mapping", "Stakeholder Management", "Fivetran"
 ]
+KNOWN_SKILLS = list(dict.fromkeys([*KNOWN_SKILLS, *SHARED_SKILL_ALIASES]))
 
 # Penyebutan lain yang merujuk ke skill di KNOWN_SKILLS (regex atas teks huruf kecil)
 SKILL_PATTERNS = {
+    "BigQuery": r"\b(?:google\s+)?big\s*query\b",
+    "Looker": r"\b(?:looker|google\s+(?:data|looker)\s+studio)\b",
     "Git": r"\b(?:gitlab|github|version control)\b",
     "Stakeholder Management": r"\bstakeholder (?:engagement|management)\b",
     "Airflow": r"\bapache airflow\b",
@@ -62,6 +67,9 @@ def extract_job_details_rule_based(title: str, text: str) -> ExtractedJobDetails
     lower_title = title.lower()
     # Samakan penanda opsional seperti "Nice-to-Have" dengan "nice to have"
     lower_text = re.sub(r"nice[\s-]+to[\s-]+have", "nice to have", text.lower())
+    for canonical, aliases in SHARED_SKILL_ALIASES.items():
+        pattern = r"(?<!\w)(?:" + "|".join(re.escape(alias.lower()) for alias in sorted(aliases, key=len, reverse=True)) + r")(?!\w)"
+        lower_text = re.sub(pattern, canonical.lower(), lower_text) if aliases else lower_text
 
     # Tentukan canonical_title
     if re.search(r"\bbi\b", lower_title) or "business intelligence" in lower_title:
@@ -148,7 +156,13 @@ def extract_job_details_rule_based(title: str, text: str) -> ExtractedJobDetails
             # Nama jurusan di baris pendidikan tidak menjadikan skill itu wajib
             req_scope = without_degree_lines(req_part) if s == "Statistics" else req_part
             is_in_plus_line = mentions(s, plus_text)
-            is_in_pref_part = mentions(s, pref_part) and not mentions(s, req_scope)
+            # Nama dalam contoh alat tidak menjadikannya wajib tersendiri bila sumber
+            # juga menyebut alat itu sebagai nilai plus (mis. BigQuery pada Amar Bank).
+            required_outside_examples = re.sub(
+                r"\b(?:bi tools?|analytics tools?|alat bi|alat analitik)\s*\(\s*(?:e\.?\s*g\.?|contoh|for example)\s*:?[^)\n]*\)",
+                "", req_scope, flags=re.I,
+            )
+            is_in_pref_part = mentions(s, pref_part) and not mentions(s, required_outside_examples)
 
             if is_in_plus_line or is_in_pref_part:
                 preferred.append(s)
@@ -160,6 +174,10 @@ def extract_job_details_rule_based(title: str, text: str) -> ExtractedJobDetails
                 preferred.append(s)
             else:
                 required.append(s)
+
+    language_required, language_preferred = extract_language_requirements(title, text)
+    required.extend(language_required)
+    preferred.extend(language_preferred)
 
     return ExtractedJobDetails(
         canonical_title=canonical,

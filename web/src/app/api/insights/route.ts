@@ -80,7 +80,8 @@ export async function GET(req: NextRequest) {
 }
 
 /**
- * Klaim skill mandiri oleh pengguna (AGENTS.md: "Pengguna bisa menandai skill yang dikuasai tetapi belum tertulis. Jangan menyebutnya terverifikasi.")
+ * Menambahkan skill yang dikuasai pengguna ke CV aktif. Skill ditandai "ditambahkan oleh pengguna"
+ * agar tetap dibedakan dari skill yang terbaca dari teks CV.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -104,7 +105,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `Skill '${skillName}' dicatat sebagai pengakuan mandiri (ditambahkan oleh pengguna).`,
+      message: `Skill '${skillName}' ditambahkan ke CV-mu sebagai skill yang kamu kuasai.`,
     });
   } catch (error: unknown) {
     const err = error as Error;

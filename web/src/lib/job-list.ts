@@ -3,12 +3,14 @@ import { isOverseasLocation } from "@/lib/utils";
 import type { FilterState } from "@/lib/job-filters";
 import { hasSalary, monthlySalaryEstimate } from "@/lib/salary";
 import type { JobListItem } from "@/types/job";
+import { matchesJobLevel } from "@/lib/job-level";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const POSTED_DATE_DAYS: Record<string, number> = { "7d": 7, "14d": 14 };
 const DEFAULT_POSTED_DAYS = 30;
 
 function matchesLocation(job: JobListItem, location: string | undefined): boolean {
+  location = location?.trim();
   if (location === "overseas") return isOverseasLocation(job.location);
   if (location && location !== "all") {
     return (job.location || "").toLowerCase().includes(location.toLowerCase());
@@ -67,11 +69,6 @@ function matchesSalary(job: JobListItem, salary: string | undefined): boolean {
   return true;
 }
 
-function matchesSeniority(job: JobListItem, seniority: string): boolean {
-  if (seniority === "all") return true;
-  return (job.seniority || "").toLowerCase().includes(seniority.toLowerCase());
-}
-
 function matchesPostedDate(job: JobListItem, postedDate: string | undefined, referenceTime: number): boolean {
   if (!postedDate || postedDate === "all") return true;
   const maxAgeMs = (POSTED_DATE_DAYS[postedDate] ?? DEFAULT_POSTED_DAYS) * DAY_MS;
@@ -87,7 +84,7 @@ export function filterJobs(jobs: JobListItem[], filters: FilterState, referenceT
       matchesEmploymentType(job, filters.employmentType) &&
       matchesExperience(job, filters.experience) &&
       matchesSalary(job, filters.salary) &&
-      matchesSeniority(job, filters.seniority) &&
+      matchesJobLevel(job.seniority, job.experienceYearsMin, filters.seniority) &&
       matchesPostedDate(job, filters.postedDate, referenceTime)
   );
 }

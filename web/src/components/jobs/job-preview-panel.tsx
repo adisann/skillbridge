@@ -7,8 +7,6 @@ import {
   ExternalLink,
   Bookmark,
   ArrowRight,
-  CheckCircle2,
-  XCircle,
   GraduationCap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,6 +21,8 @@ import { formatGpa } from "@/lib/gpa";
 import { fetchDeduped } from "@/lib/fetcher";
 import { formatJobDescription } from "@/lib/job-detail";
 import { SkeletonText } from "@/components/ui/loading";
+import { SkillMatchSummary } from "@/components/ui/skill-match-summary";
+import { MatchExplanation } from "@/components/ui/match-explanation";
 
 interface JobPreviewPanelProps {
   job: JobListItem;
@@ -89,6 +89,7 @@ function PreviewHeader({
           <div className="shrink-0">
             <ScoreRing
               status={job.matchStatus}
+              reason={job.matchStatusReason}
               score={job.matchStatus === "insufficient_evidence" ? null : job.matchScore}
               size="md"
               showLabel={false}
@@ -97,7 +98,8 @@ function PreviewHeader({
         )}
       </div>
 
-      {!isGuest && <MatchBadge status={job.matchStatus} score={job.matchScore} size="sm" />}
+      {!isGuest && <MatchBadge status={job.matchStatus} reason={job.matchStatusReason} score={job.matchScore} size="sm" />}
+      {!isGuest && <MatchExplanation status={job.matchStatus} supporting={job.factorsSupporting} limiting={job.factorsLimiting} />}
 
       <div className="flex flex-wrap items-center gap-stack-xs pt-stack-2xs">
         {job.sourceUrl && (
@@ -190,35 +192,7 @@ function GuestRequirements({ job }: { job: JobListItem }) {
 /** Mode pengguna: skill yang cocok dan yang belum ditemukan di CV. */
 function UserRequirements({ job }: { job: JobListItem }) {
   return (
-    <div className="space-y-stack-sm">
-      {job.matchedSkills.length > 0 && (
-        <div className="space-y-stack-xs">
-          <div className="flex items-center gap-stack-2xs text-xs font-bold text-sb-good">
-            <CheckCircle2 className="w-4 h-4 text-sb-good" />
-            <span>Keahlian yang cocok di CV ({job.matchedSkills.length})</span>
-          </div>
-          <SkillChips
-            skills={job.matchedSkills}
-            gapClass="gap-stack-xs"
-            chipClass="bg-emerald-50 text-sb-good border-emerald-200"
-          />
-        </div>
-      )}
-
-      {job.missingSkills.length > 0 && (
-        <div className="space-y-stack-xs pt-stack-xs">
-          <div className="flex items-center gap-stack-2xs text-xs font-bold text-sb-critical">
-            <XCircle className="w-4 h-4 text-sb-critical" />
-            <span>Keahlian belum ditemukan di CV ({job.missingSkills.length})</span>
-          </div>
-          <SkillChips
-            skills={job.missingSkills}
-            gapClass="gap-stack-xs"
-            chipClass="bg-sb-mist-faint text-sb-text-2 border-sb-border"
-          />
-        </div>
-      )}
-    </div>
+    <SkillMatchSummary evaluations={job.requirementsEvaluation} matchedSkills={job.matchedSkills} missingSkills={job.missingSkills} />
   );
 }
 

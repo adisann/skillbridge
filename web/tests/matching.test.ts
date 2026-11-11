@@ -102,34 +102,24 @@ test("Matching Engine Tests (AC-02, AC-05, AC-06)", async (t) => {
   });
 
   await t.test("Skenario 5: AC-02 Pembagian Kualifikasi menjadi Cocok, Belum Ditemukan, dan Belum Cukup Bukti", () => {
-    // Kandidat punya Power BI dan SQL, tapi tidak punya Tableau (hanya punya Power BI yang serumpun BI tools)
-    const candidateSkills = ["SQL", "Power BI", "Excel"];
+    // Power BI masih hasil baca yang belum ditinjau; Tableau tidak ada di CV dan tidak ditebak dari Power BI.
     const job = {
       title: "BI Analyst",
       canonicalTitle: "BI Analyst",
-      requiredSkills: ["SQL", "Tableau", "Spark"],
+      requiredSkills: ["SQL", "Power BI", "Tableau"],
       preferredSkills: [],
       experienceYearsMin: 1,
     };
 
     const result = calculateJobMatch(
-      { skills: candidateSkills, experienceYears: 1, education: "S1", targetRole: "BI Analyst" },
+      { skills: ["SQL", "Power BI", "Excel"], reviewSkills: ["Power BI"], experienceYears: 1, education: "S1", targetRole: "BI Analyst" },
       job
     );
 
-    const statuses = result.requirementsEvaluation.map((r) => ({ skill: r.skill, status: r.status }));
-
-    // SQL -> Cocok
-    const sqlReq = statuses.find((s) => s.skill === "SQL");
-    assert.equal(sqlReq?.status, "cocok", "SQL harus cocok");
-
-    // Tableau -> Belum cukup bukti (karena kandidat punya Power BI serumpun)
-    const tableauReq = statuses.find((s) => s.skill === "Tableau");
-    assert.equal(tableauReq?.status, "belum_cukup_bukti", "Tableau harus 'belum_cukup_bukti' karena ada Power BI");
-
-    // Spark -> Belum ditemukan
-    const sparkReq = statuses.find((s) => s.skill === "Spark");
-    assert.equal(sparkReq?.status, "belum_ditemukan", "Spark harus 'belum_ditemukan'");
+    const statusOf = (skill: string) => result.requirementsEvaluation.find((r) => r.skill === skill)?.status;
+    assert.equal(statusOf("SQL"), "cocok", "SQL harus cocok");
+    assert.equal(statusOf("Power BI"), "belum_cukup_bukti", "Power BI belum ditinjau sehingga belum cukup bukti");
+    assert.equal(statusOf("Tableau"), "belum_ditemukan", "Tableau tidak boleh ditebak dari skill lain");
   });
 
   await t.test("Skenario 6: Redistribusi Bobot untuk Komponen Tanpa Data (Tidak Dihitung Nol)", () => {
@@ -206,17 +196,17 @@ test("Matching Engine Tests (AC-02, AC-05, AC-06)", async (t) => {
 
     // AC-04: Penandaan status teks pada CV pelamar
     const candidateVerifiedCv = new Set(["sql", "excel"]);
-    const candidateClaimedManual = new Set(["python"]); // Diklaim pengguna tetapi belum tertulis di CV
+    const candidateAddedManual = new Set(["python"]); // Ditambahkan pengguna, tidak terbaca dari teks CV
 
     const evaluateCvStatus = (skillName: string) => {
       const lower = skillName.toLowerCase();
       if (candidateVerifiedCv.has(lower)) return { status: "tercantum", label: "Tercantum di CV" };
-      if (candidateClaimedManual.has(lower)) return { status: "perlu_verifikasi", label: "Perlu verifikasi (klaim mandiri)" };
+      if (candidateAddedManual.has(lower)) return { status: "ditambahkan_pengguna", label: "Ditambahkan oleh pengguna" };
       return { status: "belum_ditemukan", label: "Belum ditemukan di CV" };
     };
 
     assert.equal(evaluateCvStatus("SQL").label, "Tercantum di CV");
-    assert.equal(evaluateCvStatus("Python").label, "Perlu verifikasi (klaim mandiri)");
+    assert.equal(evaluateCvStatus("Python").label, "Ditambahkan oleh pengguna");
     assert.equal(evaluateCvStatus("Tableau").label, "Belum ditemukan di CV");
   });
 
@@ -270,6 +260,8 @@ test("IPK pada kecocokan: hanya dihitung bila lowongan dan CV sama-sama punya da
     const noCvGpa = calculateJobMatch(base, { ...job, minGpa: 3.0 });
     const noJobGpa = calculateJobMatch(base, job);
     assert.equal(noCvGpa.score, noJobGpa.score);
-    assert.ok(!noCvGpa.factorsLimiting.some((f) => f.includes("IPK")));
+    assert.equal(noCvGpa.matchStatus, "insufficient_evidence");
+    assert.equal(getDisplayScore(noCvGpa), null);
+    assert.ok(noCvGpa.factorsLimiting.some((f) => f.includes("IPK") && f.includes("belum tersedia")));
   });
 });

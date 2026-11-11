@@ -1,8 +1,8 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import { formatPercent } from "@/lib/copy";
-import { DEFAULT_MATCHING_THRESHOLDS, MATCH_STATUS_COLORS } from "@/lib/matching-config";
-import type { MatchCategory } from "@/lib/matching";
+import { MATCH_STATUS_COLORS, getMatchStatusLabel } from "@/lib/matching-config";
+import type { MatchCategory, MatchStatusReason } from "@/lib/matching";
 
 interface ScoreRingProps {
   score?: number | null;
@@ -10,6 +10,7 @@ interface ScoreRingProps {
   className?: string;
   showLabel?: boolean;
   status?: MatchCategory;
+  reason?: MatchStatusReason | null;
 }
 
 export function ScoreRing({
@@ -17,6 +18,7 @@ export function ScoreRing({
   size = "md",
   className,
   status,
+  reason,
 }: ScoreRingProps) {
   const dimensions = size === "sm" ? 56 : size === "lg" ? 96 : 72;
   const strokeWidth = size === "sm" ? 5 : size === "lg" ? 8 : 6;
@@ -33,9 +35,7 @@ export function ScoreRing({
     ? "var(--sb-mist)"
     : status
     ? MATCH_STATUS_COLORS[status]
-    : safeScore >= DEFAULT_MATCHING_THRESHOLDS.matchScoreMin
-    ? "var(--sb-good)"
-    : "var(--sb-warning)";
+    : "var(--sb-blue)";
 
   return (
     <div
@@ -48,7 +48,8 @@ export function ScoreRing({
       aria-valuenow={hasScore ? safeScore : undefined}
       aria-valuemin={0}
       aria-valuemax={100}
-      aria-label={hasScore ? `Skor kecocokan ${safeScore}%` : "Belum ada skor"}
+      aria-label={hasScore ? `Skor kecocokan ${safeScore}%${status ? `, ${getMatchStatusLabel(status, reason)}` : ""}` : `${status ? getMatchStatusLabel(status, reason) : "Data belum cukup"}; skor belum dapat ditampilkan`}
+      title="Persentase merangkum komponen yang dinilai. Warna mengikuti status persyaratan wajib, bukan ambang persentase."
     >
       <svg
         className="w-full h-full -rotate-90"

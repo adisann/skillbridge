@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useId, useState } from "react";
+import { LocationCombobox } from "./location-combobox";
 import { Filter, RotateCcw, X, SlidersHorizontal, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -37,11 +38,13 @@ interface FilterSelectProps {
 function FilterSelect({ field, surface, onSelect, linkLabel = false }: FilterSelectProps) {
   // Label membungkus select (asosiasi implisit), jadi sheet mobile dan panel desktop sama-sama
   // punya nama aksesibel tanpa id ganda di DOM.
-  const controlId = linkLabel ? field.id : undefined;
+  const generatedId = useId();
+  const controlId = linkLabel ? field.id : generatedId;
   return (
-    <label className="block space-y-stack-2xs">
-      <span className={cn("block", LABEL_CLASS)}>{field.label}</span>
-      <select
+    <div className="block space-y-stack-2xs">
+      <label htmlFor={controlId} className={cn("block", LABEL_CLASS)}>{field.label}</label>
+      {field.key === "location" ? <LocationCombobox id={controlId} value={field.value} options={field.options}
+        onChange={(value) => onSelect(field.key, value)} className={cn(SELECT_BASE_CLASS, SELECT_SURFACE[surface])} /> : <select
         id={controlId}
         value={field.value}
         onChange={(e) => onSelect(field.key, e.target.value)}
@@ -52,8 +55,8 @@ function FilterSelect({ field, surface, onSelect, linkLabel = false }: FilterSel
             {opt.label}
           </option>
         ))}
-      </select>
-    </label>
+      </select>}
+    </div>
   );
 }
 

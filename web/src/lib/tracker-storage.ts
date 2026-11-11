@@ -22,6 +22,7 @@ export interface ServerSavedJob {
   sourceUrl?: string;
   matchScore?: number | null;
   matchStatus?: "match" | "underqualified" | "potentially_overqualified" | "insufficient_evidence";
+  matchStatusReason?: "job_data_incomplete" | "cv_data_incomplete" | null;
   matchedSkills?: string[];
   missingSkills?: string[];
 }
@@ -67,18 +68,19 @@ export function mergeServerAndLocalJobs(serverJobs: ServerSavedJob[], userId?: s
       id: sj.id,
       title: sj.title,
       company: sj.company,
-      location: sj.location || "Indonesia (Hybrid)",
-      employmentType: sj.employmentType || "Full-time",
-      seniority: sj.seniority || "Junior",
-      sourceName: sj.sourceName || "Internal",
+      location: sj.location || "Lokasi belum diinformasikan",
+      employmentType: sj.employmentType || "Tipe kerja belum diinformasikan",
+      seniority: sj.seniority,
+      sourceName: sj.sourceName || "Sumber belum diinformasikan",
       sourceUrl: sj.sourceUrl,
       matchScore: sj.matchScore ?? 0,
       matchStatus: sj.matchScore == null ? "insufficient_evidence" : sj.matchStatus || "insufficient_evidence",
+      matchStatusReason: sj.matchStatusReason,
       matchedSkills: sj.matchedSkills || [],
       missingSkills: sj.missingSkills || [],
       stage: (local.stage as JobStage) || "bookmarked",
       priority: typeof local.priority === "number" ? local.priority : 4,
-      salaryExpectation: local.salaryExpectation || "Kompensasi Kompetitif",
+      salaryExpectation: local.salaryExpectation || "",
       dateSaved: local.dateSaved || today,
       dateApplied: local.dateApplied,
       interviewDate: local.interviewDate,
@@ -96,9 +98,9 @@ export function mergeServerAndLocalJobs(serverJobs: ServerSavedJob[], userId?: s
         id,
         title: item.title,
         company: item.company,
-        location: item.location || "Indonesia",
-        employmentType: item.employmentType || "Full-time",
-        seniority: item.seniority || "Mid",
+        location: item.location || "Lokasi belum diinformasikan",
+        employmentType: item.employmentType || "Tipe kerja belum diinformasikan",
+        seniority: item.seniority,
         sourceName: item.sourceName || "Manual Target",
         sourceUrl: item.sourceUrl,
         matchScore: 0,

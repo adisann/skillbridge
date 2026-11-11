@@ -3,6 +3,8 @@ import { ownedResumeKey } from "@/lib/r2";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 import { parseGpaValue } from "@/lib/gpa";
+import { normalizeResumeSkills } from "@/lib/resume-skill-normalization";
+import { getCanonicalSkill } from "@/lib/matching-config";
 
 export async function POST(req: NextRequest) {
   try {
@@ -52,11 +54,11 @@ export async function POST(req: NextRequest) {
       p_education: education || null, p_gpa: gpa, p_years: years,
       p_experience_target: body.experienceTargetRole || null,
       p_summary: summary || "", p_target: targetRole || null,
-      p_skills: cleanSkills.map((name) => {
-        const detail = skillDetails.find((s: { name: string }) => s.name === name);
+      p_skills: normalizeResumeSkills(cleanSkills.map((name) => {
+        const detail = skillDetails.find((s: { name: string }) => s.name === name) || skillDetails.find((s: { name: string }) => typeof s.name === "string" && getCanonicalSkill(s.name) === getCanonicalSkill(name));
         return { name, claimed: manualSkills.includes(name), needsReview: detail?.needsReview ?? false,
           evidence: typeof detail?.evidence === "string" ? detail.evidence : null };
-      }),
+      })),
     });
     if (saveError) throw new Error(saveError.message);
 
@@ -98,8 +100,8 @@ export async function GET(req: NextRequest) {
     }
 
     const r = resumes[0];
-    const details = (r.resume_skills as unknown as Array<{ skills: { name: string }; is_claimed_by_user: boolean; needs_review: boolean; evidence: string | null }> || [])
-      .filter((rs) => rs.skills?.name).map((rs) => ({ name: rs.skills.name, claimed: rs.is_claimed_by_user, needsReview: rs.needs_review, evidence: cvEvidence(rs.evidence) }));
+    const details = normalizeResumeSkills((r.resume_skills as unknown as Array<{ skills: { name: string }; is_claimed_by_user: boolean; needs_review: boolean; evidence: string | null }> || [])
+      .filter((rs) => rs.skills?.name).map((rs) => ({ name: rs.skills.name, claimed: rs.is_claimed_by_user, needsReview: rs.needs_review, evidence: cvEvidence(rs.evidence) })));
 
     const headers = new Headers();
     headers.set("Cache-Control", "private, no-store, must-revalidate");

@@ -7,6 +7,12 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 
+def redact_contact_details(text: str) -> str:
+    """Deskripsi pekerjaan yang disimpan tidak memuat email/nomor kontak pihak ketiga."""
+    text = re.sub(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+", "[email redacted]", text)
+    return re.sub(r"(?<!\w)(?:\+?62|08)[\d -]{8,15}\d(?!\w)", "[phone redacted]", text)
+
+
 def clean_html_text(raw_html_or_text: str) -> str:
     """Membersihkan dokumen HTML dan menormalkan teks deskripsi lowongan.
     
@@ -42,7 +48,7 @@ def clean_html_text(raw_html_or_text: str) -> str:
     text = re.sub(r"[ \t]+", " ", text)
     text = re.sub(r" ?\n ?", "\n", text)
     text = re.sub(r"\n\s*\n\s*\n+", "\n\n", text)
-    return normalize_bullets(text).strip()
+    return redact_contact_details(normalize_bullets(text).strip())
 
 
 def normalize_bullets(text: str) -> str:

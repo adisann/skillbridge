@@ -1,4 +1,5 @@
 import { JOB_CATEGORIES } from "@/lib/job-categories";
+import { JOB_LEVELS } from "@/lib/job-level";
 
 export interface FilterState {
   role: string; // Bidang slug or 'all'
@@ -46,10 +47,7 @@ const SALARY_OPTIONS = [
 
 const SENIORITY_OPTIONS = [
   { label: "Semua Level", value: "all" },
-  { label: "Junior / Entry", value: "Junior" },
-  { label: "Mid-level", value: "Mid" },
-  { label: "Senior", value: "Senior" },
-  { label: "Lead", value: "Lead" },
+  ...JOB_LEVELS.map(({ label, value }) => ({ label, value })),
 ];
 
 const LOCATION_OPTIONS = [

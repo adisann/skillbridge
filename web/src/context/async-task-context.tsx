@@ -11,6 +11,8 @@ import React, {
 } from "react";
 import { Loader2, CheckCircle2, AlertCircle, X, ArrowRight, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/supabase/auth-context";
+import { persistedTaskNotifications } from "@/lib/async-task-persistence";
 
 type AsyncTaskStatus = "running" | "success" | "error";
 
@@ -61,14 +63,15 @@ interface AsyncTaskContextType {
   showToast: (message: string, type?: Toast["type"]) => void;
 }
 
-const STORAGE_KEY = "skillbridge_async_tasks_v2";
+const STORAGE_PREFIX = "skillbridge_async_tasks_v3";
+const LEGACY_STORAGE_KEY = "skillbridge_async_tasks_v2";
 
 const AsyncTaskContext = createContext<AsyncTaskContextType | undefined>(undefined);
 
-function getInitialTasks(): AsyncTask[] {
-  if (typeof window === "undefined") return [];
+function getInitialTasks(ownerKey: string): AsyncTask[] {
+  if (typeof window === "undefined" || ownerKey === "loading") return [];
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
+    const saved = localStorage.getItem(`${STORAGE_PREFIX}_${ownerKey}`);
     if (!saved) return [];
     const parsed: AsyncTask[] = JSON.parse(saved);
     const now = Date.now();
@@ -81,7 +84,13 @@ function getInitialTasks(): AsyncTask[] {
 }
 
 export function AsyncTaskProvider({ children }: { children: ReactNode }) {
-  const [tasks, setTasks] = useState<AsyncTask[]>(getInitialTasks);
+  const { user, isLoading } = useAuth();
+  const ownerKey = isLoading ? "loading" : user?.id || "guest";
+  return <AsyncTaskSession key={ownerKey} ownerKey={ownerKey}>{children}</AsyncTaskSession>;
+}
+
+function AsyncTaskSession({ children, ownerKey }: { children: ReactNode; ownerKey: string }) {
+  const [tasks, setTasks] = useState<AsyncTask[]>(() => getInitialTasks(ownerKey));
   const [toasts, setToasts] = useState<Toast[]>([]);
   const nextToastId = React.useRef(0);
 
@@ -99,21 +108,15 @@ export function AsyncTaskProvider({ children }: { children: ReactNode }) {
     if (typeof window === "undefined") return;
 
     try {
-      // Simpan maksimal 10 tugas terakhir (tanpa menyertakan data fungsi onClick)
-      const serializableTasks = tasks.slice(0, 10).map((t) => ({
-        ...t,
-        action: t.action
-          ? {
-              label: t.action.label,
-              url: t.action.url,
-            }
-          : undefined,
-      }));
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(serializableTasks));
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+      if (ownerKey === "loading") return;
+      // Hasil CV/payload tugas hanya ada di memori. Persistensi hanya metadata notifikasi.
+      const serializableTasks = persistedTaskNotifications(tasks);
+      localStorage.setItem(`${STORAGE_PREFIX}_${ownerKey}`, JSON.stringify(serializableTasks));
     } catch (e) {
       console.warn("[AsyncTask] Gagal menyimpan state ke localStorage:", e);
     }
-  }, [tasks]);
+  }, [tasks, ownerKey]);
 
   // 3. Hapus toast tugas tertentu
   const dismissTask = useCallback((id: string) => {

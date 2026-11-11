@@ -104,7 +104,7 @@ export function JobComparisonModal({ jobs, isOpen, onClose, onUpdateStage }: Job
               <Row label="Kecocokan CV">
                 {jobs.map((job) => (
                   <td key={job.id} className="px-stack-md py-stack-md">
-                    <MatchScore status={job.matchStatus} score={job.matchScore} size="lg" />
+                    <MatchScore status={job.matchStatus} reason={job.matchStatusReason} score={job.matchScore} size="lg" />
                     {bestScore !== null && job.matchScore === bestScore && (
                       <span className="mt-stack-xs inline-block text-xs font-semibold text-sb-good">Paling cocok</span>
                     )}

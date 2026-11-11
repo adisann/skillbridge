@@ -1,10 +1,10 @@
 // Uji SQL migrasi career/learning di database sementara (PGlite), dijalankan dari root repo:
-//   npm install --prefix .tmp-ux-checks --no-package-lock --no-save @electric-sql/pglite
+//   npm install --prefix worker/.local-checks --no-package-lock --no-save @electric-sql/pglite
 //   node supabase/tests/run-career-learning.mjs
 process.on('uncaughtException', e => { console.error(e.message, e.where); process.exit(1); });
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-const { PGlite } = await import(pathToFileURL(resolve(process.env.PGLITE_MODULE_PATH || '.tmp-ux-checks/node_modules/@electric-sql/pglite/dist/index.js')).href);
+const { PGlite } = await import(pathToFileURL(resolve(process.env.PGLITE_MODULE_PATH || 'worker/.local-checks/node_modules/@electric-sql/pglite/dist/index.js')).href);
 import { readFileSync } from 'node:fs';
 const db = new PGlite();
 await db.exec(`create role anon; create role authenticated; create schema auth;
@@ -14,6 +14,11 @@ let base = readFileSync('supabase/migrations/20261103000000_init_skillbridge_sch
 // Vector search is unrelated to these tests; PGlite uses text for the unused embedding.
 base = base.replace(/create extension[^;]+;/g,'').replace('embedding vector(768)', 'embedding text').replace(/create index[^;]+using hnsw[^;]+;/g,'');
 await db.exec(base);
+await db.exec(readFileSync('supabase/migrations/20261104000003_ai_chat_cache.sql','utf8'));
+await db.exec(readFileSync('supabase/migrations/20261106000002_security_hardening.sql','utf8'));
+await db.exec(readFileSync('supabase/migrations/20261111000000_private_chat_cache.sql','utf8'));
+await db.exec(readFileSync('supabase/migrations/20261111000001_signup_default_user.sql','utf8'));
+await db.exec(readFileSync('supabase/tests/signup_permissions.sql','utf8'));
 await db.exec(`alter table resumes add column gpa numeric;
 grant usage on schema public, auth to authenticated, anon;
 grant all on all tables in schema public to authenticated;
@@ -28,9 +33,10 @@ insert into saved_jobs(user_id,job_id) values('00000000-0000-0000-0000-000000000
 insert into skills(name,category) values('PostgreSQL','Data'),('SQL','Data');
 insert into skill_aliases(alias,skill_id) select 'postgres',id from skills where name='PostgreSQL';`);
 await db.exec(readFileSync('supabase/migrations/20261108000000_career_learning_ux.sql','utf8'));
+await db.exec(readFileSync('supabase/tests/chat_cache_access.sql','utf8'));
 await db.exec(readFileSync('supabase/tests/career_learning_ux.sql','utf8'));
 await db.exec(`set role authenticated; select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000001',false);`);
 const results = await Promise.all(Array.from({ length: 20 }, () => db.query(`select (public.add_learning_item('Concurrent skill','','Tinggi','')).id`)));
 if (new Set(results.map(r => r.rows[0].id)).size !== 1) throw new Error('Parallel calls created different items');
-console.log('PASS: migration, legacy preservation, idempotence, aliases, CV context, durations, rollback, RLS');
+console.log('PASS: signup permissions, chat cache isolation, migration, legacy preservation, idempotence, aliases, CV context, durations, rollback, RLS');
 await db.close();

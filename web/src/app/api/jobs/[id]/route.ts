@@ -1,11 +1,10 @@
 import { displayCompany, isDemoJob } from "@/lib/demo-jobs";
-import { jobExperienceYears } from "@/lib/job-experience";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 import { calculateJobMatch, getDisplayScore } from "@/lib/matching";
 import { getCategoryFromTitle } from "@/lib/job-categories";
-import { loadCandidateProfile } from "@/lib/candidate-profile";
-import { splitJobSkills, type JobSkillRow } from "@/lib/job-skills";
+import { loadCandidateProfile, toMatchCandidate } from "@/lib/candidate-profile";
+import { toMatchJob } from "@/lib/job-skills";
 
 export async function GET(
   req: NextRequest,
@@ -27,33 +26,10 @@ export async function GET(
     }
 
     // 2. Ambil resume aktif pengguna jika terautentikasi
-    const {
-      activeResume,
-      skills: candidateSkills,
-      years: candidateYears,
-      education: candidateEdu,
-      gpa: candidateGpa,
-      targetRole, claimedSkills, reviewSkills, evidence,
-    } = await loadCandidateProfile(supabase, user?.id ?? null);
-
-    const { required: reqSkills, preferred: prefSkills } = splitJobSkills(
-      job.job_skills as unknown as JobSkillRow[] | null
-    );
-
-    // Hitung live hybrid matching
-    const liveMatch = calculateJobMatch(
-      { skills: candidateSkills, experienceYears: candidateYears, education: candidateEdu, gpa: candidateGpa, targetRole, claimedSkills, reviewSkills, evidence },
-      {
-        title: job.title,
-        canonicalTitle: job.canonical_title,
-        requiredSkills: reqSkills,
-        preferredSkills: prefSkills,
-        experienceYearsMin: jobExperienceYears(job.experience_years_min, job.description),
-        education: job.education || null,
-        minGpa: job.min_gpa ?? null,
-        seniority: job.seniority || null,
-      }
-    );
+    const candidate = await loadCandidateProfile(supabase, user?.id ?? null);
+    const { activeResume } = candidate;
+    const matchJob = toMatchJob(job);
+    const liveMatch = calculateJobMatch(toMatchCandidate(candidate), matchJob);
 
     const jobCat = getCategoryFromTitle(job.title, job.canonical_title);
     const correctedCanonicalTitle =
@@ -75,9 +51,9 @@ export async function GET(
         company: displayCompany(job.company),
         location: job.location,
         employmentType: job.employment_type,
-        seniority: job.seniority || "Mid",
-        experienceYearsMin: jobExperienceYears(job.experience_years_min, job.description),
-        education: job.education || "Bachelor",
+        seniority: job.seniority || "",
+        experienceYearsMin: matchJob.experienceYearsMin,
+        education: matchJob.education,
         salaryMin: job.salary_min ?? null,
         salaryMax: job.salary_max ?? null,
         salaryCurrency: job.salary_currency ?? null,
@@ -92,12 +68,13 @@ export async function GET(
         retrievedAt: job.retrieved_at,
         expiresAt: job.expires_at || null,
         deadline: job.expires_at || null,
-        requiredSkills: reqSkills,
-        preferredSkills: prefSkills,
+        requiredSkills: matchJob.requiredSkills,
+        preferredSkills: matchJob.preferredSkills,
         matchScore: activeResume ? getDisplayScore(liveMatch) : null,
         matchStatus: activeResume ? liveMatch.matchStatus : "insufficient_evidence",
+        matchStatusReason: activeResume ? liveMatch.matchStatusReason : "cv_data_incomplete",
         matchedSkills: activeResume ? liveMatch.matchedSkills : [],
-        missingSkills: activeResume ? liveMatch.missingSkills : reqSkills,
+        missingSkills: activeResume ? liveMatch.missingSkills : matchJob.requiredSkills,
         unprovenSkills: activeResume ? liveMatch.unprovenSkills : [],
         factorsSupporting: activeResume ? liveMatch.factorsSupporting : isDemo ? [] : ["Lowongan aktif dari sumber yang tercantum."],
         factorsLimiting: activeResume ? liveMatch.factorsLimiting : ["CV belum terunggah. Unggah CV untuk mengevaluasi kecocokan."],

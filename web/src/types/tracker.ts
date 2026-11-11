@@ -19,6 +19,7 @@ export interface TrackedJob {
   sourceUrl?: string;
   matchScore: number;
   matchStatus: "match" | "underqualified" | "potentially_overqualified" | "insufficient_evidence";
+  matchStatusReason?: "job_data_incomplete" | "cv_data_incomplete" | null;
   matchedSkills: string[];
   missingSkills: string[];
   stage: JobStage;

@@ -69,7 +69,7 @@ export function TrackerBoard({
                       </Link>
                       <p className="text-[11px] font-semibold text-sb-text-2">{job.company}</p>
                     </div>
-                    <MatchScore status={job.matchStatus} score={job.matchScore} />
+                    <MatchScore status={job.matchStatus} reason={job.matchStatusReason} score={job.matchScore} />
                   </div>
 
                   {/* Priority Rating */}

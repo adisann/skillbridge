@@ -5,6 +5,20 @@ import { displayLearningPriority, normalizeSkillName, noteSegments } from "../sr
 import { cvEvidence } from "../src/lib/cv-evidence.ts";
 import { calculateJobMatch } from "../src/lib/matching.ts";
 import { fetchDeduped, clearDedupedCache } from "../src/lib/fetcher.ts";
+import { persistedTaskNotifications } from "../src/lib/async-task-persistence.ts";
+
+test("Notifikasi persisten tidak menyimpan payload CV, signed URL, callback, atau tugas berjalan", () => {
+  const task = { id: "task", type: "cv", title: "CV selesai diproses", status: "success" as const, startedAt: 1,
+    data: { parsedText: "PRIVATE CV PAYLOAD", presignedUrl: "https://storage.example.test/?signature=PRIVATE" },
+    action: { label: "Tinjau CV", url: "/cv", onClick: () => {} } };
+  const stored = persistedTaskNotifications([task, { ...task, id: "running", status: "running" }]);
+  equal(stored.length, 1);
+  const serialized = JSON.stringify(stored);
+  ok(!serialized.includes("PRIVATE"));
+  ok(!serialized.includes("parsedText"));
+  ok(!serialized.includes("onClick"));
+  equal(stored[0].action?.url, "/cv");
+});
 
 test("Durasi pengalaman mempertahankan bulan, nol, dan nilai kosong", () => {
   equal(experienceInYears("0", "6"), 0.5);
@@ -28,13 +42,16 @@ test("Matching menggunakan 6 bulan dan meredistribusi pengalaman yang belum diis
   ok(calc(0.5).factorsLimiting.some((f) => f.includes("0 tahun 6 bulan")));
 });
 
-test("Klaim mandiri dan hasil ekstraksi belum ditinjau tidak dinyatakan sebagai bukti CV", () => {
-  for (const source of ["claimedSkills", "reviewSkills"]) {
-    const match = calculateJobMatch({ skills: ["SQL", "Python"], experienceYears: 1, [source]: ["SQL"] }, { title: "Analyst", requiredSkills: ["SQL"] });
-    equal(match.requirementsEvaluation[0].status, "belum_cukup_bukti");
-    ok(!match.matchedSkills.includes("SQL"));
-    ok(!match.requirementsEvaluation[0].evidence.includes("Tercantum pada"));
-  }
+test("Skill tambahan pengguna dihitung cocok, hasil ekstraksi belum ditinjau tidak", () => {
+  const job = { title: "Analyst", requiredSkills: ["SQL"] };
+  const added = calculateJobMatch({ skills: ["SQL", "Python"], experienceYears: 1, claimedSkills: ["SQL"] }, job);
+  equal(added.requirementsEvaluation[0].status, "cocok");
+  ok(added.requirementsEvaluation[0].addedByUser);
+  ok(added.matchedSkills.includes("SQL"));
+
+  const pending = calculateJobMatch({ skills: ["SQL", "Python"], experienceYears: 1, reviewSkills: ["SQL"] }, job);
+  equal(pending.requirementsEvaluation[0].status, "belum_cukup_bukti");
+  ok(!pending.matchedSkills.includes("SQL"));
 });
 
 test("Identitas manual dan label prioritas lama dibaca tanpa menyatukan skill berbeda", () => {

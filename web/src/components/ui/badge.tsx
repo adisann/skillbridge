@@ -7,7 +7,8 @@ import {
   XCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { MATCH_STATUS_LABELS } from "@/lib/matching-config";
+import { MATCH_STATUS_LABELS, getMatchStatusLabel } from "@/lib/matching-config";
+import type { MatchStatusReason } from "@/lib/matching";
 
 // -----------------------------------------------------------------------------
 // Match Status Badge
@@ -20,12 +21,13 @@ export type MatchStatus =
 
 interface MatchBadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   status: MatchStatus;
+  reason?: MatchStatusReason | null;
   score?: number | null;
   size?: "sm" | "md" | "lg";
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function MatchBadge({ status, score, size = "md", className, ...props }: MatchBadgeProps) {
+export function MatchBadge({ status, reason, score, size = "md", className, ...props }: MatchBadgeProps) {
   const sizeClasses =
     size === "sm"
       ? "px-stack-xs py-stack-3xs text-xs gap-stack-2xs"
@@ -82,7 +84,7 @@ export function MatchBadge({ status, score, size = "md", className, ...props }: 
       {...props}
     >
       {current.icon}
-      <span className="min-w-0">{current.label}</span>
+      <span className="min-w-0">{getMatchStatusLabel(status, reason)}</span>
     </span>
   );
 }

@@ -26,11 +26,9 @@ test("API Authentication and Role Protection Tests", async (t) => {
   }
 
   // 1. Tes Unauthenticated Request -> 401
-  await t.test("Semua route user terproteksi menolak unauthenticated request dengan status 401", async () => {
+  await t.test("Semua route user terproteksi menolak unauthenticated request dengan status 401", async (context) => {
     if (!baseUrl) {
-      // Mock test jika offline
-      assert.ok(true, "Server offline, melewati pengujian live HTTP");
-      return;
+      return context.skip("Server lokal tidak aktif; uji HTTP tidak dijalankan.");
     }
 
     const endpoints = [
@@ -63,10 +61,9 @@ test("API Authentication and Role Protection Tests", async (t) => {
   });
 
   // 2. Tes Admin Route tanpa Autentikasi -> 401
-  await t.test("Semua route admin menolak unauthenticated request dengan status 401", async () => {
+  await t.test("Semua route admin menolak unauthenticated request dengan status 401", async (context) => {
     if (!baseUrl) {
-      assert.ok(true, "Server offline, melewati pengujian live HTTP");
-      return;
+      return context.skip("Server lokal tidak aktif; uji HTTP tidak dijalankan.");
     }
 
     const adminEndpoints = [
@@ -91,7 +88,7 @@ test("API Authentication and Role Protection Tests", async (t) => {
   });
 
   // 3. Tes Hak Akses Admin (403 untuk Non-Admin, 200 untuk Admin)
-  await t.test("Route admin menolak user non-admin (403) dan mengizinkan admin resmi (200)", async () => {
+  await t.test("Route admin menolak user non-admin (403) dan mengizinkan admin resmi (200)", async (context) => {
     // Ambil kredensial dari process.env jika tersedia
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -99,10 +96,11 @@ test("API Authentication and Role Protection Tests", async (t) => {
     // Kata sandi akun uji tidak disimpan di repo: berikan lewat env saat menjalankan uji integrasi.
     const juriPassword = process.env.TEST_JURI_PASSWORD;
     const adminPassword = process.env.TEST_ADMIN_PASSWORD;
+    const juriEmail = process.env.TEST_JURI_EMAIL;
+    const adminEmail = process.env.TEST_ADMIN_EMAIL;
 
-    if (!baseUrl || !supabaseUrl || !anonKey || !juriPassword || !adminPassword) {
-      assert.ok(true, "Kredensial Supabase / server tidak tersedia di runner, uji simulasi logika RBAC");
-      return;
+    if (!baseUrl || !supabaseUrl || !anonKey || !juriPassword || !adminPassword || !juriEmail || !adminEmail) {
+      return context.skip("Akun integrasi admin/non-admin belum dikonfigurasi lewat env.");
     }
 
     const { createClient } = await import("@supabase/supabase-js");
@@ -110,11 +108,13 @@ test("API Authentication and Role Protection Tests", async (t) => {
 
     // Login sebagai Juri (Non-Admin)
     const { data: juriAuth, error: juriErr } = await supabase.auth.signInWithPassword({
-      email: "juri@skillbridge.id",
+      email: juriEmail,
       password: juriPassword,
     });
 
-    if (!juriErr && juriAuth?.session?.access_token) {
+    assert.equal(juriErr, null, "Login akun non-admin untuk pengujian harus berhasil");
+    assert.ok(juriAuth.session?.access_token);
+    {
       const res: Response = await fetch(`${baseUrl}/api/admin/skills`, {
         headers: {
           Authorization: `Bearer ${juriAuth.session.access_token}`,
@@ -133,11 +133,13 @@ test("API Authentication and Role Protection Tests", async (t) => {
 
     // Login sebagai Admin Resmi
     const { data: adminAuth, error: adminErr } = await supabase.auth.signInWithPassword({
-      email: "admin@skillbridge.id",
+      email: adminEmail,
       password: adminPassword,
     });
 
-    if (!adminErr && adminAuth?.session?.access_token) {
+    assert.equal(adminErr, null, "Login akun admin untuk pengujian harus berhasil");
+    assert.ok(adminAuth.session?.access_token);
+    {
       const res: Response = await fetch(`${baseUrl}/api/admin/skills`, {
         headers: {
           Authorization: `Bearer ${adminAuth.session.access_token}`,
@@ -155,30 +157,5 @@ test("API Authentication and Role Protection Tests", async (t) => {
     }
   });
 
-  // 4. Pengujian Keamanan SSRF pada Impor Tautan Admin
-  await t.test("Proteksi SSRF pada import-link menolak IP internal/privat", () => {
-    function isInternalOrPrivateHost(hostname: string): boolean {
-      const lower = hostname.toLowerCase();
-      if (lower === "localhost" || lower.endsWith(".local") || lower.endsWith(".internal")) {
-        return true;
-      }
-      if (
-        lower === "127.0.0.1" ||
-        lower.startsWith("10.") ||
-        lower.startsWith("192.168.") ||
-        lower.startsWith("169.254.")
-      ) {
-        return true;
-      }
-      return false;
-    }
-
-    assert.equal(isInternalOrPrivateHost("localhost"), true, "localhost harus ditolak");
-    assert.equal(isInternalOrPrivateHost("127.0.0.1"), true, "127.0.0.1 harus ditolak");
-    assert.equal(isInternalOrPrivateHost("10.0.0.1"), true, "IP 10.x privat harus ditolak");
-    assert.equal(isInternalOrPrivateHost("192.168.1.1"), true, "IP 192.168.x harus ditolak");
-    assert.equal(isInternalOrPrivateHost("169.254.169.254"), true, "Metadata link-local harus ditolak");
-    assert.equal(isInternalOrPrivateHost("greenhouse.io"), false, "Domain publik diperbolehkan");
-    assert.equal(isInternalOrPrivateHost("jobstreet.co.id"), false, "Domain publik diperbolehkan");
-  });
+  // SSRF memakai fungsi produksi dan mock jaringan di job-import.test.ts.
 });

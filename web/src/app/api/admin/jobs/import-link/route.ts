@@ -4,53 +4,9 @@ import { extractJobFromText } from "@/lib/ai/extractor";
 import { enforceRateLimits } from "@/lib/rate-limit";
 import { adminAiImportRules } from "@/lib/rate-limit-policies";
 import { readJobStreetPosting } from "@/lib/jobstreet-posting";
+import { fetchPublicJobPage, isSafePublicJobUrl, PublicJobUrlError } from "@/lib/public-job-fetch";
 
 export const maxDuration = 30;
-
-function isSafePublicUrl(urlString: string): { isSafe: boolean; reason?: string } {
-  try {
-    const parsed = new URL(urlString);
-    if (!["http:", "https:"].includes(parsed.protocol)) {
-      return { isSafe: false, reason: "Protokol harus HTTP atau HTTPS." };
-    }
-
-    const hostname = parsed.hostname.toLowerCase();
-
-    // 1. Blokir loopback dan hostname privat
-    if (
-      hostname === "localhost" ||
-      hostname.endsWith(".localhost") ||
-      hostname.endsWith(".local") ||
-      hostname.endsWith(".internal") ||
-      hostname === "0.0.0.0" ||
-      hostname === "::1"
-    ) {
-      return { isSafe: false, reason: "Akses ke jaringan lokal atau loopback diblokir demi keamanan (SSRF Protection)." };
-    }
-
-    // 2. Blokir alamat IP privat IPv4 & Cloud Metadata (169.254.169.254)
-    const ipMatch = hostname.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
-    if (ipMatch) {
-      const b0 = parseInt(ipMatch[1], 10);
-      const b1 = parseInt(ipMatch[2], 10);
-
-      if (
-        b0 === 127 || // 127.0.0.0/8 Loopback
-        b0 === 10 ||  // 10.0.0.0/8 Private
-        b0 === 0 ||   // 0.0.0.0/8
-        (b0 === 172 && b1 >= 16 && b1 <= 31) || // 172.16.0.0/12 Private
-        (b0 === 192 && b1 === 168) || // 192.168.0.0/16 Private
-        (b0 === 169 && b1 === 254)    // 169.254.0.0/16 Link-local / Cloud metadata
-      ) {
-        return { isSafe: false, reason: "Akses ke alamat IP privat atau cloud metadata diblokir demi keamanan (SSRF Protection)." };
-      }
-    }
-
-    return { isSafe: true };
-  } catch {
-    return { isSafe: false, reason: "Format URL tidak valid." };
-  }
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -70,7 +26,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Validasi SSRF
-    const safetyCheck = isSafePublicUrl(url);
+    const safetyCheck = isSafePublicJobUrl(url);
     if (!safetyCheck.isSafe) {
       return NextResponse.json({ error: safetyCheck.reason || "URL ditolak demi keamanan server." }, { status: 400 });
     }
@@ -81,7 +37,7 @@ export async function POST(req: NextRequest) {
 
     let html = "";
     try {
-      const res = await fetch(url, {
+      const res = await fetchPublicJobPage(url, {
         headers: {
           "User-Agent":
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
@@ -100,6 +56,9 @@ export async function POST(req: NextRequest) {
 
       html = await res.text();
     } catch (fetchErr: unknown) {
+      if (fetchErr instanceof PublicJobUrlError) {
+        return NextResponse.json({ error: fetchErr.message }, { status: 400 });
+      }
       const isAbort = fetchErr instanceof Error && fetchErr.name === "AbortError";
       return NextResponse.json(
         {

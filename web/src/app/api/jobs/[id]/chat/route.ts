@@ -1,4 +1,3 @@
-import { jobExperienceYears } from "@/lib/job-experience";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 import {
@@ -18,8 +17,8 @@ import {
 } from "@/lib/ai/cache";
 import { ActiveJobContext, CandidateCVContext, ChatMessage } from "@/lib/ai/types";
 import { calculateJobMatch, getDisplayScore } from "@/lib/matching";
-import { loadCandidateProfile } from "@/lib/candidate-profile";
-import { splitJobSkills, type JobSkillRow } from "@/lib/job-skills";
+import { loadCandidateProfile, toMatchCandidate } from "@/lib/candidate-profile";
+import { toMatchJob } from "@/lib/job-skills";
 
 const MAX_MESSAGE_CHARS = 500;
 const MAX_HISTORY_MESSAGES = 6;
@@ -121,9 +120,8 @@ export async function POST(
       );
     }
 
-    const { required: reqSkills, preferred: prefSkills } = splitJobSkills(
-      job.job_skills as unknown as JobSkillRow[] | null
-    );
+    const matchJob = toMatchJob(job);
+    const { requiredSkills: reqSkills, preferredSkills: prefSkills } = matchJob;
 
     const jobContext: ActiveJobContext = {
       id: job.id,
@@ -133,7 +131,7 @@ export async function POST(
       location: job.location,
       employmentType: job.employment_type || "Full-time",
       seniority: job.seniority || "Tidak dirinci",
-      experienceYearsMin: jobExperienceYears(job.experience_years_min, job.description),
+      experienceYearsMin: matchJob.experienceYearsMin,
       education: job.education,
       minGpa: job.min_gpa ?? null,
       salaryMin: job.salary_min ?? null,
@@ -197,28 +195,8 @@ export async function POST(
         );
       }
 
-      const candidateSkills = candidate.skills;
-      const candidateGpa = candidate.gpa;
       const { data: profile } = await supabase.from("profiles").select("full_name").eq("id", user.id).maybeSingle();
-      const liveMatch = calculateJobMatch(
-        {
-          skills: candidateSkills,
-          experienceYears: candidate.years,
-          education: candidate.education,
-          gpa: candidateGpa,
-          targetRole: candidate.targetRole, claimedSkills: candidate.claimedSkills, reviewSkills: candidate.reviewSkills, evidence: candidate.evidence,
-        },
-        {
-          title: job.title,
-          canonicalTitle: job.canonical_title,
-          requiredSkills: reqSkills,
-          preferredSkills: prefSkills,
-          experienceYearsMin: jobExperienceYears(job.experience_years_min, job.description),
-          education: job.education || null,
-          minGpa: job.min_gpa ?? null,
-          seniority: job.seniority || null,
-        }
-      );
+      const liveMatch = calculateJobMatch(toMatchCandidate(candidate), matchJob);
 
       candidateCv = {
         userId: user.id,
@@ -227,8 +205,8 @@ export async function POST(
         targetRole: candidate.targetRole,
         experienceYears: candidate.years,
         education: candidate.education,
-        gpa: candidateGpa,
-        skills: candidateSkills.filter((s) => !candidate.claimedSkills.includes(s) && !candidate.reviewSkills.includes(s)),
+        gpa: candidate.gpa,
+        skills: candidate.skills.filter((s) => !candidate.claimedSkills.includes(s) && !candidate.reviewSkills.includes(s)),
         claimedSkills: candidate.claimedSkills, reviewSkills: candidate.reviewSkills,
         matchScore: getDisplayScore(liveMatch) ?? undefined,
         matchStatus: liveMatch.matchStatus,
@@ -238,13 +216,13 @@ export async function POST(
       };
 
       // 4A. Check CV Analysis Cache
-      const cachedCvResponse = await getCvAnalysisCache(
+      const cachedCvResponse = history.length === 0 ? await getCvAnalysisCache(
         user.id,
         String(activeResume.id),
         job.id,
         `${jobContext.contentHash}:${activeResume.id}:${activeResume.updated_at}:${candidate.targetRole}`,
         trimmedMessage
-      );
+      ) : null;
 
       if (cachedCvResponse) {
         return createInstantStreamResponse(
@@ -258,11 +236,11 @@ export async function POST(
       }
     } else {
       // 4B. Check Job Knowledge Cache (Public across users)
-      const cachedJobResponse = await getJobKnowledgeCache(
+      const cachedJobResponse = history.length === 0 ? await getJobKnowledgeCache(
         job.id,
         jobContext.contentHash,
         trimmedMessage
-      );
+      ) : null;
 
       if (cachedJobResponse) {
         return createInstantStreamResponse(
@@ -338,7 +316,7 @@ export async function POST(
 
           // 7. Store Safe Results into Cache if response is valid
           if (
-            fullText &&
+            fullText && history.length === 0 &&
             !fullText.includes("sedang tidak tersedia atau mengalami gangguan") &&
             !req.signal.aborted
           ) {

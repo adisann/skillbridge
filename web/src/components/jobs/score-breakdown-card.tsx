@@ -43,8 +43,8 @@ function BreakdownItem({ entry }: { entry: ScoreBreakdownEntry }) {
           style={{ width: isAvailable ? `${displayScore}%` : "0%" }}
         />
       </div>
-      <p className="text-[10px] text-sb-text-2/70 truncate">
-        {isAvailable ? entry.notes || "Dievaluasi dari CV" : "Tidak disyaratkan di lowongan"}
+      <p className="text-[11px] text-sb-text-2">
+        {entry.notes || (isAvailable ? "Dievaluasi dari CV" : "Data belum tersedia untuk dibandingkan")}
       </p>
     </div>
   );
@@ -61,6 +61,8 @@ export function ScoreBreakdownCard({ breakdown }: { breakdown: ScoreBreakdownEnt
           </CardTitle>
           <p className="text-xs text-sb-text-2">
             Skor menunjukkan kecocokan CV dengan persyaratan, bukan peluang diterima.
+            {" "}Warna mengikuti status syarat wajib, bukan tinggi rendahnya skor. Bobot komponen tanpa data dibagi ke komponen yang tersedia.
+            {" "}Skill yang perlu bukti belum mendapat poin. Skill tambahan memengaruhi skor, tetapi tidak menggagalkan syarat wajib yang sudah cocok.
           </p>
         </div>
       </CardHeader>

@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import type { TrackedJob } from "@/types/tracker";
-import { MATCH_STATUS_LABELS } from "@/lib/matching-config";
+import { getMatchStatusLabel } from "@/lib/matching-config";
 
 const TONE: Record<TrackedJob["matchStatus"], { text: string; bar: string }> = {
   match: { text: "text-sb-good", bar: "bg-sb-good" },
@@ -13,10 +13,12 @@ const TONE: Record<TrackedJob["matchStatus"], { text: string; bar: string }> = {
 export function MatchScore({
   score,
   status,
+  reason,
   size = "md",
 }: {
   score: number | null | undefined;
   status: TrackedJob["matchStatus"];
+  reason?: TrackedJob["matchStatusReason"];
   size?: "md" | "lg";
 }) {
   const hasScore = status !== "insufficient_evidence" && typeof score === "number" && Number.isFinite(score) && score >= 0;
@@ -32,7 +34,7 @@ export function MatchScore({
       <div className="h-1.5 w-full rounded-full bg-sb-mist-soft overflow-hidden" aria-hidden="true">
         <div className={cn("h-full rounded-full", tone.bar)} style={{ width: `${value ?? 0}%` }} />
       </div>
-      <span className={cn("font-semibold leading-snug", size === "lg" ? "text-sm" : "text-xs", tone.text)}>{MATCH_STATUS_LABELS[status]}</span>
+      <span className={cn("font-semibold leading-snug", size === "lg" ? "text-sm" : "text-xs", tone.text)}>{getMatchStatusLabel(status, reason)}</span>
     </div>
   );
 }

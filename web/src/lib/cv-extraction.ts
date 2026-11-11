@@ -4,13 +4,21 @@
  * File ini sengaja tanpa import alias "@/" agar bisa diuji langsung dengan node --test.
  */
 
+import { HSK_SKILL_RULES, MANDARIN_SKILL_RULE, JAPANESE_SKILL_RULE, JLPT_SKILL_RULES, languageFamily, languageQualification } from "./language-skills.ts";
+import { TRANSLATED_SKILL_RULES, canonicalSkillLabel } from "./skill-taxonomy.ts";
+
 interface SkillRule {
   name: string;
   regex: RegExp;
 }
 
 // Taksonomi aturan regex dengan boundary kata (mencegah salah deteksi huruf tunggal seperti 'r')
-export const SKILL_RULES: SkillRule[] = [
+const BASE_SKILL_RULES: SkillRule[] = [
+  MANDARIN_SKILL_RULE,
+  ...HSK_SKILL_RULES,
+  JAPANESE_SKILL_RULE,
+  ...JLPT_SKILL_RULES,
+  ...TRANSLATED_SKILL_RULES,
   { name: "Python", regex: /\b(python|python3|py)\b/i },
   { name: "SQL", regex: /\b(sql|pl\/sql)\b/i },
   { name: "PostgreSQL", regex: /\b(postgresql|postgres)\b/i },
@@ -39,7 +47,8 @@ export const SKILL_RULES: SkillRule[] = [
   { name: "Statistics", regex: /\b(statistics|statistika|statistical)\b/i },
   { name: "Project Management", regex: /\b(project\s*management|manajemen\s*proyek)\b/i },
   { name: "ETL", regex: /\b(etl|data\s*pipeline)\b/i },
-  { name: "BigQuery", regex: /\b(bigquery|google\s*bigquery)\b/i },
+  { name: "BigQuery", regex: /\b(?:google\s+)?big\s*query\b/i },
+  { name: "SPSS", regex: /\b(?:ibm\s+)?spss\b/i },
   { name: "Snowflake", regex: /\b(snowflake)\b/i },
   { name: "dbt", regex: /\b(dbt|data\s*build\s*tool)\b/i },
   { name: "Metabase", regex: /\b(metabase)\b/i },
@@ -47,8 +56,17 @@ export const SKILL_RULES: SkillRule[] = [
   { name: "R", regex: /\b(bahasa\s*r|r\s*programming|r-project|rstudio)\b/i },
 ];
 
+export const SKILL_RULES: SkillRule[] = [...BASE_SKILL_RULES.reduce((map, rule) => {
+  const name = canonicalSkillLabel(rule.name);
+  const previous = map.get(name);
+  map.set(name, { name, regex: previous ? new RegExp(`(?:${previous.regex.source})|(?:${rule.regex.source})`, "iu") : rule.regex });
+  return map;
+}, new Map<string, SkillRule>()).values()];
+
 export function detectSkills(text: string): string[] {
-  return SKILL_RULES.filter((rule) => rule.regex.test(text)).map((rule) => rule.name);
+  const skills = [...new Set(SKILL_RULES.filter((rule) => rule.regex.test(text)).map((rule) => canonicalSkillLabel(rule.name)))];
+  const qualifiedLanguages = new Set(skills.flatMap((skill) => languageQualification(skill)?.language ? [languageQualification(skill)!.language] : []));
+  return skills.filter((skill) => languageQualification(skill) || !qualifiedLanguages.has(languageFamily(skill)!));
 }
 
 // ---------------------------------------------------------------------------

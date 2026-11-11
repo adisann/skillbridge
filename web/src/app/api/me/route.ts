@@ -1,4 +1,4 @@
-import { DEMO_USER_EMAIL } from "@/lib/demo-account";
+import { DEFAULT_TARGET_ROLE, isDemoEmail } from "@/lib/demo-account";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser, getServiceSupabase } from "@/lib/supabase/server";
 
@@ -33,8 +33,8 @@ export async function GET(req: NextRequest) {
         user.email?.split("@")[0] ||
         "Pengguna",
       role: (profileRow?.role as "user" | "admin") || (user.app_metadata?.role === "admin" ? "admin" : "user"),
-      targetRole: (profileRow?.target_role as "Data Analyst" | "BI Analyst") || "Data Analyst",
-      isDemo: (user.email || "").toLowerCase() === DEMO_USER_EMAIL,
+      targetRole: profileRow?.target_role || DEFAULT_TARGET_ROLE,
+      isDemo: isDemoEmail(user.email),
     };
 
     return NextResponse.json(

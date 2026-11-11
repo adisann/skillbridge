@@ -1,7 +1,9 @@
+import { getCanonicalSkill } from "./matching-config.ts";
+
 export const LEARNING_PRIORITIES = ["Tinggi", "Sedang", "Rendah"] as const;
 
 export function normalizeSkillName(name: string): string {
-  return name.trim().replace(/\s+/g, " ").toLowerCase();
+  return getCanonicalSkill(name);
 }
 
 // The old UI offered these as priority choices, in descending order.

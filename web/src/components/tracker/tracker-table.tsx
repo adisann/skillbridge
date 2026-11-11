@@ -112,7 +112,7 @@ export function TrackerTable({
 
                   {/* Match Badge */}
                   <td className="py-stack-sm px-stack-sm">
-                    <MatchScore status={job.matchStatus} score={job.matchScore} />
+                    <MatchScore status={job.matchStatus} reason={job.matchStatusReason} score={job.matchScore} />
                   </td>
 
                   {/* Stage Selector */}

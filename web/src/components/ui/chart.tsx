@@ -13,7 +13,6 @@ export interface MarketSkillItem {
   percentage: number; // e.g. 78 -> 78% dari total N
   status: CVSkillStatus | "user_added";
   exampleRequirement?: string;
-  isCustomLearned?: boolean;
 }
 
 interface MarketSkillBarChartProps {
@@ -101,10 +100,15 @@ export function MarketSkillBarChart({
                         <Check className="w-3 h-3 text-sb-good stroke-[2.5]" />
                         Tercantum di CV
                       </span>
-                    ) : (item.status === "needs_verification" || item.status === "user_added") ? (
+                    ) : item.status === "user_added" ? (
+                      <span className="inline-flex items-center gap-stack-2xs px-stack-xs py-stack-3xs rounded-full text-[11px] font-semibold bg-sb-good/10 text-sb-good border border-sb-good/30">
+                        <Check className="w-3 h-3 text-sb-good stroke-[2.5]" />
+                        Ditambahkan oleh pengguna
+                      </span>
+                    ) : item.status === "needs_verification" ? (
                       <span className="inline-flex items-center gap-stack-2xs px-stack-xs py-stack-3xs rounded-full text-[11px] font-semibold bg-sb-warning/15 text-sb-warning border border-sb-warning/30">
                         <AlertCircle className="w-3 h-3 text-sb-warning" />
-                        {item.status === "user_added" ? "Ditambahkan oleh pengguna" : "Perlu verifikasi"}
+                        Perlu verifikasi
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-stack-2xs px-stack-xs py-stack-3xs rounded-full text-[11px] font-semibold bg-sb-mist-soft text-sb-navy border border-sb-border">
@@ -113,11 +117,6 @@ export function MarketSkillBarChart({
                     )
                   )}
 
-                  {isLoggedIn && item.isCustomLearned && (
-                    <span className="text-xs font-semibold px-stack-xs py-stack-3xs rounded-full bg-sb-warning/10 text-sb-warning border border-sb-warning/20">
-                      Diklaim mandiri
-                    </span>
-                  )}
                 </div>
 
                 {/* Kanan: aksi lalu jumlah permintaan (jumlah selalu paling kanan), satu baris dan sejajar tengah */}

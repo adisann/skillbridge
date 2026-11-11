@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
         const mammothResult = await mammoth.extractRawText({ buffer });
         extractedText = mammothResult.value || "";
       } catch (docErr) {
-        console.warn("[Upload] Gagal mengekstrak DOCX via mammoth:", docErr);
+        console.warn("[Upload] Gagal mengekstrak DOCX via mammoth:", docErr instanceof Error ? docErr.name : "UnknownError");
         return NextResponse.json({ error: "DOCX tidak dapat dibaca. Pastikan berkas tidak rusak." }, { status: 422 });
       }
     }

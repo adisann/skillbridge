@@ -14,6 +14,14 @@ def test_clean_html_text():
     assert "Python" in cleaned
 
 
+def test_job_contact_redaction_preserves_requirements():
+    cleaned = clean_html_text("<p>Required: SQL and Python/R. Minimum HSK Level 5.</p><p>Contact recruiter@example.test or +6281234567890</p>")
+    assert "recruiter@example.test" not in cleaned
+    assert "6281234567890" not in cleaned
+    assert "SQL and Python/R" in cleaned
+    assert "Minimum HSK Level 5" in cleaned
+
+
 def test_clean_html_text_unescapes_greenhouse_content():
     escaped = "&lt;div&gt;&lt;p&gt;Analyze data &amp;amp; build dashboards&lt;/p&gt;&lt;ul&gt;&lt;li&gt;SQL&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;"
     cleaned = clean_html_text(escaped)
@@ -36,6 +44,15 @@ def test_normalize_skills():
     skills = ["postgres", "PostgreSQL", "ms excel", "Python"]
     normalized = normalize_skills_list(skills)
     assert normalized == ["PostgreSQL", "Excel", "Python"]
+
+
+def test_translated_skills_are_one_canonical_skill():
+    assert normalize_skills_list(["Statistika", "Statistics", "Statistik", "Data Analysis", "Analisis Data", "Data Analisis"]) == ["Statistics", "Data Analysis"]
+    assert normalize_skill_name("SQL") != normalize_skill_name("PostgreSQL")
+    details = extract_job_details_rule_based("Analyst", "Kualifikasi wajib: Statistika, Analisis Data dan Pemodelan Data.")
+    assert "Statistics" in details.required_skills
+    assert "Data Analysis" in details.required_skills
+    assert "Data Modeling" in details.required_skills
 
 
 def test_deduplication():

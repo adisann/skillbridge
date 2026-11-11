@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { safeActionUrl } from "@/lib/safe-action-url";
 
 interface ChatMessageItem {
   id: string;
@@ -361,7 +362,8 @@ export function JobChatAssistant({
 
   // Helper to resolve action button destination
   const resolveActionUrl = (label: string, customUrl?: string): string => {
-    if (customUrl && customUrl.trim()) return customUrl.trim();
+    const safeUrl = customUrl ? safeActionUrl(customUrl) : null;
+    if (safeUrl) return safeUrl;
     const l = label.toLowerCase();
     if (l.includes("daftar") || l.includes("register")) return "/register";
     if (l.includes("masuk") || l.includes("login")) return "/login";

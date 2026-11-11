@@ -45,7 +45,17 @@ Thumbs.db
 
 # Referensi lokal & tooling AI (tidak ikut repo)
 /AGENTS.md
+web/AGENTS.md
 /.agents/
+/worker/.local-checks/
+/pytest-cache-files-*/
+/Dokumentasi/
+/*.docx
+/*.zip
+*.pem
+*.key
+*.p12
+*.pfx
 /skills-lock.json
 /design-ref/
 /*.pdf

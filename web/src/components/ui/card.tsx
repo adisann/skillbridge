@@ -1,10 +1,13 @@
 import React from "react";
-import { Building2, MapPin, Briefcase, ExternalLink, Bookmark, Check } from "lucide-react";
+import { Building2, MapPin, Briefcase, ExternalLink, Bookmark } from "lucide-react";
 import { cn, formatJobTitle } from "@/lib/utils";
 import { MatchBadge, MatchStatus } from "./badge";
 import { ScoreRing } from "./score-ring";
 import { SalaryText } from "./salary-text";
 import { Button } from "./button";
+import { SkillMatchSummary } from "./skill-match-summary";
+import { MatchExplanation } from "./match-explanation";
+import type { MatchStatusReason, RequirementEvaluation } from "@/lib/matching";
 
 // -----------------------------------------------------------------------------
 // Base Card Components (Glassmorphism as Default)
@@ -159,9 +162,13 @@ interface JobCardProps {
   sourceName?: string;
   sourceUrl: string;
   matchStatus?: MatchStatus;
+  matchStatusReason?: MatchStatusReason | null;
   matchScore?: number | null;
   matchedSkills?: string[];
   missingSkills?: string[];
+  requirementsEvaluation?: RequirementEvaluation[];
+  factorsSupporting?: string[];
+  factorsLimiting?: string[];
   requiredSkills?: string[];
   mode?: "guest" | "user";
   isSaved?: boolean;
@@ -182,9 +189,13 @@ export function JobCard({
   salaryPeriod,
   sourceUrl,
   matchStatus = "insufficient_evidence",
+  matchStatusReason,
   matchScore,
   matchedSkills = [],
   missingSkills = [],
+  requirementsEvaluation,
+  factorsSupporting,
+  factorsLimiting,
   requiredSkills = [],
   mode = "user",
   isSaved = false,
@@ -276,6 +287,7 @@ export function JobCard({
             <div className="shrink-0 self-start">
               <ScoreRing
                 status={matchStatus}
+                reason={matchStatusReason}
                 score={matchStatus === "insufficient_evidence" ? null : matchScore}
                 size="sm"
                 showLabel={false}
@@ -286,8 +298,9 @@ export function JobCard({
 
         {/* Status Badge (Hanya mode user) */}
         {!isGuest && (
-          <div>
-            <MatchBadge status={matchStatus} score={matchScore} size="sm" />
+          <div className="space-y-stack-2xs">
+            <MatchBadge status={matchStatus} reason={matchStatusReason} score={matchScore} size="sm" />
+            <MatchExplanation status={matchStatus} supporting={factorsSupporting} limiting={factorsLimiting} />
           </div>
         )}
       </CardHeader>
@@ -319,45 +332,7 @@ export function JobCard({
             </div>
           </div>
         ) : (
-          /* Mode User: Breakdown Singkat */
-          <div className="space-y-stack-xs text-xs">
-            {matchedSkills.length > 0 && (
-              <div className="space-y-stack-2xs">
-                <span className="text-xs font-bold uppercase tracking-wider text-sb-good">
-                  Cocok:
-                </span>
-                <div className="flex flex-wrap items-center gap-stack-2xs">
-                  {matchedSkills.map((s) => (
-                    <span
-                      key={s}
-                      className="inline-flex items-center px-stack-xs py-stack-3xs rounded-full bg-emerald-50 text-sb-good border border-emerald-200/80 font-medium text-[11px]"
-                    >
-                      <Check className="w-3 h-3 text-sb-good mr-stack-2xs shrink-0 stroke-[2.5]" />
-                      {s}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {missingSkills.length > 0 && (
-              <div className="space-y-stack-2xs">
-                <span className="text-xs font-bold uppercase tracking-wider text-sb-text-2">
-                  Belum ditemukan:
-                </span>
-                <div className="flex flex-wrap items-center gap-stack-2xs">
-                  {missingSkills.map((s) => (
-                    <span
-                      key={s}
-                      className="px-stack-xs py-stack-3xs rounded-full bg-sb-mist-faint text-sb-text-2 border border-sb-border font-medium text-[11px]"
-                    >
-                      {s}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+          <SkillMatchSummary evaluations={requirementsEvaluation} matchedSkills={matchedSkills} missingSkills={missingSkills} />
         )}
       </CardContent>
 

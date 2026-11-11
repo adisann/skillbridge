@@ -1,8 +1,7 @@
-import { jobExperienceYears } from "@/lib/job-experience";
 import { NextRequest, NextResponse } from "next/server";
-import { loadCandidateProfile } from "@/lib/candidate-profile";
+import { loadCandidateProfile, toMatchCandidate } from "@/lib/candidate-profile";
 import { calculateJobMatch, getDisplayScore } from "@/lib/matching";
-import { splitJobSkills, type JobSkillRow } from "@/lib/job-skills";
+import { toMatchJob } from "@/lib/job-skills";
 import { getAuthenticatedUser } from "@/lib/supabase/server";
 
 export async function GET(req: NextRequest) {
@@ -42,12 +41,8 @@ export async function GET(req: NextRequest) {
 
     const candidate = await loadCandidateProfile(supabase, effectiveUserId);
     const savedJobs = (jobs || []).map((j: Record<string, unknown>) => {
-      const { required, preferred } = splitJobSkills(j.job_skills as unknown as JobSkillRow[]);
-      const m = candidate.activeResume ? calculateJobMatch({ skills: candidate.skills, experienceYears: candidate.years, education: candidate.education, gpa: candidate.gpa, targetRole: candidate.targetRole,
-        claimedSkills: candidate.claimedSkills, reviewSkills: candidate.reviewSkills, evidence: candidate.evidence }, {
-        title: String(j.title), canonicalTitle: j.canonical_title as string, requiredSkills: required, preferredSkills: preferred,
-        experienceYearsMin: jobExperienceYears(j.experience_years_min as number | null, j.description as string | null), education: j.education as string | null, minGpa: j.min_gpa as number | null, seniority: j.seniority as string | null,
-      }) : null;
+      const matchJob = toMatchJob(j as unknown as Parameters<typeof toMatchJob>[0]);
+      const m = candidate.activeResume ? calculateJobMatch(toMatchCandidate(candidate), matchJob) : null;
 
       return {
         id: j.id,
@@ -55,12 +50,13 @@ export async function GET(req: NextRequest) {
         company: j.company,
         location: j.location,
         employmentType: j.employment_type,
-        seniority: j.seniority || "Mid",
+        seniority: j.seniority || "",
         sourceName: j.source_name,
         sourceUrl: j.source_url,
         matchScore: m ? getDisplayScore(m) : null,
         matchStatus: m?.matchStatus || "insufficient_evidence",
-        matchedSkills: m?.matchedSkills || [], missingSkills: m?.missingSkills || required,
+        matchStatusReason: m?.matchStatusReason || (m ? null : "cv_data_incomplete"),
+        matchedSkills: m?.matchedSkills || [], missingSkills: m?.missingSkills || matchJob.requiredSkills,
         factorsSupporting: m?.factorsSupporting || [], factorsLimiting: m?.factorsLimiting || [],
       };
     });

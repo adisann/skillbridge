@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser, getServiceSupabase } from "@/lib/supabase/server";
-import { DEMO_USER_EMAIL } from "@/lib/demo-account";
+import { DEFAULT_TARGET_ROLE, isDemoEmail } from "@/lib/demo-account";
 import { enforceRateLimits, getClientIp } from "@/lib/rate-limit";
 import { authAttemptRules } from "@/lib/rate-limit-policies";
 
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: "Silakan masuk terlebih dahulu." }, { status: 401 });
     }
-    if ((user.email || "").toLowerCase() !== DEMO_USER_EMAIL) {
+    if (!isDemoEmail(user.email)) {
       return NextResponse.json({ error: "Reset hanya tersedia untuk akun demo." }, { status: 403 });
     }
 
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     await serviceDb.from("resumes").delete().eq("user_id", uid);
     await serviceDb.from("saved_jobs").delete().eq("user_id", uid);
     await serviceDb.from("learning_items").delete().eq("user_id", uid);
-    await serviceDb.from("profiles").update({ target_role: "Data Analyst" }).eq("id", uid);
+    await serviceDb.from("profiles").update({ target_role: DEFAULT_TARGET_ROLE }).eq("id", uid);
 
     return NextResponse.json(
       { success: true, message: "Akun demo berhasil direset ke kondisi awal." },

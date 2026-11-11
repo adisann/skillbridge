@@ -114,7 +114,7 @@ async function* streamGemini(
   }
 
   const model = process.env.AI_MODEL || "gemini-2.5-flash";
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`;
   const payload = buildGeminiPayload(systemInstruction, userPrompt, history);
 
   const controller = new AbortController();
@@ -126,7 +126,7 @@ async function* streamGemini(
   try {
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
       body: JSON.stringify(payload),
       signal: controller.signal,
     });
@@ -134,8 +134,8 @@ async function* streamGemini(
     clearTimeout(timer);
 
     if (!res.ok) {
-      const errText = await res.text().catch(() => "");
-      throw new Error(`Gemini Stream HTTP ${res.status}: ${res.statusText} - ${errText}`);
+      await res.body?.cancel();
+      throw new Error(`Gemini Stream HTTP ${res.status}`);
     }
 
     yield* readSSEStream(
@@ -219,8 +219,8 @@ async function* streamGroq(
     clearTimeout(timer);
 
     if (!res.ok) {
-      const errBody = await res.text().catch(() => "");
-      throw new Error(`Groq Stream HTTP ${res.status}: ${res.statusText} - ${errBody}`);
+      await res.body?.cancel();
+      throw new Error(`Groq Stream HTTP ${res.status}`);
     }
 
     yield* readSSEStream(

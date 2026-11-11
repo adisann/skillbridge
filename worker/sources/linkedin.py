@@ -1,15 +1,27 @@
 import asyncio
 import logging
-import re
+import math
+import time
+from urllib.parse import urlparse
 from typing import Optional
-from datetime import datetime
 
 import httpx
 from bs4 import BeautifulSoup
 
 from .base import JobSource, RawJob
+from ..pipeline.clean import redact_contact_details
 
 logger = logging.getLogger(__name__)
+
+
+class LinkedInGuestBlocked(RuntimeError):
+    """Hentikan seluruh pengambilan detail pada run ini tanpa retry."""
+
+
+def _row_text(value) -> str:
+    if value is None or isinstance(value, float) and math.isnan(value):
+        return ""
+    return str(value).strip()
 
 
 class LinkedInSource(JobSource):
@@ -28,26 +40,34 @@ class LinkedInSource(JobSource):
         self.search_term = search_term
         self.location = location
         self.limit = min(limit, 25)
+        self._last_guest_request = 0.0
+        self._guest_blocked = False
 
     async def _fetch_guest_job_description(self, client: httpx.AsyncClient, job_url: str) -> Optional[str]:
         """Mengambil teks deskripsi lengkap dari URL publik guest LinkedIn secara santun dan anonim."""
-        if not job_url or "linkedin.com" not in job_url:
+        parsed = urlparse(job_url)
+        if parsed.scheme != "https" or parsed.hostname not in {"linkedin.com", "www.linkedin.com", "id.linkedin.com"} or not parsed.path.startswith("/jobs/view/"):
             return None
+        if self._guest_blocked:
+            raise LinkedInGuestBlocked("Pengambilan detail LinkedIn sudah dihentikan pada run ini.")
         try:
+            await asyncio.sleep(max(0, 1 - (time.monotonic() - self._last_guest_request)))
+            self._last_guest_request = time.monotonic()
             resp = await client.get(job_url, timeout=12.0)
-            if resp.status_code in (429, 403) or "/login" in str(resp.url) or "/checkpoint" in str(resp.url):
-                logger.warning(f"LinkedIn guest detail dihentikan karena status {resp.status_code} atau redirect auth: {job_url}")
-                return None
+            destination = str(resp.url) + " " + resp.headers.get("location", "")
+            soup = BeautifulSoup(resp.text, "html.parser")
+            if resp.status_code in (429, 403, 999) or any(part in destination for part in ("/login", "/checkpoint", "/authwall")) or soup.select_one('form[action*="captcha"], #captcha-internal, .g-recaptcha'):
+                self._guest_blocked = True
+                raise LinkedInGuestBlocked(f"Akses guest dihentikan (HTTP {resp.status_code}/autentikasi/CAPTCHA).")
             if resp.status_code == 200:
-                soup = BeautifulSoup(resp.text, "html.parser")
                 markup = soup.find("div", class_="show-more-less-html__markup")
                 if markup:
                     text = markup.get_text("\n", strip=True)
                     # Sanitasi privasi: buang nomor telepon dan email
-                    text = re.sub(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+", "[email redacted]", text)
-                    text = re.sub(r"(?:\+?62|08)\d{8,12}", "[phone redacted]", text)
-                    return text
-        except Exception as e:
+                    return redact_contact_details(text)
+        except LinkedInGuestBlocked:
+            raise
+        except httpx.HTTPError as e:
             logger.debug(f"Gagal mengambil detail guest LinkedIn {job_url}: {e}")
         return None
 
@@ -81,11 +101,11 @@ class LinkedInSource(JobSource):
                     title = str(row.get("title") or "")
                     company = str(row.get("company") or "Perusahaan Anonim")
                     location = str(row.get("location") or self.location)
-                    description = str(row.get("description") or "")
+                    description = _row_text(row.get("description"))
                     job_url = str(row.get("job_url") or "")
 
                     # Sanitasi privasi: pastikan tidak ada email atau data kontak personal yang disimpan
-                    # Field 'emails' dari jobspy dibuang secara eksplisit sesuai AGENTS.md
+                    # Field 'emails' dari jobspy sengaja tidak disimpan
                     results.append(RawJob(
                         external_id=job_id,
                         source_name=self.name,
@@ -108,14 +128,12 @@ class LinkedInSource(JobSource):
                     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
                     "Accept-Language": "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7",
                 }
-                async with httpx.AsyncClient(headers=headers, follow_redirects=True) as client:
+                async with httpx.AsyncClient(headers=headers, follow_redirects=False) as client:
                     for job in results:
                         if len(job.description_raw.strip()) < 150 and job.source_url:
                             full_desc = await self._fetch_guest_job_description(client, job.source_url)
                             if full_desc:
                                 job.description_raw = full_desc
-                            # Jeda santun rate limiting 1 detik per request sesuai aturan
-                            await asyncio.sleep(1.0)
 
         except ImportError:
             logger.warning("Modul python-jobspy belum terpasang. Menggunakan mode simulasi / melewati.")

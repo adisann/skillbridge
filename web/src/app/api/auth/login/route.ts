@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient, getServiceSupabase } from "@/lib/supabase/server";
-import { DEMO_USER_EMAIL, syncDemoUserName } from "@/lib/demo-account";
+import { DEFAULT_TARGET_ROLE, isDemoEmail, resolveLoginEmail, syncDemoUserName } from "@/lib/demo-account";
 import { enforceRateLimits, getClientIp } from "@/lib/rate-limit";
 import { authAttemptRules } from "@/lib/rate-limit-policies";
 
@@ -19,13 +19,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const cleanEmail = String(email).trim().toLowerCase();
-    const normalizedEmail =
-      cleanEmail === "juri@skillbridge.demo"
-        ? "juri@skillbridge.id"
-        : cleanEmail === "admin@skillbridge.demo"
-        ? "admin@skillbridge.id"
-        : cleanEmail;
+    const normalizedEmail = resolveLoginEmail(String(email));
 
     const supabase = await createServerSupabaseClient(req);
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -42,7 +36,7 @@ export async function POST(req: NextRequest) {
 
     // Ambil profile dari database
     const serviceDb = getServiceSupabase();
-    if (normalizedEmail === "juri@skillbridge.id") {
+    if (isDemoEmail(normalizedEmail)) {
       await syncDemoUserName(serviceDb, data.user.id);
     }
     const { data: profileRow } = await serviceDb
@@ -59,9 +53,9 @@ export async function POST(req: NextRequest) {
         data.user.user_metadata?.full_name ||
         normalizedEmail.split("@")[0],
       role: (profileRow?.role as "user" | "admin") || "user",
-      targetRole: (profileRow?.target_role as "Data Analyst" | "BI Analyst") || "Data Analyst",
+      targetRole: profileRow?.target_role || DEFAULT_TARGET_ROLE,
       // Penanda akun demo dihitung di server, jadi email akun demo tidak perlu ada di kode frontend
-      isDemo: (data.user.email || normalizedEmail).toLowerCase() === DEMO_USER_EMAIL,
+      isDemo: isDemoEmail(data.user.email || normalizedEmail),
     };
 
     // Sesi dipegang cookie Supabase (httpOnly) yang diset oleh signInWithPassword di atas.

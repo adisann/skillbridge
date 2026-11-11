@@ -32,6 +32,7 @@ from worker.pipeline import (
     normalize_skills_list,
     SupabaseStorage
 )
+from worker.pipeline.description import usable_description
 
 logging.basicConfig(
     level=logging.INFO,
@@ -100,8 +101,10 @@ async def run_worker(source_name: str, limit: int = 15):
             try:
                 # 1. Clean HTML / teks
                 cleaned_desc = clean_html_text(raw.description_raw)
-                if not cleaned_desc:
-                    cleaned_desc = f"{raw.title} di {raw.company}. Deskripsi kualifikasi lowongan."
+                if not usable_description(cleaned_desc):
+                    failed_count += 1
+                    logger.warning("Deskripsi %s belum tersedia; lewati item dan pertahankan data tersimpan.", raw.external_id)
+                    continue
 
                 # 2. Hitung Content Hash
                 content_hash = compute_content_hash(raw.title, raw.company, cleaned_desc)
@@ -196,6 +199,10 @@ async def run_worker(source_name: str, limit: int = 15):
         status = "failed"
         error_msg = str(run_err)
         logger.error(f"Worker run gagal fatal: {run_err}")
+
+    if fetched_count > 0 and failed_count == fetched_count:
+        status = "failed"
+        error_msg = error_msg or "Semua item gagal diproses; data lowongan tersimpan dipertahankan."
 
     # Catat audit eksekusi ke tabel `worker_runs`
     await storage.log_worker_run(

@@ -7,7 +7,7 @@ test("Judge Demo Flow End-to-End Simulation", async (t) => {
   let juriSession: { userId: string; email: string; fullName: string } | null = null;
 
   await t.test("Step 1: Akun Demo Juri (login dengan email dan kata sandi)", () => {
-    // Simulasi konfigurasi akun demo juri sesuai AGENTS.md
+    // Simulasi konfigurasi akun demo juri
     const demoCredentials = {
       email: "juri@skillbridge.id",
       profile: {

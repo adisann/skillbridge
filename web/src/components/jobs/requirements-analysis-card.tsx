@@ -4,6 +4,7 @@ import { CheckCircle2, MinusCircle, HelpCircle } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { RequirementEvaluation } from "@/lib/matching";
+import { requirementLabel } from "@/lib/matching-requirements";
 
 const STATUS_BADGE_CLASS: Record<RequirementEvaluation["status"], string> = {
   cocok: "bg-emerald-50 text-sb-good border-emerald-200",
@@ -21,7 +22,7 @@ function RequirementRow({ req, jobId }: { req: RequirementEvaluation; jobId?: st
   const hasDetails = req.evidence || req.status !== "cocok";
   return (
     <tr className="block sm:table-row py-stack-sm sm:py-0 hover:bg-sb-mist-faint/50 transition-colors">
-      <td className="block sm:table-cell py-stack-xs sm:py-stack-sm px-stack-sm font-bold text-sb-navy">{req.skill}</td>
+      <td className="block sm:table-cell py-stack-xs sm:py-stack-sm px-stack-sm font-bold text-sb-navy">{requirementLabel(req)}</td>
       <td className="inline-block sm:table-cell py-stack-xs sm:py-stack-sm px-stack-sm">
         <span
           className={cn(
@@ -31,7 +32,7 @@ function RequirementRow({ req, jobId }: { req: RequirementEvaluation; jobId?: st
               : "bg-white text-sb-text-2 border border-sb-border"
           )}
         >
-          {req.isMandatory ? "Wajib" : "Tambahan"}
+          {req.isMandatory ? "Wajib" : "Tambahan"}{req.exampleGroupLabel ? " · contoh alat" : req.alternatives?.length ? " · pilih salah satu" : ""}
         </span>
       </td>
       <td className="inline-block sm:table-cell py-stack-xs sm:py-stack-sm px-stack-sm">
@@ -44,14 +45,15 @@ function RequirementRow({ req, jobId }: { req: RequirementEvaluation; jobId?: st
           <StatusIcon status={req.status} />
           {req.statusLabel}
         </span>
+        {req.addedByUser && <span className="mt-stack-3xs block text-[11px] font-medium text-sb-text-2">Ditambahkan oleh pengguna</span>}
       </td>
       <td className={cn(
         "space-y-stack-xs px-stack-sm py-stack-xs text-sb-text-2 sm:table-cell sm:py-stack-sm",
         hasDetails ? "block" : "hidden",
       )}>
         {req.evidence && <p className="wrap-anywhere">{req.evidence}</p>}
-        {req.status === "belum_ditemukan" && <LearningButton size="chip" skillName={req.skill} sourceJobId={jobId} reason="Belum ditemukan di CV saat meninjau persyaratan lowongan." />}
-        {req.status === "belum_cukup_bukti" && <Link className="text-[11px] font-semibold text-sb-blue underline" href={`/cv?skill=${encodeURIComponent(req.skill)}#review-skills`}>Tinjau skill</Link>}
+        {req.status === "belum_ditemukan" && (req.alternatives || [req.skill]).map((skill) => <LearningButton key={skill} size="chip" skillName={skill} sourceJobId={jobId} reason={req.alternatives ? "Salah satu pilihan untuk memenuhi persyaratan alternatif lowongan." : "Belum ditemukan di CV saat meninjau persyaratan lowongan."} />)}
+        {req.status === "belum_cukup_bukti" && <Link className="text-[11px] font-semibold text-sb-blue underline" href={`/cv?skill=${encodeURIComponent(req.alternatives?.[0] || req.skill)}#review-skills`}>Tinjau skill</Link>}
       </td>
     </tr>
   );

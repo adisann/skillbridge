@@ -8,6 +8,24 @@ import {
 } from "../src/lib/ai/prompts.ts";
 import { chatBurstRules, chatQuotaRules, cvUploadRules } from "../src/lib/rate-limit-policies.ts";
 import type { ActiveJobContext, CandidateCVContext } from "../src/lib/ai/types.ts";
+import { safeActionUrl } from "../src/lib/safe-action-url.ts";
+import { promptCacheKey } from "../src/lib/ai/cache-key.ts";
+
+test("Tautan asisten menolak protokol berbahaya dan kredensial dalam URL", () => {
+  for (const value of ["javascript:alert(1)", "data:text/html,test", "//evil.test", "/\\evil.test", "/%2f%2fevil.test", "https://user:password@example.test", "https://example.test/%0aInjected"]) assert.equal(safeActionUrl(value), null);
+  assert.equal(safeActionUrl("/jobs?role=data"), "/jobs?role=data");
+  assert.equal(safeActionUrl("/jobs?q=Data%20Analysis"), "/jobs?q=Data%20Analysis");
+  assert.equal(safeActionUrl("https://example.test/jobs"), "https://example.test/jobs");
+});
+
+test("Kunci cache tidak memuat pertanyaan dan membedakan suffix setelah 80 karakter", () => {
+  const prefix = "Pertanyaan yang sama ".repeat(8);
+  assert.notEqual(promptCacheKey(prefix + "SQL"), promptCacheKey(prefix + "Python"));
+  assert.equal(promptCacheKey(" SQL   untuk analis? "), promptCacheKey("sql untuk analis?"));
+  const key = promptCacheKey("email saya applicant@example.test");
+  assert.equal(key.length, 64);
+  assert.ok(!key.includes("applicant"));
+});
 
 describe("SkillBridge AI Job Assistant Unit Tests", () => {
   const mockJob: ActiveJobContext = {

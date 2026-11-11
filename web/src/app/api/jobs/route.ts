@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser, getAuthenticatedAdmin, getServiceSupabase } from "@/lib/supabase/server";
-import { calculateJobMatch } from "@/lib/matching";
 import { getCachedPublicJobs, revalidateJobsCache } from "@/lib/public-jobs";
 import { getCategoryFromTitle, getCategoryBySlug } from "@/lib/job-categories";
 import { loadCandidateProfile } from "@/lib/candidate-profile";
@@ -164,76 +163,10 @@ export async function POST(req: NextRequest) {
     const jobId = insertedJob.id;
 
     // 3. Hubungkan ke job_skills
-    const allSkills = [
-      ...(requiredSkills || []).map((s: string) => ({ name: s, is_mandatory: true })),
-      ...(preferredSkills || []).map((s: string) => ({ name: s, is_mandatory: false })),
-    ];
+    await syncJobSkills(supabase, jobId, requiredSkills, preferredSkills, cleanedDesc);
 
-    for (const item of allSkills) {
-      const sName = item.name.trim();
-      let skillId: string | null = null;
-      const { data: found } = await supabase.from("skills").select("id").ilike("name", sName).limit(1);
-      if (found && found.length > 0) {
-        skillId = found[0].id;
-      } else {
-        const { data: ins } = await supabase.from("skills").insert({ name: sName, category: "Data & Analytics" }).select("id").single();
-        if (ins) skillId = ins.id;
-      }
-
-      if (skillId) {
-        // Cari kalimat asli di deskripsi yang memuat nama skill untuk requirement_snippet kontekstual
-        let snippet = `Kualifikasi ${item.is_mandatory ? 'wajib' : 'tambahan'} ${sName}`;
-        if (cleanedDesc) {
-          const sentences = cleanedDesc.split(/[.\n•;]+/).map((s: string) => s.trim());
-          const matchSentence = sentences.find((s: string) =>
-            new RegExp(`\\b${sName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(s)
-          );
-          if (matchSentence && matchSentence.length > 5 && matchSentence.length < 160) {
-            snippet = matchSentence;
-          }
-        }
-
-        await supabase.from("job_skills").upsert({
-          job_id: jobId,
-          skill_id: skillId,
-          is_mandatory: item.is_mandatory,
-          requirement_snippet: snippet,
-        }, { onConflict: "job_id,skill_id" });
-      }
-    }
-
-    // 4. Update matches dengan resume aktif yang ada
-    const { data: resumes } = await supabase.from("resumes").select("id, user_id, education, experience_years, resume_skills(skills(name))").eq("is_active", true);
-    if (resumes) {
-      for (const r of resumes) {
-        const candidateSkills = (r.resume_skills as unknown as Array<{ skills: { name: string } }>)?.map((s) => s.skills?.name).filter(Boolean) || [];
-        const matchRes = calculateJobMatch(
-          candidateSkills,
-          r.experience_years || 0,
-          r.education || "S1",
-          {
-            title,
-            requiredSkills: requiredSkills || [],
-            preferredSkills: preferredSkills || [],
-            experienceYearsMin: experienceYearsMin == null || experienceYearsMin === "" ? null : Number(experienceYearsMin),
-            education: education || null,
-            seniority: seniority || null,
-          }
-        );
-
-        await supabase.from("matches").upsert({
-          user_id: r.user_id,
-          resume_id: r.id,
-          job_id: jobId,
-          match_status: matchRes.matchStatus,
-          score: matchRes.score,
-          score_breakdown: matchRes.breakdown,
-          factors_supporting: matchRes.factorsSupporting,
-          factors_limiting: matchRes.factorsLimiting,
-        }, { onConflict: "resume_id,job_id" });
-      }
-    }
-
+    // Skor dihitung saat pengguna membuka katalog/detail. Import tidak perlu membaca
+    // CV seluruh pengguna atau menyimpan cache skor dengan asumsi pendidikan/pengalaman.
     revalidateJobsCache();
 
     return NextResponse.json({
@@ -289,65 +222,7 @@ export async function PUT(req: NextRequest) {
     // 2. Hubungkan ulang job_skills jika ada perubahan skills
     if (requiredSkills || preferredSkills) {
       await supabase.from("job_skills").delete().eq("job_id", id);
-
-      const allSkills = [
-        ...(requiredSkills || []).map((s: string) => ({ name: s, is_mandatory: true })),
-        ...(preferredSkills || []).map((s: string) => ({ name: s, is_mandatory: false })),
-      ];
-
-      for (const item of allSkills) {
-        const sName = item.name.trim();
-        let skillId: string | null = null;
-        const { data: found } = await supabase.from("skills").select("id").ilike("name", sName).limit(1);
-        if (found && found.length > 0) {
-          skillId = found[0].id;
-        } else {
-          const { data: ins } = await supabase.from("skills").insert({ name: sName, category: "Data & Analytics" }).select("id").single();
-          if (ins) skillId = ins.id;
-        }
-
-        if (skillId) {
-          await supabase.from("job_skills").upsert({
-            job_id: id,
-            skill_id: skillId,
-            is_mandatory: item.is_mandatory,
-            requirement_snippet: `Kualifikasi ${item.is_mandatory ? 'wajib' : 'tambahan'} ${sName}`,
-          }, { onConflict: "job_id,skill_id" });
-        }
-      }
-
-      // 3. Update matches dengan resume aktif yang ada
-      const { data: resumes } = await supabase.from("resumes").select("id, user_id, education, experience_years, resume_skills(skills(name))").eq("is_active", true);
-      if (resumes) {
-        for (const r of resumes) {
-          const candidateSkills = (r.resume_skills as unknown as Array<{ skills: { name: string } }>)?.map((s) => s.skills?.name).filter(Boolean) || [];
-          const matchRes = calculateJobMatch(
-            candidateSkills,
-            r.experience_years || 0,
-            r.education || "S1",
-            {
-              title,
-              canonicalTitle: canonicalTitle || (title.toLowerCase().includes("bi") ? "BI Analyst" : "Data Analyst"),
-              requiredSkills: requiredSkills || [],
-              preferredSkills: preferredSkills || [],
-              experienceYearsMin: experienceYearsMin == null || experienceYearsMin === "" ? null : Number(experienceYearsMin),
-              education: education || null,
-              seniority: seniority || null,
-            }
-          );
-
-          await supabase.from("matches").upsert({
-            user_id: r.user_id,
-            resume_id: r.id,
-            job_id: id,
-            match_status: matchRes.matchStatus,
-            score: matchRes.score,
-            score_breakdown: matchRes.breakdown,
-            factors_supporting: matchRes.factorsSupporting,
-            factors_limiting: matchRes.factorsLimiting,
-          }, { onConflict: "resume_id,job_id" });
-        }
-      }
+      await syncJobSkills(supabase, id, requiredSkills, preferredSkills, cleanedDesc);
     }
 
     revalidateJobsCache();
@@ -397,5 +272,45 @@ export async function DELETE(req: NextRequest) {
   } catch (error: unknown) {
     const err = error as Error;
     return NextResponse.json({ error: err.message || "Gagal menghapus lowongan" }, { status: 500 });
+  }
+}
+
+const NEW_SKILL_CATEGORY = "Data & Analytics";
+const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/** Simpan relasi skill lowongan beserta kalimat persyaratan asli bila ditemukan di deskripsi. */
+async function syncJobSkills(
+  supabase: ReturnType<typeof getServiceSupabase>,
+  jobId: string,
+  requiredSkills: unknown,
+  preferredSkills: unknown,
+  description: string,
+) {
+  const toList = (value: unknown) => (Array.isArray(value) ? value : []).filter((s): s is string => typeof s === "string" && s.trim() !== "");
+  const items = [
+    ...toList(requiredSkills).map((name) => ({ name: name.trim(), isMandatory: true })),
+    ...toList(preferredSkills).map((name) => ({ name: name.trim(), isMandatory: false })),
+  ];
+  const sentences = description.split(/[.\n•;]+/).map((sentence) => sentence.trim());
+
+  for (const item of items) {
+    const { data: found } = await supabase.from("skills").select("id").ilike("name", item.name).limit(1);
+    let skillId: string | null = found?.[0]?.id ?? null;
+    if (!skillId) {
+      const { data: inserted } = await supabase.from("skills").insert({ name: item.name, category: NEW_SKILL_CATEGORY }).select("id").single();
+      skillId = inserted?.id ?? null;
+    }
+    if (!skillId) continue;
+
+    const pattern = new RegExp(`\\b${escapeRegExp(item.name)}\\b`, "i");
+    const sentence = sentences.find((s) => pattern.test(s));
+    await supabase.from("job_skills").upsert({
+      job_id: jobId,
+      skill_id: skillId,
+      is_mandatory: item.isMandatory,
+      requirement_snippet: sentence && sentence.length > 5 && sentence.length < 160
+        ? sentence
+        : `Kualifikasi ${item.isMandatory ? "wajib" : "tambahan"} ${item.name}`,
+    }, { onConflict: "job_id,skill_id" });
   }
 }

@@ -3,8 +3,9 @@ import { calculateJobMatch, getDisplayScore } from "@/lib/matching";
 import { getCategoryFromTitle } from "@/lib/job-categories";
 import { splitJobSkills } from "@/lib/job-skills";
 import { displayCompany } from "@/lib/demo-jobs";
-import type { CandidateProfile } from "@/lib/candidate-profile";
+import { toMatchCandidate, type CandidateProfile } from "@/lib/candidate-profile";
 import type { RawPublicJob } from "@/lib/public-jobs";
+import type { MatchStatusReason } from "@/lib/matching";
 
 function displayCanonicalTitle(j: RawPublicJob): string {
   return j.canonical_title === "BI Analyst" && /\bbusiness analyst\b/i.test(j.title)
@@ -26,6 +27,7 @@ export function formatJobListItem(j: RawPublicJob, candidate?: CandidateProfile 
   let match = {
     matchScore: null as number | null,
     matchStatus: "insufficient_evidence",
+    matchStatusReason: "cv_data_incomplete" as MatchStatusReason | null,
     matchedSkills: [] as string[],
     missingSkills: [] as string[],
     unprovenSkills: [] as string[],
@@ -37,18 +39,11 @@ export function formatJobListItem(j: RawPublicJob, candidate?: CandidateProfile 
 
   if (candidate?.activeResume) {
     const liveMatch = calculateJobMatch(
-      {
-        skills: candidate.skills,
-        experienceYears: candidate.years,
-        education: candidate.education,
-        gpa: candidate.gpa,
-        targetRole: candidate.targetRole,
-        claimedSkills: candidate.claimedSkills,
-        reviewSkills: candidate.reviewSkills,
-        evidence: candidate.evidence,
-      },
+      toMatchCandidate(candidate),
       {
         title: j.title,
+        description: j.matching_description || j.description,
+        requirementsNeedReview: j.requirements_need_review,
         canonicalTitle,
         requiredSkills: reqSkills,
         preferredSkills: prefSkills,
@@ -61,6 +56,7 @@ export function formatJobListItem(j: RawPublicJob, candidate?: CandidateProfile 
     match = {
       matchScore: getDisplayScore(liveMatch),
       matchStatus: liveMatch.matchStatus,
+      matchStatusReason: liveMatch.matchStatusReason,
       matchedSkills: liveMatch.matchedSkills,
       missingSkills: liveMatch.missingSkills,
       unprovenSkills: liveMatch.unprovenSkills,
@@ -83,9 +79,9 @@ export function formatJobListItem(j: RawPublicJob, candidate?: CandidateProfile 
     company: displayCompany(j.company),
     location: j.location,
     employmentType: j.employment_type,
-    seniority: j.seniority || "Mid",
+    seniority: j.seniority || "",
     experienceYearsMin,
-    education: j.education || "Bachelor",
+    education: j.education || null,
     salaryMin: j.salary_min ?? null,
     salaryMax: j.salary_max ?? null,
     salaryCurrency: j.salary_currency ?? null,

@@ -1,5 +1,10 @@
 import logging
+import json
+from pathlib import Path
 from typing import Dict
+from .languages import HSK, JLPT
+
+SHARED_SKILL_ALIASES = json.loads((Path(__file__).resolve().parents[2] / "web/src/lib/data/skill-aliases.json").read_text(encoding="utf-8"))
 
 logger = logging.getLogger(__name__)
 
@@ -10,8 +15,7 @@ DEFAULT_SKILL_ALIASES: Dict[str, str] = {
     "ms sql": "SQL Server",
     "mssql": "SQL Server",
     "sql server": "SQL Server",
-    "google bigquery": "BigQuery",
-    "big query": "BigQuery",
+    "ibm spss": "SPSS",
     "bi": "Business Intelligence",
     "powerbi": "Power BI",
     "power-bi": "Power BI",
@@ -20,20 +24,29 @@ DEFAULT_SKILL_ALIASES: Dict[str, str] = {
     "py": "Python",
     "python3": "Python",
     "golang": "Go",
-    "ab testing": "A/B Testing",
     "a/b test": "A/B Testing",
-    "data warehouse": "Data Warehousing",
     "dwh": "Data Warehousing",
 }
+DEFAULT_SKILL_ALIASES.update({alias.lower(): canonical for canonical, aliases in SHARED_SKILL_ALIASES.items() for alias in [canonical, *aliases]})
 
 
 def normalize_skill_name(raw_name: str, custom_aliases: Dict[str, str] | None = None) -> str:
     """Menormalkan nama skill menggunakan kamus alias."""
     cleaned = raw_name.strip()
+    if custom_aliases:
+        cleaned = custom_aliases.get(cleaned.lower(), cleaned)
+    cleaned = " ".join(cleaned.split())
     key = cleaned.lower()
-
-    if custom_aliases and key in custom_aliases:
-        return custom_aliases[key]
+    level = HSK.search(cleaned)
+    if level:
+        return f"Mandarin (HSK {level.group(1)})"
+    if key in {"mandarin", "bahasa mandarin", "mandarin chinese", "chinese (mandarin)"}:
+        return "Mandarin"
+    japanese_level = JLPT.search(cleaned)
+    if japanese_level:
+        return f"Jepang (JLPT N{japanese_level.group(1)})"
+    if key in {"jepang", "bahasa jepang", "japanese", "japanese language"}:
+        return "Jepang"
 
     if key in DEFAULT_SKILL_ALIASES:
         return DEFAULT_SKILL_ALIASES[key]
@@ -52,5 +65,9 @@ def normalize_skills_list(skills: list[str], custom_aliases: Dict[str, str] | No
             normalized_set.add(norm.lower())
             result.append(norm)
 
+    if any(HSK.search(name) for name in result):
+        result = [name for name in result if name != "Mandarin"]
+    if any(JLPT.search(name) for name in result):
+        result = [name for name in result if name != "Jepang"]
     return result
 

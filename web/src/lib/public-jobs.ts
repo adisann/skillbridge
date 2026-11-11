@@ -5,6 +5,9 @@ import { getCanonicalSkill } from "@/lib/matching-config";
 import { getCategoryFromTitle, getCategoryBySlug } from "@/lib/job-categories";
 import { isOverseasLocation } from "@/lib/utils";
 import { jobExperienceYears } from "@/lib/job-experience";
+import { hasPlaceholderRequirements, matchingRequirementText } from "@/lib/matching-requirements";
+import { canonicalSkillFrequencies } from "@/lib/skill-frequency";
+import { matchesJobLevel } from "@/lib/job-level";
 
 interface RawPublicJobSkill {
   is_mandatory: boolean;
@@ -33,6 +36,8 @@ export interface RawPublicJob {
   salary_currency?: string | null;
   salary_period?: string | null;
   description: string;
+  matching_description?: string;
+  requirements_need_review?: boolean;
   source_name: string;
   source_url: string;
   retrieval_method: string;
@@ -76,6 +81,9 @@ export const getCachedPublicJobs = unstable_cache(
           ...job,
           // Syarat pengalaman dari deskripsi dihitung sekali di sini, lalu deskripsi tidak ikut disimpan di cache
           experience_years_min: jobExperienceYears(job.experience_years_min, job.description) ?? undefined,
+          // Simpan cuplikan alternatif agar Python/R tetap satu syarat di daftar dan detail.
+          matching_description: matchingRequirementText(job.job_skills.flatMap((s) => s.skills?.name ? [s.skills.name] : []), job.description),
+          requirements_need_review: hasPlaceholderRequirements(job.description),
           description: "",
         }));
     } catch (err) {
@@ -83,7 +91,7 @@ export const getCachedPublicJobs = unstable_cache(
       return [];
     }
   },
-  ["public_jobs_catalog"],
+  ["public_jobs_catalog_matching_v6_tool_examples"],
   {
     revalidate: 900, // 15 menit
     tags: ["jobs"],
@@ -146,7 +154,7 @@ export function aggregateMarketData(
   userCvSkills: { verified: string[]; claimed?: string[]; review?: string[] } = { verified: [], claimed: [] }
 ): MarketAggregationResult {
   const role = filters.role && filters.role !== "all" ? filters.role.toLowerCase() : "all";
-  const location = filters.location && filters.location !== "all" ? filters.location.toLowerCase() : "all";
+  const location = filters.location?.trim() && filters.location.trim() !== "all" ? filters.location.trim().toLowerCase() : "all";
   const workType = filters.workType && filters.workType !== "all" ? filters.workType.toLowerCase() : "all";
   const seniority = filters.seniority && filters.seniority !== "all" ? filters.seniority.toLowerCase() : "all";
   const postedDate = filters.postedDate && filters.postedDate !== "all" ? filters.postedDate : "all";
@@ -194,9 +202,7 @@ export function aggregateMarketData(
   }
 
   if (seniority !== "all") {
-    filteredJobs = filteredJobs.filter((j) =>
-      (j.seniority || "").toLowerCase().includes(seniority)
-    );
+    filteredJobs = filteredJobs.filter((j) => matchesJobLevel(j.seniority, j.experience_years_min, seniority));
   }
 
   if (postedDate !== "all") {
@@ -212,38 +218,7 @@ export function aggregateMarketData(
   const sampleSizeN = filteredJobs.length;
 
   // 2. Agregasi skill unik per posting lowongan
-  const skillCounts: Record<
-    string,
-    { count: number; mandatoryCount: number; category: string; snippet: string }
-  > = {};
-
-  for (const job of filteredJobs) {
-    const seenJobSkills = new Set<string>();
-
-    for (const js of job.job_skills || []) {
-      const sName = js.skills?.name;
-      if (!sName) continue;
-
-      const normName = sName.trim();
-      const lower = normName.toLowerCase();
-      if (seenJobSkills.has(lower)) continue;
-      seenJobSkills.add(lower);
-
-      if (!skillCounts[normName]) {
-        skillCounts[normName] = {
-          count: 0,
-          mandatoryCount: 0,
-          category: js.skills?.category || "Data Analysis",
-          snippet: js.requirement_snippet || `Persyaratan kualifikasi ${normName}`,
-        };
-      }
-
-      skillCounts[normName].count++;
-      if (js.is_mandatory) {
-        skillCounts[normName].mandatoryCount++;
-      }
-    }
-  }
+  const skillCounts = canonicalSkillFrequencies(filteredJobs);
 
   // 3. Normalisasi himpunan skill CV kandidat
   const verifiedSet = new Set((userCvSkills.verified || []).map((s) => s.trim().toLowerCase()));
@@ -254,7 +229,8 @@ export function aggregateMarketData(
 
   // 4. Perankingan skill
   const rankedSkills: AggregatedSkillInsight[] = Object.entries(skillCounts)
-    .map(([name, info]) => {
+    .map(([, info]) => {
+      const name = info.name;
       const n = info.count;
       const percentage = sampleSizeN > 0 ? Math.min(100, Math.round((n / sampleSizeN) * 100)) : 0;
       const lower = name.toLowerCase();
@@ -263,11 +239,11 @@ export function aggregateMarketData(
       let cvStatus: "tercantum" | "belum_ditemukan" | "perlu_verifikasi" | "ditambahkan_pengguna" = "belum_ditemukan";
       let statusLabel = "Belum ada di CV-mu";
 
-      if (reviewSet.has(canon)) {
-        cvStatus = "perlu_verifikasi"; statusLabel = "Perlu verifikasi";
-      } else if (verifiedSet.has(lower) || canonicalVerifiedSet.has(canon)) {
+      if (verifiedSet.has(lower) || canonicalVerifiedSet.has(canon)) {
         cvStatus = "tercantum";
         statusLabel = "Tercantum di CV";
+      } else if (reviewSet.has(canon)) {
+        cvStatus = "perlu_verifikasi"; statusLabel = "Perlu verifikasi";
       } else if (claimedSet.has(lower) || canonicalClaimedSet.has(canon)) {
         cvStatus = "ditambahkan_pengguna";
         statusLabel = "Ditambahkan oleh pengguna";

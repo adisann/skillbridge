@@ -1,4 +1,4 @@
-import type { MatchCategory, RequirementEvaluation } from "@/lib/matching";
+import type { MatchCategory, MatchStatusReason, RequirementEvaluation } from "@/lib/matching";
 
 /** Lowongan pada daftar Job Explorer (respons GET /api/jobs). */
 export interface JobListItem {
@@ -27,8 +27,11 @@ export interface JobListItem {
   preferredSkills: string[];
   matchScore: number | null;
   matchStatus: MatchCategory;
+  matchStatusReason?: MatchStatusReason | null;
   matchedSkills: string[];
   missingSkills: string[];
+  unprovenSkills?: string[];
+  requirementsEvaluation?: RequirementEvaluation[];
   factorsSupporting: string[];
   factorsLimiting: string[];
 }
@@ -69,6 +72,7 @@ export interface JobDetailData {
   preferredSkills: string[];
   matchScore: number | null;
   matchStatus: MatchCategory;
+  matchStatusReason?: MatchStatusReason | null;
   matchedSkills: string[];
   missingSkills: string[];
   unprovenSkills?: string[];
