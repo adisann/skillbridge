@@ -14,14 +14,14 @@ function FactorCard({ title, icon, titleClass, bulletClass, items }: FactorCardP
   return (
     <Card>
       <CardHeader>
-        <CardTitle className={`${titleClass} flex items-center gap-2`}>
+        <CardTitle className={`${titleClass} flex items-center gap-stack-xs`}>
           {icon}
           {title}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2 text-xs text-sb-text-2">
+      <CardContent className="space-y-stack-xs text-xs text-sb-text-2">
         {items.map((item, i) => (
-          <div key={i} className="flex items-start gap-2">
+          <div key={i} className="flex items-start gap-stack-xs">
             <span className={`${bulletClass} font-bold`}>•</span>
             <span>{item}</span>
           </div>
@@ -39,7 +39,7 @@ interface MatchFactorsProps {
 /** Faktor pendukung dan faktor pembatas dari hasil match. */
 export function MatchFactors({ supporting, limiting }: MatchFactorsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-stack-xl">
       <FactorCard
         title="Faktor Pendukung"
         icon={<CheckCircle2 className="w-4 h-4 text-sb-good" />}

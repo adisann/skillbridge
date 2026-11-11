@@ -1,14 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="36" height="36" fill="none">
-  <defs>
-    <linearGradient id="sb-sky-grad" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#60C1E5" />
-      <stop offset="100%" stop-color="#A0E0EF" />
-    </linearGradient>
-  </defs>
-  <rect width="36" height="36" rx="10" fill="url(#sb-sky-grad)" />
-  <rect x="0.5" y="0.5" width="35" height="35" rx="9.5" stroke="#FFFFFF" stroke-opacity="0.6" fill="none" />
-  <g transform="translate(6, 6)" stroke="#1B365D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <circle cx="12" cy="12" r="10" />
-    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="#1B365D" fill-opacity="0.2" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <rect width="48" height="48" rx="12" fill="#F4F6FA"/>
+  <!-- Bentuk sama dengan SKILLBRIDGE_MARK_PATH di src/components/ui/logo.tsx -->
+  <g transform="translate(8 14) scale(0.32)">
+    <path d="M0 60V0H19V20C19 9 33 2 50 2C67 2 81 9 81 20V0H100V60H81V40C81 27 67 18 50 18C33 18 19 27 19 40V60Z" fill="#1E40AF"/>
   </g>
 </svg>

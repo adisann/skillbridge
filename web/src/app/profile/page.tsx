@@ -8,10 +8,9 @@ import {
   Briefcase,
   Mail,
   ShieldCheck,
-  CheckCircle2,
   FileText,
   RotateCcw,
-  Sparkles,
+  ListChecks,
   GraduationCap,
   BookOpen,
   Bookmark,
@@ -27,7 +26,7 @@ import { SkeletonCard } from "@/components/ui/loading";
 import { useAuth } from "@/lib/supabase/auth-context";
 import { fetchDeduped } from "@/lib/fetcher";
 import { JOB_CATEGORIES } from "@/lib/job-categories";
-import { cn } from "@/lib/utils";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 
 interface ResumeSummary {
   filename?: string;
@@ -131,37 +130,37 @@ function ProfileContent() {
   const isDemoAccount = !!user?.isDemo;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-5xl mx-auto page-shell page-stack">
       {/* Page Banner (Replaces dark hero) */}
-      <div className="page-banner rounded-3xl p-6 sm:p-8 relative overflow-hidden">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
+      <div className="page-banner rounded-3xl p-stack-lg sm:p-stack-xl relative overflow-hidden">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-stack-xl">
+          <div className="flex items-center gap-stack-md">
             <div className="w-16 h-16 rounded-2xl bg-sb-mist text-sb-navy font-extrabold text-xl flex items-center justify-center shadow-sm ring-1 ring-white/50 shrink-0">
               {getUserInitials(user?.fullName)}
             </div>
-            <div className="space-y-1">
-              <div className="flex flex-wrap items-center gap-2">
+            <div className="space-y-stack-2xs">
+              <div className="flex flex-wrap items-center gap-stack-xs">
                 <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-sb-navy">
                   {user?.fullName || "Pengguna SkillBridge"}
                 </h1>
-                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-sb-mist-soft text-sb-blue border border-sb-border">
+                <span className="text-[11px] font-bold px-stack-xs py-stack-3xs rounded-full bg-sb-mist-soft text-sb-blue border border-sb-border">
                   {isAdmin ? "Administrator" : "Pelamar"}
                 </span>
                 {isDemoAccount && (
-                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-sb-good border border-emerald-200 flex items-center gap-1">
+                  <span className="text-[11px] font-bold px-stack-xs py-stack-3xs rounded-full bg-emerald-50 text-sb-good border border-emerald-200 flex items-center gap-stack-2xs">
                     <ShieldCheck className="w-3 h-3 text-sb-good" />
                     Akun Demo
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-sb-text-2">
+              <div className="flex items-center gap-stack-2xs text-xs text-sb-text-2">
                 <Mail className="w-3.5 h-3.5 text-sb-blue" />
                 <span className="font-mono-metric">{user?.email}</span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-stack-xs">
             <Button
               variant="outline"
               size="sm"
@@ -184,16 +183,16 @@ function ProfileContent() {
       )}
 
       {isLoading ? (
-        <div className="space-y-6">
+        <div className="space-y-stack-xl">
           <SkeletonCard />
           <SkeletonCard />
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-stack-xl">
           {/* Card: Target Bidang & Posisi Kerja */}
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
+            <CardHeader className="pb-stack-sm">
+              <CardTitle className="text-base flex items-center gap-stack-xs">
                 <Briefcase className="w-4 h-4 text-sb-blue" />
                 Target Bidang & Posisi Kerja
               </CardTitle>
@@ -201,52 +200,37 @@ function ProfileContent() {
                 Pilih bidang kerja utama dan ketik posisi spesifik untuk rekomendasi lowongan yang relevan.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Field Selection Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                {JOB_CATEGORIES.slice(0, 8).map((cat) => {
-                  const isSelected =
-                    (user?.targetRole || "").toLowerCase().includes(cat.label.toLowerCase()) ||
-                    (user?.targetRole || "").toLowerCase().includes(cat.slug);
-
-                  return (
-                    <button
-                      key={cat.slug}
-                      type="button"
-                      onClick={() => handleFieldChange(cat.label)}
-                      className={cn(
-                        "p-3.5 rounded-xl border text-left transition-ui cursor-pointer flex flex-col justify-between",
-                        isSelected
-                          ? "border-sb-sky bg-sb-mist-soft shadow-2xs font-bold"
-                          : "border-sb-border hover:border-sb-blue/40 bg-white/70"
-                      )}
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-bold text-sb-navy">{cat.label}</span>
-                        {isSelected ? (
-                          <CheckCircle2 className="w-3.5 h-3.5 text-sb-blue shrink-0" />
-                        ) : (
-                          <div className="w-3 h-3 rounded-full border border-sb-border" />
-                        )}
-                      </div>
-                      <p className="text-[11px] text-sb-text-2 line-clamp-1">{cat.examples}</p>
-                    </button>
-                  );
-                })}
-              </div>
+            <CardContent className="space-y-stack-md">
+              {/* Pilihan bidang: dropdown dengan pencarian (menggantikan grid kartu yang panjang di mobile) */}
+              <SearchableSelect
+                label="Bidang kerja utama"
+                placeholder="Pilih bidang kerja"
+                searchPlaceholder="Cari bidang atau posisi…"
+                emptyText="Bidang tidak ditemukan"
+                className="max-w-xl"
+                options={JOB_CATEGORIES.slice(0, 8).map((cat) => ({ value: cat.label, label: cat.label, description: cat.examples }))}
+                value={
+                  JOB_CATEGORIES.slice(0, 8).find(
+                    (cat) =>
+                      (user?.targetRole || "").toLowerCase().includes(cat.label.toLowerCase()) ||
+                      (user?.targetRole || "").toLowerCase().includes(cat.slug)
+                  )?.label ?? null
+                }
+                onChange={(label) => handleFieldChange(label)}
+              />
 
               {/* Specific Position Input */}
-              <div className="pt-2 border-t border-sb-border">
-                <label className="block text-xs font-bold text-sb-navy mb-1.5">
+              <div className="pt-stack-xs border-t border-sb-border">
+                <label className="block text-xs font-bold text-sb-navy mb-stack-2xs">
                   Posisi Spesifik (Opsional)
                 </label>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-stack-xs">
                   <input
                     type="text"
                     value={specificPosition}
                     onChange={(e) => setSpecificPosition(e.target.value)}
                     placeholder={`cth. ${user?.targetRole || "UX Researcher, Data Scientist, Frontend Developer"}`}
-                    className="flex-1 h-10 px-3.5 rounded-xl border border-sb-border bg-white/80 text-xs font-semibold text-sb-navy focus:outline-none focus:ring-2 focus:ring-sb-blue"
+                    className="flex-1 h-10 px-stack-sm rounded-xl border border-sb-border bg-white/80 text-xs font-semibold text-sb-navy focus:outline-none focus:ring-2 focus:ring-sb-blue"
                   />
                   <Button
                     variant="primary"
@@ -258,7 +242,7 @@ function ProfileContent() {
                     Simpan Posisi
                   </Button>
                 </div>
-                <p className="text-[11px] text-sb-text-2 mt-1.5">
+                <p className="text-[11px] text-sb-text-2 mt-stack-2xs">
                   Target saat ini: <strong className="text-sb-navy font-semibold">{user?.targetRole || "Data & Analitik"}</strong>
                 </p>
               </div>
@@ -267,9 +251,9 @@ function ProfileContent() {
 
           {/* Card: Status Berkas CV Aktif */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardHeader className="flex flex-row items-center justify-between pb-stack-sm">
               <div>
-                <CardTitle className="text-base flex items-center gap-2">
+                <CardTitle className="text-base flex items-center gap-stack-xs">
                   <FileText className="w-4 h-4 text-sb-blue" />
                   Status Berkas CV Aktif
                 </CardTitle>
@@ -285,35 +269,35 @@ function ProfileContent() {
             </CardHeader>
             <CardContent>
               {resume ? (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="p-3 bg-white/70 border border-sb-border rounded-xl">
+                <div className="space-y-stack-md">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-stack-sm">
+                    <div className="p-stack-sm bg-white/70 border border-sb-border rounded-xl">
                       <span className="text-xs font-bold uppercase tracking-wider text-sb-text-2">Berkas Terunggah</span>
-                      <p className="text-xs font-bold text-sb-navy truncate mt-0.5 flex items-center gap-1.5">
+                      <p className="text-xs font-bold text-sb-navy truncate mt-stack-3xs flex items-center gap-stack-2xs">
                         <FileText className="w-3.5 h-3.5 text-sb-blue shrink-0" />
                         <span className="truncate">{resume.filename || "CV_Aktif.pdf"}</span>
                       </p>
                     </div>
-                    <div className="p-3 bg-white/70 border border-sb-border rounded-xl">
+                    <div className="p-stack-sm bg-white/70 border border-sb-border rounded-xl">
                       <span className="text-xs font-bold uppercase tracking-wider text-sb-text-2">Pendidikan Terakhir</span>
-                      <p className="text-xs font-bold text-sb-navy truncate mt-0.5 flex items-center gap-1.5">
+                      <p className="text-xs font-bold text-sb-navy truncate mt-stack-3xs flex items-center gap-stack-2xs">
                         <GraduationCap className="w-3.5 h-3.5 text-sb-blue" />
                         {resume.education || "S1 Komputer / Terkait"}
                       </p>
                     </div>
-                    <div className="p-3 bg-white/70 border border-sb-border rounded-xl">
+                    <div className="p-stack-sm bg-white/70 border border-sb-border rounded-xl">
                       <span className="text-xs font-bold uppercase tracking-wider text-sb-text-2">Total Keahlian Ditemukan</span>
-                      <p className="text-xs font-bold text-sb-good truncate mt-0.5 flex items-center gap-1.5 font-mono-metric">
-                        <Sparkles className="w-3.5 h-3.5 text-sb-good" />
+                      <p className="text-xs font-bold text-sb-navy truncate mt-stack-3xs flex items-center gap-stack-2xs">
+                        <ListChecks className="w-3.5 h-3.5 text-sb-blue shrink-0" />
                         {resume.skills?.length || 0} skill terdaftar
                       </p>
                     </div>
                   </div>
 
                   {resume.summary && (
-                    <div className="p-3 bg-sb-mist-soft border border-sb-border rounded-xl">
+                    <div className="p-stack-sm bg-sb-mist-soft border border-sb-border rounded-xl">
                       <span className="text-xs font-bold uppercase tracking-wider text-sb-blue">Ringkasan Profil CV</span>
-                      <p className="text-xs text-sb-navy mt-1 leading-relaxed">
+                      <p className="text-xs text-sb-navy mt-stack-2xs leading-relaxed">
                         {resume.summary}
                       </p>
                     </div>
@@ -321,20 +305,20 @@ function ProfileContent() {
 
                   {resume.skills && resume.skills.length > 0 && (
                     <div>
-                      <span className="text-xs font-semibold text-sb-navy block mb-2">
+                      <span className="text-xs font-semibold text-sb-navy block mb-stack-xs">
                         Keahlian Inti yang Teridentifikasi:
                       </span>
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className="flex flex-wrap gap-stack-2xs">
                         {resume.skills.slice(0, 14).map((s) => (
                           <span
                             key={s}
-                            className="px-2.5 py-1 rounded-full text-xs font-medium bg-white border border-sb-border text-sb-navy shadow-2xs"
+                            className="px-stack-xs py-stack-2xs rounded-full text-xs font-medium bg-white border border-sb-border text-sb-navy shadow-2xs"
                           >
                             {s}
                           </span>
                         ))}
                         {resume.skills.length > 14 && (
-                          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-sb-mist-soft text-sb-blue border border-sb-border font-mono-metric">
+                          <span className="px-stack-xs py-stack-2xs rounded-full text-xs font-medium bg-sb-mist-soft text-sb-blue border border-sb-border font-mono-metric">
                             +{resume.skills.length - 14} lainnya
                           </span>
                         )}
@@ -343,7 +327,7 @@ function ProfileContent() {
                   )}
                 </div>
               ) : (
-                <div className="py-8 text-center text-xs text-sb-text-2 border border-dashed rounded-2xl border-sb-border space-y-2 bg-white/40">
+                <div className="py-stack-2xl text-center text-xs text-sb-text-2 border border-dashed rounded-2xl border-sb-border space-y-stack-xs bg-white/40">
                   <p>Belum ada berkas CV yang dianalisis.</p>
                   <Link href="/cv">
                     <Button variant="primary" size="sm" className="text-xs">
@@ -356,12 +340,12 @@ function ProfileContent() {
           </Card>
 
           {/* Card: Ringkasan Aktivitas & Tautan Cepat */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-stack-md">
             <Link href="/progress" className="block group">
               <Card className="h-full group-hover:border-sb-blue/40 transition-ui">
-                <CardContent className="p-4 flex items-center justify-between">
-                  <div className="space-y-1">
-                    <span className="text-xs text-sb-text-2 flex items-center gap-1.5">
+                <CardContent className="p-stack-md flex items-center justify-between">
+                  <div className="space-y-stack-2xs">
+                    <span className="text-xs text-sb-text-2 flex items-center gap-stack-2xs">
                       <BookOpen className="w-3.5 h-3.5 text-sb-blue" />
                       Rencana Belajar
                     </span>
@@ -374,9 +358,9 @@ function ProfileContent() {
 
             <Link href="/progress" className="block group">
               <Card className="h-full group-hover:border-sb-blue/40 transition-ui">
-                <CardContent className="p-4 flex items-center justify-between">
-                  <div className="space-y-1">
-                    <span className="text-xs text-sb-text-2 flex items-center gap-1.5">
+                <CardContent className="p-stack-md flex items-center justify-between">
+                  <div className="space-y-stack-2xs">
+                    <span className="text-xs text-sb-text-2 flex items-center gap-stack-2xs">
                       <Bookmark className="w-3.5 h-3.5 text-sb-blue" />
                       Lowongan Tersimpan
                     </span>
@@ -389,13 +373,13 @@ function ProfileContent() {
 
             <Link href="/tracker" className="block group">
               <Card className="h-full group-hover:border-sb-blue/40 transition-ui">
-                <CardContent className="p-4 flex items-center justify-between">
-                  <div className="space-y-1">
-                    <span className="text-xs text-sb-text-2 flex items-center gap-1.5">
+                <CardContent className="p-stack-md flex items-center justify-between">
+                  <div className="space-y-stack-2xs">
+                    <span className="text-xs text-sb-text-2 flex items-center gap-stack-2xs">
                       <ClipboardList className="w-3.5 h-3.5 text-sb-blue" />
                       Lamaran Saya
                     </span>
-                    <p className="text-xs font-semibold text-sb-blue mt-1">Buka Pipeline</p>
+                    <p className="text-xs font-semibold text-sb-blue mt-stack-2xs">Buka Pipeline</p>
                   </div>
                   <ArrowRight className="w-4 h-4 text-sb-text-2 group-hover:text-sb-blue group-hover:translate-x-1 transition-ui" />
                 </CardContent>
@@ -405,9 +389,9 @@ function ProfileContent() {
 
           {/* Card: Opsi Khusus Akun Demo */}
           {isDemoAccount && (
-            <div className="glass-panel p-5 rounded-2xl border border-sb-warning/40 space-y-3">
-              <div className="space-y-1">
-                <h3 className="text-sm font-bold text-sb-navy flex items-center gap-2">
+            <div className="glass-panel p-stack-lg rounded-2xl border border-sb-warning/40 space-y-stack-sm">
+              <div className="space-y-stack-2xs">
+                <h3 className="text-sm font-bold text-sb-navy flex items-center gap-stack-xs">
                   <RotateCcw className="w-4 h-4 text-sb-warning" />
                   Mode Demo
                 </h3>
@@ -415,7 +399,7 @@ function ProfileContent() {
                   Kamu sedang memakai akun demo. Untuk mengembalikan target belajar dan riwayat interaksi ke keadaan awal, gunakan tombol di bawah ini.
                 </p>
               </div>
-              <div className="pt-1">
+              <div className="pt-stack-2xs">
                 <Button
                   variant="outline"
                   size="sm"
@@ -423,7 +407,7 @@ function ProfileContent() {
                   disabled={isResetting}
                   className="text-xs border-sb-warning/40 text-sb-navy hover:bg-sb-warning/10"
                 >
-                  <RotateCcw className={`w-3.5 h-3.5 mr-1.5 ${isResetting ? "animate-spin" : ""}`} />
+                  <RotateCcw className={`w-3.5 h-3.5 mr-stack-2xs ${isResetting ? "animate-spin" : ""}`} />
                   {isResetting ? "Mereset akun demo..." : "Reset akun demo"}
                 </Button>
               </div>

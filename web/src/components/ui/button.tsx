@@ -31,7 +31,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variantStyles = {
       primary:
-        "bg-sb-sky text-sb-navy hover:bg-sb-sky-hover shadow-[0_4px_14px_rgba(0,90,156,0.28)] hover:ring-1 hover:ring-sb-blue font-bold",
+        "bg-sb-blue text-white hover:bg-sb-blue-hover shadow-[0_4px_14px_rgba(30,64,175,0.25)] font-bold",
       secondary:
         "bg-white hover:bg-sb-mist-faint text-sb-blue border border-sb-blue shadow-xs font-semibold",
       outline:
@@ -49,9 +49,9 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     const sizeStyles = {
-      sm: "h-9 px-4 text-xs gap-1.5",
-      md: "h-11 px-5 text-sm gap-2",
-      lg: "h-12 px-7 text-base gap-2.5",
+      sm: "h-9 px-stack-md text-xs gap-stack-2xs",
+      md: "h-11 px-stack-lg text-sm gap-stack-xs",
+      lg: "h-12 px-stack-xl text-base gap-stack-xs",
     };
 
     return (
@@ -66,7 +66,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ) : (
           leftIcon
         )}
-        <span className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap">
+        <span className="inline-flex items-center justify-center gap-stack-2xs whitespace-nowrap">
           {children}
         </span>
         {!isLoading && rightIcon}

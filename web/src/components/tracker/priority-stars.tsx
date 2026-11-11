@@ -31,7 +31,7 @@ export function PriorityStars({
 
   return (
     <div
-      className="inline-flex items-center gap-0.5 group"
+      className="inline-flex items-center gap-stack-3xs group"
       title={PRIORITY_LABELS[value] || `${value} Bintang`}
       onMouseLeave={() => !readOnly && setHoverValue(null)}
     >
@@ -47,7 +47,7 @@ export function PriorityStars({
               if (!readOnly && onChange) onChange(star);
             }}
             onMouseEnter={() => !readOnly && setHoverValue(star)}
-            className={`${readOnly ? "cursor-default" : "cursor-pointer hover:scale-115"} p-0.5 transition-transform duration-150 focus:outline-hidden`}
+            className={`${readOnly ? "cursor-default" : "cursor-pointer hover:scale-115"} p-stack-3xs transition-transform duration-150 focus:outline-hidden`}
             aria-label={`${star} Bintang`}
           >
             <Star

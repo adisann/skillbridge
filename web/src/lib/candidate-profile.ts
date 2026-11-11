@@ -1,6 +1,6 @@
-import { cvEvidence } from "@/lib/cv-evidence";
+import { cvEvidence } from "./cv-evidence.ts";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { parseGpaValue } from "@/lib/gpa";
+import { parseGpaValue } from "./gpa.ts";
 
 export interface CandidateProfile {
   activeResume: Record<string, unknown> | null;

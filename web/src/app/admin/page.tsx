@@ -29,7 +29,7 @@ export default function AdminPage() {
 
   return (
     <ProtectedRoute requireAdmin={true}>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <div className="max-w-6xl mx-auto page-shell page-stack">
         <AdminHeader
           isSubmitting={actions.isSubmitting}
           onImportUrl={() => url.setShow(true)}
@@ -53,7 +53,7 @@ export default function AdminPage() {
         />
 
         {isLoading ? (
-          <div className="space-y-4 py-8">
+          <div className="space-y-stack-md py-stack-2xl">
             <SkeletonTable rows={5} />
           </div>
         ) : (

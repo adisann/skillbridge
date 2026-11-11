@@ -34,7 +34,7 @@ export function JobDetail({ jobId, mode = "user" }: JobDetailProps) {
 
   if (isLoading) {
     return (
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <div className="max-w-5xl mx-auto page-shell page-stack">
         <div className="h-6 w-32 bg-sb-mist-soft animate-pulse rounded-md" />
         <SkeletonCard />
         <SkeletonCard />
@@ -44,7 +44,7 @@ export function JobDetail({ jobId, mode = "user" }: JobDetailProps) {
 
   if (errorMsg || !job) {
     return (
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="max-w-5xl mx-auto px-stack-md sm:px-stack-xl lg:px-stack-2xl py-stack-5xl">
         <EmptyState
           title={errorMsg || "Lowongan Tidak Ditemukan"}
           description="Lowongan mungkin telah kedaluwarsa atau URL yang dimasukkan salah."
@@ -56,11 +56,11 @@ export function JobDetail({ jobId, mode = "user" }: JobDetailProps) {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-28 space-y-8">
+    <div className="max-w-5xl mx-auto page-shell page-stack pb-stack-8xl!">
       <div>
         <Link
           href={backUrl}
-          className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-sb-text-2 hover:text-sb-blue transition-colors cursor-pointer"
+          className="inline-flex items-center gap-stack-2xs text-xs sm:text-sm font-bold text-sb-text-2 hover:text-sb-blue transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Kembali ke Lowongan</span>

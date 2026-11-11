@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Check, ChevronDown, FileText, Pencil, Target, Trash2, X } from "lucide-react";
+import { Check, ChevronDown, FileText, Pencil, Trash2, X } from "lucide-react";
 import { useCareer } from "@/context/career-context";
 import { Button } from "@/components/ui/button";
 import { JOB_CATEGORIES } from "@/lib/job-categories";
@@ -70,7 +70,7 @@ function TargetCombobox({
   return (
     <div className="relative">
       <form
-        className="flex gap-2"
+        className="flex gap-stack-xs"
         onSubmit={(e) => {
           e.preventDefault();
           if (canApply) pick(trimmed);
@@ -82,7 +82,7 @@ function TargetCombobox({
             aria-expanded={open}
             aria-controls="career-target-options"
             aria-label="Target karier"
-            className="w-full h-10 rounded-xl border border-sb-border bg-white pl-3 pr-9 text-sm text-sb-navy placeholder:text-sb-text-2/70 focus:outline-none focus:ring-2 focus:ring-sb-blue"
+            className="w-full h-10 rounded-xl border border-sb-border bg-white pl-stack-sm pr-stack-2xl text-sm text-sb-navy placeholder:text-sb-text-2/70 focus:outline-none focus:ring-2 focus:ring-sb-blue"
             value={query}
             maxLength={150}
             disabled={disabled}
@@ -99,7 +99,7 @@ function TargetCombobox({
             type="button"
             tabIndex={-1}
             aria-label="Tampilkan pilihan target"
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-sb-text-2"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-stack-2xs text-sb-text-2"
             onMouseDown={(e) => {
               e.preventDefault();
               setOpen((o) => !o);
@@ -117,14 +117,14 @@ function TargetCombobox({
         <div
           id="career-target-options"
           role="listbox"
-          className="absolute z-30 mt-1 w-full max-h-72 overflow-y-auto rounded-xl border border-sb-border bg-white shadow-lg p-1 text-sm"
+          className="absolute z-30 mt-stack-2xs w-full max-h-72 overflow-y-auto rounded-xl border border-sb-border bg-white shadow-lg p-stack-2xs text-sm"
         >
           {trimmed && !isExact && (
             <button
               type="button"
               role="option"
               aria-selected={false}
-              className="w-full text-left px-3 py-2 rounded-lg hover:bg-sb-mist-faint text-sb-navy"
+              className="w-full text-left px-stack-sm py-stack-xs rounded-lg hover:bg-sb-mist-faint text-sb-navy"
               onMouseDown={(e) => {
                 e.preventDefault();
                 pick(trimmed);
@@ -133,9 +133,11 @@ function TargetCombobox({
               Gunakan &ldquo;<strong>{trimmed}</strong>&rdquo;
             </button>
           )}
-          {filtered.map((g) => (
-            <div key={g.label} className="py-1">
-              <p className="px-3 pt-1 pb-0.5 text-[11px] font-semibold uppercase tracking-wide text-sb-text-2">{g.label}</p>
+          {/* Sub-judul per bidang dibuat tebal dan dipisah garis, pilihan di bawahnya menjorok,
+              supaya judul kelompok jelas berbeda dari pilihan "nama bidang" */}
+          {filtered.map((g, gi) => (
+            <div key={g.label} className={cn("py-stack-2xs", gi > 0 && "border-t border-sb-border mt-stack-2xs pt-stack-xs")}>
+              <p className="px-stack-sm pt-stack-2xs pb-stack-2xs text-[11px] font-extrabold uppercase tracking-wider text-sb-navy">{g.label}</p>
               {g.options.map((o) => (
                 <button
                   key={`${g.label}-${o}`}
@@ -143,7 +145,7 @@ function TargetCombobox({
                   role="option"
                   aria-selected={o === value}
                   className={cn(
-                    "w-full flex items-center justify-between gap-2 text-left px-3 py-2 rounded-lg hover:bg-sb-mist-faint",
+                    "w-full flex items-center justify-between gap-stack-xs text-left pl-stack-lg pr-stack-sm py-stack-xs rounded-lg hover:bg-sb-mist-faint",
                     o === value ? "font-semibold text-sb-blue" : "text-sb-navy"
                   )}
                   onMouseDown={(e) => {
@@ -157,7 +159,7 @@ function TargetCombobox({
               ))}
             </div>
           ))}
-          {filtered.length === 0 && !trimmed && <p className="px-3 py-2 text-sb-text-2">Ketik posisi yang kamu tuju.</p>}
+          {filtered.length === 0 && !trimmed && <p className="px-stack-sm py-stack-xs text-sb-text-2">Ketik posisi yang kamu tuju.</p>}
         </div>
       )}
     </div>
@@ -230,12 +232,12 @@ function ResumeRow({
   };
 
   return (
-    <li className={cn("rounded-xl border px-3 py-2.5", resume.is_active ? "border-sb-blue/40 bg-sb-mist-faint" : "border-sb-border bg-white")}>
-      <div className="flex items-center gap-2">
+    <li className={cn("rounded-xl border px-stack-sm py-stack-xs", resume.is_active ? "border-sb-blue/40 bg-sb-mist-faint" : "border-sb-border bg-white")}>
+      <div className="flex items-center gap-stack-xs">
         <FileText className="w-4 h-4 text-sb-blue shrink-0" />
         {editing ? (
           <form
-            className="flex-1 min-w-0 flex items-center gap-1.5"
+            className="flex-1 min-w-0 flex items-center gap-stack-2xs"
             onSubmit={(e) => {
               e.preventDefault();
               void rename();
@@ -245,7 +247,7 @@ function ResumeRow({
               ref={inputRef}
               autoFocus
               aria-label="Nama CV"
-              className="flex-1 min-w-0 h-8 rounded-lg border border-sb-border px-2 text-sm text-sb-navy focus:outline-none focus:ring-2 focus:ring-sb-blue"
+              className="flex-1 min-w-0 h-8 rounded-lg border border-sb-border px-stack-xs text-sm text-sb-navy focus:outline-none focus:ring-2 focus:ring-sb-blue"
               value={name}
               maxLength={120}
               disabled={working}
@@ -257,14 +259,14 @@ function ResumeRow({
                 }
               }}
             />
-            <button type="submit" aria-label="Simpan nama" disabled={working} className="p-1.5 rounded-lg text-sb-good hover:bg-white">
+            <button type="submit" aria-label="Simpan nama" disabled={working} className="p-stack-2xs rounded-lg text-sb-good hover:bg-white">
               <Check className="w-4 h-4" />
             </button>
             <button
               type="button"
               aria-label="Batal ganti nama"
               disabled={working}
-              className="p-1.5 rounded-lg text-sb-text-2 hover:bg-white"
+              className="p-stack-2xs rounded-lg text-sb-text-2 hover:bg-white"
               onClick={() => {
                 setEditing(false);
                 setName(resume.filename);
@@ -279,7 +281,7 @@ function ResumeRow({
               {resume.filename}
             </span>
             {resume.is_active ? (
-              <span className="shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white text-sb-blue border border-sb-blue/30">Aktif</span>
+              <span className="shrink-0 text-[11px] font-semibold px-stack-xs py-stack-3xs rounded-full bg-white text-sb-blue border border-sb-blue/30">Aktif</span>
             ) : (
               <button
                 type="button"
@@ -296,7 +298,7 @@ function ResumeRow({
               title="Ganti nama"
               disabled={disabled || working}
               onClick={() => setEditing(true)}
-              className="p-1.5 rounded-lg text-sb-text-2 hover:text-sb-navy hover:bg-white disabled:opacity-50"
+              className="p-stack-2xs rounded-lg text-sb-text-2 hover:text-sb-navy hover:bg-white disabled:opacity-50"
             >
               <Pencil className="w-3.5 h-3.5" />
             </button>
@@ -306,14 +308,14 @@ function ResumeRow({
               title="Hapus"
               disabled={disabled || working}
               onClick={() => void remove()}
-              className="p-1.5 rounded-lg text-sb-text-2 hover:text-sb-critical hover:bg-white disabled:opacity-50"
+              className="p-stack-2xs rounded-lg text-sb-text-2 hover:text-sb-critical hover:bg-white disabled:opacity-50"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
           </>
         )}
       </div>
-      {error && <p role="alert" className="mt-1 text-xs text-sb-critical">{error}</p>}
+      {error && <p role="alert" className="mt-stack-2xs text-xs text-sb-critical">{error}</p>}
     </li>
   );
 }
@@ -328,27 +330,26 @@ export function CareerContextBar({ beforeChange }: { beforeChange?: () => boolea
 
   return (
     <details className="group rounded-2xl border border-sb-border bg-white/80 text-sm text-sb-navy">
-      <summary className="list-none cursor-pointer flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 [&::-webkit-details-marker]:hidden">
-        <span className="flex items-center gap-1.5 min-w-0">
+      <summary className="list-none cursor-pointer flex flex-wrap items-center gap-x-stack-md gap-y-stack-xs px-stack-md py-stack-sm [&::-webkit-details-marker]:hidden">
+        <span className="flex w-full sm:w-auto max-w-full items-center gap-stack-2xs min-w-0">
           <FileText className="w-4 h-4 text-sb-blue shrink-0" />
-          <span className="text-sb-text-2">CV aktif:</span>
-          <strong className="truncate max-w-[16rem]">{career.activeResume?.filename || "Belum dipilih"}</strong>
+          <span className="shrink-0 whitespace-nowrap text-sb-text-2">CV aktif:</span>
+          <strong className="min-w-0 truncate sm:max-w-64" title={career.activeResume?.filename}>{career.activeResume?.filename || "Belum dipilih"}</strong>
         </span>
-        <span className="flex items-center gap-1.5 min-w-0">
-          <Target className="w-4 h-4 text-sb-blue shrink-0" />
-          <span className="text-sb-text-2">Target karier:</span>
-          <strong className="truncate max-w-[16rem]">{career.targetRole || "Belum dipilih"}</strong>
+        <span className="flex max-w-full items-start gap-stack-2xs min-w-0">
+          <span className="shrink-0 whitespace-nowrap text-sb-text-2">Target karier:</span>
+          <strong className="min-w-0 [overflow-wrap:anywhere]">{career.targetRole || "Belum dipilih"}</strong>
         </span>
-        <span className="ml-auto inline-flex items-center gap-1 text-xs font-semibold text-sb-blue">
+        <span className="ml-auto inline-flex items-center gap-stack-2xs text-xs font-semibold text-sb-blue">
           <span className="group-open:hidden">Ubah CV / target</span>
           <span className="hidden group-open:inline">Tutup</span>
           <ChevronDown className="w-4 h-4 transition-transform group-open:rotate-180" />
         </span>
       </summary>
 
-      <section aria-label="CV dan target karier" className="grid grid-cols-1 lg:grid-cols-2 gap-5 border-t border-sb-border px-4 py-4">
-        <div className="space-y-2">
-          <div className="flex items-center justify-between gap-2">
+      <section aria-label="CV dan target karier" className="grid grid-cols-1 lg:grid-cols-2 gap-stack-lg border-t border-sb-border px-stack-md py-stack-md">
+        <div className="space-y-stack-xs">
+          <div className="flex items-center justify-between gap-stack-xs">
             <h3 className="font-semibold">CV tersimpan</h3>
             <Link href="/cv#upload" className="text-xs font-semibold text-sb-blue hover:underline">
               Unggah CV baru
@@ -357,7 +358,7 @@ export function CareerContextBar({ beforeChange }: { beforeChange?: () => boolea
           {career.resumes.length === 0 ? (
             <p className="text-xs text-sb-text-2">Belum ada CV. Unggah CV untuk melihat kecocokan dengan lowongan.</p>
           ) : (
-            <ul className="space-y-1.5">
+            <ul className="space-y-stack-2xs">
               {career.resumes.map((r) => (
                 <ResumeRow
                   key={`${r.id}-${r.filename}`}
@@ -374,7 +375,7 @@ export function CareerContextBar({ beforeChange }: { beforeChange?: () => boolea
           )}
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-stack-xs">
           <h3 className="font-semibold">Target karier</h3>
           <TargetCombobox
             value={career.targetRole}

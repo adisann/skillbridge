@@ -78,7 +78,7 @@ export function SearchableJobCombobox({
   };
 
   return (
-    <div className="w-full space-y-1.5" ref={containerRef}>
+    <div className="w-full space-y-stack-2xs" ref={containerRef}>
       <div className="flex items-center justify-between">
         <label className="block text-xs font-semibold text-sb-navy">
           {label}
@@ -96,9 +96,9 @@ export function SearchableJobCombobox({
 
       {selectedJob ? (
         /* Selected State Card */
-        <div className="p-3 rounded-xl border border-sb-border bg-sb-mist-soft flex items-start justify-between gap-3 transition-ui shadow-2xs">
-          <div className="space-y-1 min-w-0">
-            <div className="flex items-center gap-1.5">
+        <div className="p-stack-sm rounded-xl border border-sb-border bg-sb-mist-soft flex items-start justify-between gap-stack-sm transition-ui shadow-2xs">
+          <div className="space-y-stack-2xs min-w-0">
+            <div className="flex items-center gap-stack-2xs">
               <span className="w-4 h-4 rounded-full bg-sb-sky text-sb-navy flex items-center justify-center shrink-0">
                 <Check className="w-2.5 h-2.5 stroke-[3]" />
               </span>
@@ -106,13 +106,13 @@ export function SearchableJobCombobox({
                 {selectedJob.title}
               </span>
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-[11px] text-sb-text-2 pl-5.5">
-              <span className="flex items-center gap-1">
+            <div className="flex flex-wrap items-center gap-stack-xs text-[11px] text-sb-text-2 pl-stack-lg">
+              <span className="flex items-center gap-stack-2xs">
                 <Building2 className="w-3 h-3 text-sb-blue" />
                 {selectedJob.company}
               </span>
               <span>•</span>
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-stack-2xs">
                 <MapPin className="w-3 h-3 text-sb-blue" />
                 {selectedJob.location}
               </span>
@@ -122,7 +122,7 @@ export function SearchableJobCombobox({
           <button
             type="button"
             onClick={handleClear}
-            className="p-1 text-sb-text-2 hover:text-sb-navy rounded-lg hover:bg-white/60 transition-colors shrink-0"
+            className="p-stack-2xs text-sb-text-2 hover:text-sb-navy rounded-lg hover:bg-white/60 transition-colors shrink-0"
             title="Hapus pilihan"
           >
             <X className="w-4 h-4" />
@@ -146,7 +146,7 @@ export function SearchableJobCombobox({
               }}
               onFocus={() => setIsOpen(true)}
               placeholder="Cari lowongan (Contoh: Data Analyst, Shopee)..."
-              className="w-full h-10 rounded-xl border border-sb-border bg-white pl-9 pr-9 text-xs font-medium text-sb-navy placeholder:text-sb-text-2 transition-colors focus:outline-hidden focus:border-sb-blue focus:ring-2 focus:ring-sb-mist-soft"
+              className="w-full h-10 rounded-xl border border-sb-border bg-white pl-stack-2xl pr-stack-2xl text-xs font-medium text-sb-navy placeholder:text-sb-text-2 transition-colors focus:outline-hidden focus:border-sb-blue focus:ring-2 focus:ring-sb-mist-soft"
             />
 
             {query ? (
@@ -170,8 +170,8 @@ export function SearchableJobCombobox({
 
           {/* Dropdown Results List */}
           {isOpen && (
-            <div className="absolute z-50 left-0 right-0 mt-1 max-h-56 overflow-y-auto rounded-xl border border-sb-border bg-white shadow-xl py-1 text-xs">
-              <div className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-sb-text-2 border-b border-sb-border flex items-center justify-between">
+            <div className="absolute z-50 left-0 right-0 mt-stack-2xs max-h-56 overflow-y-auto rounded-xl border border-sb-border bg-white shadow-xl py-stack-2xs text-xs">
+              <div className="px-stack-sm py-stack-2xs text-xs font-bold uppercase tracking-wider text-sb-text-2 border-b border-sb-border flex items-center justify-between">
                 <span>Hasil pencarian</span>
               </div>
 
@@ -181,25 +181,25 @@ export function SearchableJobCombobox({
                     key={job.id}
                     type="button"
                     onClick={() => handleSelectJob(job)}
-                    className="w-full px-3 py-2 text-left hover:bg-sb-mist-faint/50 flex items-start justify-between gap-2 border-b border-sb-border last:border-b-0 transition-colors group"
+                    className="w-full px-stack-sm py-stack-xs text-left hover:bg-sb-mist-faint/50 flex items-start justify-between gap-stack-xs border-b border-sb-border last:border-b-0 transition-colors group"
                   >
                     <div className="min-w-0">
                       <div className="font-bold text-sb-navy group-hover:text-sb-blue transition-colors truncate">
                         {job.title}
                       </div>
-                      <div className="flex items-center gap-2 text-[11px] text-sb-text-2 pt-0.5 truncate">
+                      <div className="flex items-center gap-stack-xs text-[11px] text-sb-text-2 pt-stack-3xs truncate">
                         <span>{job.company}</span>
                         <span>•</span>
                         <span>{job.location}</span>
                       </div>
                     </div>
-                    <span className="text-xs font-semibold text-sb-text-2 group-hover:text-sb-blue shrink-0 pt-0.5">
+                    <span className="text-xs font-semibold text-sb-text-2 group-hover:text-sb-blue shrink-0 pt-stack-3xs">
                       Pilih
                     </span>
                   </button>
                 ))
               ) : (
-                <div className="p-4 text-center space-y-1">
+                <div className="p-stack-md text-center space-y-stack-2xs">
                   <p className="font-semibold text-sb-navy text-xs">
                     Tidak ditemukan lowongan dengan kata kunci &ldquo;{query}&rdquo;
                   </p>

@@ -374,7 +374,7 @@ export function JobChatAssistant({
   const renderMessageContent = (text: string, msgIsStreaming = false) => {
     const lines = text.split("\n");
     return (
-      <div className="space-y-1.5 leading-relaxed text-xs sm:text-sm">
+      <div className="space-y-stack-2xs leading-relaxed text-xs sm:text-sm">
         {lines.map((line, idx) => {
           const isLastLine = idx === lines.length - 1;
           const trimmed = line.trim();
@@ -394,22 +394,22 @@ export function JobChatAssistant({
               actionUrl.startsWith("http://") || actionUrl.startsWith("https://");
 
             return (
-              <div key={idx} className="space-y-2">
+              <div key={idx} className="space-y-stack-xs">
                 {textBefore && (
                   <p>
                     <span dangerouslySetInnerHTML={{ __html: formatBold(textBefore) }} />
                     {msgIsStreaming && isLastLine && (
-                      <span className="inline-block w-1.5 h-3.5 ml-1 align-middle bg-sb-sky animate-pulse rounded-xs" />
+                      <span className="inline-block w-1.5 h-3.5 ml-stack-2xs align-middle bg-sb-sky animate-pulse rounded-xs" />
                     )}
                   </p>
                 )}
-                <div className="pt-1">
+                <div className="pt-stack-2xs">
                   {isExternal ? (
                     <a
                       href={actionUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-sb-sky hover:bg-sb-sky-hover text-sb-navy font-semibold text-xs shadow-xs hover:shadow-sm transition-ui duration-150 cursor-pointer group"
+                      className="inline-flex items-center gap-stack-2xs px-stack-sm py-stack-2xs rounded-xl bg-sb-blue hover:bg-sb-blue-hover text-white font-semibold text-xs shadow-xs hover:shadow-sm transition-ui duration-150 cursor-pointer group"
                     >
                       <span>{actionLabel}</span>
                       <ExternalLink className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
@@ -417,7 +417,7 @@ export function JobChatAssistant({
                   ) : (
                     <Link
                       href={actionUrl}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-sb-sky hover:bg-sb-sky-hover text-sb-navy font-semibold text-xs shadow-xs hover:shadow-sm transition-ui duration-150 cursor-pointer group"
+                      className="inline-flex items-center gap-stack-2xs px-stack-sm py-stack-2xs rounded-xl bg-sb-blue hover:bg-sb-blue-hover text-white font-semibold text-xs shadow-xs hover:shadow-sm transition-ui duration-150 cursor-pointer group"
                     >
                       <span>{actionLabel}</span>
                       <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
@@ -431,12 +431,12 @@ export function JobChatAssistant({
           if (trimmed.startsWith("* ") || trimmed.startsWith("- ") || trimmed.startsWith("• ")) {
             const rawContent = trimmed.slice(2);
             return (
-              <div key={idx} className="flex items-start gap-2 pl-2">
-                <span className="text-sb-blue font-bold shrink-0 mt-0.5">•</span>
+              <div key={idx} className="flex items-start gap-stack-xs pl-stack-xs">
+                <span className="text-sb-blue font-bold shrink-0 mt-stack-3xs">•</span>
                 <span>
                   <span dangerouslySetInnerHTML={{ __html: formatBold(rawContent) }} />
                   {msgIsStreaming && isLastLine && (
-                    <span className="inline-block w-1.5 h-3.5 ml-1 align-middle bg-sb-sky animate-pulse rounded-xs" />
+                    <span className="inline-block w-1.5 h-3.5 ml-stack-2xs align-middle bg-sb-sky animate-pulse rounded-xs" />
                   )}
                 </span>
               </div>
@@ -446,14 +446,14 @@ export function JobChatAssistant({
           const numMatch = trimmed.match(/^(\d+)\.\s+(.*)$/);
           if (numMatch) {
             return (
-              <div key={idx} className="flex items-start gap-2 pl-2">
-                <span className="text-sb-blue font-semibold shrink-0 text-xs mt-0.5">
+              <div key={idx} className="flex items-start gap-stack-xs pl-stack-xs">
+                <span className="text-sb-blue font-semibold shrink-0 text-xs mt-stack-3xs">
                   {numMatch[1]}.
                 </span>
                 <span>
                   <span dangerouslySetInnerHTML={{ __html: formatBold(numMatch[2]) }} />
                   {msgIsStreaming && isLastLine && (
-                    <span className="inline-block w-1.5 h-3.5 ml-1 align-middle bg-sb-sky animate-pulse rounded-xs" />
+                    <span className="inline-block w-1.5 h-3.5 ml-stack-2xs align-middle bg-sb-sky animate-pulse rounded-xs" />
                   )}
                 </span>
               </div>
@@ -464,7 +464,7 @@ export function JobChatAssistant({
             <p key={idx}>
               <span dangerouslySetInnerHTML={{ __html: formatBold(line) }} />
               {msgIsStreaming && isLastLine && (
-                <span className="inline-block w-1.5 h-3.5 ml-1 align-middle bg-sb-sky animate-pulse rounded-xs" />
+                <span className="inline-block w-1.5 h-3.5 ml-stack-2xs align-middle bg-sb-sky animate-pulse rounded-xs" />
               )}
             </p>
           );
@@ -489,7 +489,7 @@ export function JobChatAssistant({
           type="button"
           onClick={() => setIsOpen(true)}
           aria-label="Tanya Asisten AI"
-          className="fixed right-4 bottom-6 sm:right-6 sm:bottom-6 z-40 inline-flex items-center gap-2.5 px-4 py-2.5 sm:px-5 sm:py-3 rounded-full bg-sb-sky text-sb-navy shadow-xl hover:bg-sb-sky-hover hover:scale-105 active:scale-[0.97] transition-ui border border-sb-border cursor-pointer group focus:outline-none focus:ring-2 focus:ring-sb-blue focus:ring-offset-2 font-bold"
+          className="fixed right-4 bottom-6 sm:right-6 sm:bottom-6 z-40 inline-flex items-center gap-stack-xs px-stack-md py-stack-xs sm:px-stack-lg sm:py-stack-sm rounded-full bg-sb-blue text-white shadow-xl hover:bg-sb-blue-hover hover:scale-105 active:scale-[0.97] transition-ui border border-sb-border cursor-pointer group focus:outline-none focus:ring-2 focus:ring-sb-blue focus:ring-offset-2 font-bold"
         >
           <div className="w-6 h-6 rounded-lg bg-white/80 text-sb-navy flex items-center justify-center shrink-0 group-hover:rotate-12 transition-transform shadow-2xs">
             <Bot className="w-4 h-4 text-sb-blue" />
@@ -497,7 +497,7 @@ export function JobChatAssistant({
           <span className="text-xs sm:text-sm font-bold tracking-tight">
             Tanya Asisten AI
           </span>
-          <span className="w-2 h-2 rounded-full bg-sb-sky animate-pulse ml-0.5" />
+          <span className="w-2 h-2 rounded-full bg-sb-sky animate-pulse ml-stack-3xs" />
         </button>
       )}
 
@@ -507,41 +507,41 @@ export function JobChatAssistant({
           role="dialog"
           aria-label={`Asisten AI Lowongan - ${jobTitle}`}
           className={cn(
-            "fixed z-50 flex flex-col overflow-hidden bg-white/95 backdrop-blur-md border border-sb-border shadow-2xl animate-pop-in origin-bottom-right",
+            "fixed z-50 flex flex-col overflow-hidden bg-white border border-sb-border shadow-2xl animate-pop-in origin-bottom-right",
             isMaximized
               ? "inset-2 sm:inset-6 md:inset-10 rounded-2xl"
               : "right-3 bottom-3 sm:right-6 sm:bottom-6 w-[calc(100vw-1.5rem)] sm:w-[440px] h-[580px] sm:h-[620px] max-h-[88vh] rounded-2xl"
           )}
         >
           {/* Header Panel */}
-          <div className="px-4 py-3 sm:px-4.5 sm:py-3 bg-sb-mist-soft text-sb-navy border-b border-sb-border flex items-center justify-between shrink-0 select-none">
-            <div className="flex items-center gap-2.5 min-w-0 pr-2">
+          <div className="px-stack-md py-stack-sm sm:px-stack-md sm:py-stack-sm bg-sb-mist-soft text-sb-navy border-b border-sb-border flex items-center justify-between shrink-0 select-none">
+            <div className="flex items-center gap-stack-xs min-w-0 pr-stack-xs">
               <div className="w-8 h-8 rounded-xl bg-white border border-sb-border flex items-center justify-center shrink-0 shadow-2xs">
                 <Bot className="w-4 h-4 text-sb-blue" />
               </div>
               <div className="min-w-0">
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-stack-2xs">
                   <h3 className="text-sm font-bold tracking-tight truncate text-sb-navy">
                     SkillBridge AI
                   </h3>
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-white text-sb-blue border border-sb-border shrink-0">
+                  <span className="inline-flex items-center gap-stack-2xs text-xs font-semibold px-stack-xs py-stack-3xs rounded-full bg-white text-sb-blue border border-sb-border shrink-0">
                     Kontekstual
                   </span>
                 </div>
-                <p className="text-[11px] text-sb-text-2 truncate mt-0.5">
+                <p className="text-[11px] text-sb-text-2 truncate mt-stack-3xs">
                   {jobTitle} • {company}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-1 shrink-0">
+            <div className="flex items-center gap-stack-2xs shrink-0">
               {messages.length > 0 && (
                 <button
                   type="button"
                   onClick={handleClearChat}
                   title="Bersihkan percakapan"
                   aria-label="Bersihkan percakapan"
-                  className="p-1.5 rounded-lg text-sb-text-2 hover:text-sb-navy hover:bg-white/60 transition-colors cursor-pointer"
+                  className="p-stack-2xs rounded-lg text-sb-text-2 hover:text-sb-navy hover:bg-white/60 transition-colors cursor-pointer"
                 >
                   <RotateCcw className="w-4 h-4" />
                 </button>
@@ -552,7 +552,7 @@ export function JobChatAssistant({
                 onClick={() => setIsMaximized(!isMaximized)}
                 title={isMaximized ? "Perkecil ukuran obrolan" : "Perbesar obrolan"}
                 aria-label={isMaximized ? "Perkecil ukuran obrolan" : "Perbesar obrolan"}
-                className="p-1.5 rounded-lg text-sb-text-2 hover:text-sb-navy hover:bg-white/60 transition-colors cursor-pointer"
+                className="p-stack-2xs rounded-lg text-sb-text-2 hover:text-sb-navy hover:bg-white/60 transition-colors cursor-pointer"
               >
                 {isMaximized ? (
                   <Minimize2 className="w-4 h-4" />
@@ -566,7 +566,7 @@ export function JobChatAssistant({
                 onClick={() => setIsOpen(false)}
                 title="Tutup obrolan"
                 aria-label="Tutup obrolan"
-                className="p-1.5 rounded-lg text-sb-text-2 hover:text-sb-navy hover:bg-white/60 transition-colors cursor-pointer"
+                className="p-stack-2xs rounded-lg text-sb-text-2 hover:text-sb-navy hover:bg-white/60 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -577,12 +577,12 @@ export function JobChatAssistant({
           <div
             ref={scrollContainerRef}
             onScroll={handleScroll}
-            className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-4.5 space-y-4 bg-sb-mist-faint/30"
+            className="flex-1 min-h-0 overflow-y-auto p-stack-md sm:p-stack-md space-y-stack-md bg-sb-mist-faint/30"
           >
             {messages.length === 0 ? (
-              <div className="space-y-4 py-2">
-                <div className="p-4 rounded-xl bg-white border border-sb-border shadow-2xs space-y-2">
-                  <div className="flex items-center gap-2 text-xs font-bold text-sb-navy">
+              <div className="space-y-stack-md py-stack-xs">
+                <div className="p-stack-md rounded-xl bg-white border border-sb-border shadow-2xs space-y-stack-xs">
+                  <div className="flex items-center gap-stack-xs text-xs font-bold text-sb-navy">
                     <MessageSquare className="w-4 h-4 text-sb-blue" />
                     Pusat Informasi & Konsultasi Lowongan
                   </div>
@@ -593,18 +593,18 @@ export function JobChatAssistant({
                 </div>
 
                 {/* Pre-suggested quick chips */}
-                <div className="space-y-2">
+                <div className="space-y-stack-xs">
                   <div className="text-[11px] font-semibold text-sb-text-2 uppercase tracking-wider">
                     Saran Pertanyaan Awal:
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-stack-xs">
                     {QUICK_QUESTIONS.map((question, idx) => (
                       <button
                         key={idx}
                         type="button"
                         onClick={() => handleSendMessage(question)}
                         disabled={isStreaming || isAnalyzing}
-                        className="text-left text-xs px-3 py-1.5 rounded-lg border border-sb-border bg-white hover:bg-sb-mist-soft hover:text-sb-navy transition-ui cursor-pointer shadow-2xs active:scale-[0.97] text-sb-navy disabled:opacity-50 font-medium"
+                        className="text-left text-xs px-stack-sm py-stack-2xs rounded-lg border border-sb-border bg-white hover:bg-sb-mist-soft hover:text-sb-navy transition-ui cursor-pointer shadow-2xs active:scale-[0.97] text-sb-navy disabled:opacity-50 font-medium"
                       >
                         {question}
                       </button>
@@ -616,16 +616,16 @@ export function JobChatAssistant({
               messages.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`flex gap-2.5 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                  className={`flex gap-stack-xs ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   {msg.role === "assistant" && (
-                    <div className="w-7 h-7 rounded-lg bg-sb-sky text-sb-navy flex items-center justify-center shrink-0 mt-0.5 shadow-2xs border border-sb-border">
+                    <div className="w-7 h-7 rounded-lg bg-sb-sky text-sb-navy flex items-center justify-center shrink-0 mt-stack-3xs shadow-2xs border border-sb-border">
                       <Bot className="w-4 h-4" />
                     </div>
                   )}
 
                   <div
-                    className={`max-w-[85%] sm:max-w-[80%] rounded-2xl p-3 sm:p-3.5 shadow-2xs space-y-2 ${
+                    className={`max-w-[85%] sm:max-w-[80%] rounded-2xl p-stack-sm sm:p-stack-sm shadow-2xs space-y-stack-xs ${
                       msg.role === "user"
                         ? "bg-sb-mist-soft text-sb-navy border border-sb-border rounded-tr-xs font-medium"
                         : "bg-white text-sb-navy border border-sb-border rounded-tl-xs"
@@ -634,14 +634,14 @@ export function JobChatAssistant({
                     {renderMessageContent(msg.content, msg.isStreaming)}
 
                     {msg.role === "assistant" && (
-                      <div className="pt-1.5 mt-2 border-t border-sb-border flex justify-end text-xs text-sb-text-2">
+                      <div className="pt-stack-2xs mt-stack-xs border-t border-sb-border flex justify-end text-xs text-sb-text-2">
                         <span>{msg.timestamp}</span>
                       </div>
                     )}
                   </div>
 
                   {msg.role === "user" && (
-                    <div className="w-7 h-7 rounded-lg bg-sb-mist text-sb-navy flex items-center justify-center shrink-0 mt-0.5 border border-sb-border">
+                    <div className="w-7 h-7 rounded-lg bg-sb-mist text-sb-navy flex items-center justify-center shrink-0 mt-stack-3xs border border-sb-border">
                       <User className="w-4 h-4" />
                     </div>
                   )}
@@ -651,15 +651,15 @@ export function JobChatAssistant({
 
             {/* Initial Analyzing Indicator (Before First Token Arrives) */}
             {isAnalyzing && (
-              <div className="flex items-center gap-2.5 text-xs text-sb-text-2 py-2 animate-fade-in">
+              <div className="flex items-center gap-stack-xs text-xs text-sb-text-2 py-stack-xs animate-fade-in">
                 <div className="w-7 h-7 rounded-lg bg-sb-sky text-sb-navy flex items-center justify-center shrink-0 animate-pulse border border-sb-border">
                   <Bot className="w-4 h-4" />
                 </div>
-                <div className="p-3 rounded-2xl bg-white border border-sb-border shadow-2xs flex items-center gap-2">
+                <div className="p-stack-sm rounded-2xl bg-white border border-sb-border shadow-2xs flex items-center gap-stack-xs">
                   <div className="w-2 h-2 rounded-full bg-sb-sky animate-bounce" />
                   <div className="w-2 h-2 rounded-full bg-sb-sky animate-bounce [animation-delay:0.2s]" />
                   <div className="w-2 h-2 rounded-full bg-sb-sky animate-bounce [animation-delay:0.4s]" />
-                  <span className="text-sb-text-2 font-medium pl-1 text-xs">Menganalisis konteks lowongan...</span>
+                  <span className="text-sb-text-2 font-medium pl-stack-2xs text-xs">Menganalisis konteks lowongan...</span>
                 </div>
               </div>
             )}
@@ -669,7 +669,7 @@ export function JobChatAssistant({
 
           {/* Quick chips bar when conversation has started */}
           {messages.length > 0 && !isStreaming && !isAnalyzing && (
-            <div className="px-3.5 py-1.5 bg-sb-mist-soft/60 border-t border-sb-border overflow-x-auto flex items-center gap-1.5 scrollbar-none shrink-0">
+            <div className="px-stack-sm py-stack-2xs bg-sb-mist-soft/60 border-t border-sb-border overflow-x-auto flex items-center gap-stack-2xs scrollbar-none shrink-0">
               <span className="text-xs font-bold text-sb-text-2 uppercase shrink-0">
                 Tanya cepat:
               </span>
@@ -679,7 +679,7 @@ export function JobChatAssistant({
                   type="button"
                   onClick={() => handleSendMessage(q)}
                   disabled={isStreaming || isAnalyzing}
-                  className="text-[11px] whitespace-nowrap px-2.5 py-1 rounded-md bg-white border border-sb-border hover:bg-sb-mist-soft text-sb-navy transition-colors shrink-0 disabled:opacity-50 cursor-pointer shadow-2xs font-medium"
+                  className="text-[11px] whitespace-nowrap px-stack-xs py-stack-2xs rounded-md bg-white border border-sb-border hover:bg-sb-mist-soft text-sb-navy transition-colors shrink-0 disabled:opacity-50 cursor-pointer shadow-2xs font-medium"
                 >
                   {q}
                 </button>
@@ -688,9 +688,9 @@ export function JobChatAssistant({
           )}
 
           {/* Input Footer */}
-          <div className="p-3 sm:p-3.5 bg-white border-t border-sb-border shrink-0">
+          <div className="p-stack-sm sm:p-stack-sm bg-white border-t border-sb-border shrink-0">
             {errorMessage && (
-              <div className="mb-2 p-2 rounded-lg bg-red-50 border border-red-200 flex items-center gap-2 text-xs text-red-700">
+              <div className="mb-stack-xs p-stack-xs rounded-lg bg-red-50 border border-red-200 flex items-center gap-stack-xs text-xs text-red-700">
                 <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
                 <span className="flex-1">{errorMessage}</span>
                 <button
@@ -708,7 +708,7 @@ export function JobChatAssistant({
                 e.preventDefault();
                 handleSendMessage();
               }}
-              className="flex items-center gap-2"
+              className="flex items-center gap-stack-xs"
             >
               <div className="relative flex-1">
                 <input
@@ -724,9 +724,9 @@ export function JobChatAssistant({
                       ? "Asisten AI sedang menyusun jawaban..."
                       : "Ketik pertanyaan seputar lowongan ini..."
                   }
-                  className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl border border-sb-border bg-sb-mist-faint/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue focus:border-transparent transition-ui pr-14 disabled:opacity-60 text-sb-navy placeholder:text-sb-text-2"
+                  className="w-full text-xs sm:text-sm px-stack-sm py-stack-xs rounded-xl border border-sb-border bg-sb-mist-faint/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sb-blue focus:border-transparent transition-ui pr-stack-4xl disabled:opacity-60 text-sb-navy placeholder:text-sb-text-2"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-sb-text-2 font-mono">
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-sb-text-2">
                   {inputValue.length}/300
                 </span>
               </div>
@@ -739,7 +739,7 @@ export function JobChatAssistant({
                   onClick={handleStopGenerating}
                   title="Hentikan respons AI"
                   aria-label="Hentikan respons"
-                  className="shrink-0 rounded-xl gap-1.5"
+                  className="shrink-0 rounded-xl gap-stack-2xs"
                 >
                   <Square className="w-3.5 h-3.5 fill-current" aria-hidden="true" />
                   <span className="hidden sm:inline">Hentikan</span>
@@ -759,7 +759,7 @@ export function JobChatAssistant({
               )}
             </form>
 
-            <div className="flex items-center justify-between text-[11px] text-sb-text-2 pt-2 px-1">
+            <div className="flex items-center justify-between text-[11px] text-sb-text-2 pt-stack-xs px-stack-2xs">
               <span>{isStreaming ? "Klik 'Hentikan' untuk membatalkan" : "Tekan Enter untuk mengirim"}</span>
             </div>
           </div>

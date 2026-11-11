@@ -26,6 +26,10 @@ if (isR2Configured) {
       accessKeyId: accessKeyId!,
       secretAccessKey: secretAccessKey!,
     },
+    // AWS SDK v3 baru menambahkan checksum otomatis yang tidak selalu didukung R2.
+    // Rekomendasi Cloudflare: kirim checksum hanya bila operasi memang mewajibkannya.
+    requestChecksumCalculation: "WHEN_REQUIRED",
+    responseChecksumValidation: "WHEN_REQUIRED",
   });
 }
 
@@ -37,54 +41,51 @@ export async function uploadToR2(
   key: string,
   contentType: string
 ): Promise<{ key: string; presignedUrl: string }> {
-  if (s3Client && isR2Configured) {
-    try {
-      await s3Client.send(
-        new PutObjectCommand({
-          Bucket: bucketName,
-          Key: key,
-          Body: fileBuffer,
-          ContentType: contentType,
-        })
-      );
-
-      // Generate signed URL privat (berlaku 2 jam)
-      const getCommand = new GetObjectCommand({
+  if (!s3Client || !isR2Configured) {
+    throw new Error("Penyimpanan CV belum dikonfigurasi. Hubungi admin untuk mengaktifkan unggahan CV.");
+  }
+  try {
+    await s3Client.send(
+      new PutObjectCommand({
         Bucket: bucketName,
         Key: key,
-      });
-      const presignedUrl = await getSignedUrl(s3Client, getCommand, { expiresIn: 7200 });
+        Body: fileBuffer,
+        ContentType: contentType,
+      })
+    );
 
-      return { key, presignedUrl };
-    } catch (err) {
-      console.error("[R2 Upload Error]", err);
-    }
+    // Generate signed URL privat (berlaku 2 jam)
+    const getCommand = new GetObjectCommand({
+      Bucket: bucketName,
+      Key: key,
+    });
+    const presignedUrl = await getSignedUrl(s3Client, getCommand, { expiresIn: 7200 });
+
+    return { key, presignedUrl };
+  } catch (err) {
+    console.error("[R2 Upload Error]", err);
+    throw new Error("Berkas CV belum berhasil disimpan. Coba unggah kembali atau hubungi admin jika masalah berlanjut.");
   }
-
-  // Fallback storage signed URL bila R2 belum dikonfigurasi
-  // NFR-03 & Kejujuran Data: Jangan mengembalikan URL R2 fiktif
-  return { key, presignedUrl: "" };
 }
 
 /**
  * Hapus dokumen secara permanen dari Cloudflare R2 bucket privat.
  */
 export async function deleteFromR2(key: string): Promise<boolean> {
-  if (s3Client && isR2Configured) {
+  if (!s3Client || !isR2Configured) return false;
+  // Dicoba dua kali: kegagalan jaringan sesaat tidak boleh membuat CV "tidak bisa dihapus"
+  for (let attempt = 1; attempt <= 2; attempt++) {
     try {
-      await s3Client.send(
-        new DeleteObjectCommand({
-          Bucket: bucketName,
-          Key: key,
-        })
-      );
+      await s3Client.send(new DeleteObjectCommand({ Bucket: bucketName, Key: key }));
       return true;
     } catch (err) {
-      console.error("[R2 Delete Error]", err);
-      return false;
+      const e = err as { name?: string; $metadata?: { httpStatusCode?: number }; message?: string };
+      // Berkas sudah tidak ada = tujuan penghapusan sudah tercapai
+      if (e.name === "NoSuchKey" || e.$metadata?.httpStatusCode === 404) return true;
+      console.error(`[R2 Delete Error] percobaan ${attempt}:`, e.name, e.$metadata?.httpStatusCode, e.message);
     }
   }
-  return true;
+  return false;
 }
 
 

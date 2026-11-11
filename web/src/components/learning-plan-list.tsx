@@ -1,17 +1,61 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowDown, ArrowUp, ExternalLink, GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronDown, ExternalLink, GripVertical, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 import { useLearning } from "@/context/learning-context";
 import { LEARNING_PRIORITIES, displayLearningPriority, noteSegments, type LearningItem } from "@/lib/learning";
 import { LearningItemEditor } from "@/components/learning-item-editor";
 import { Button } from "@/components/ui/button";
 import { confirmAction } from "@/lib/dialogs";
 import { cn } from "@/lib/utils";
+import { useCareer } from "@/context/career-context";
+import { careerTargetFilter } from "@/lib/job-categories";
+import { getCanonicalSkill } from "@/lib/matching-config";
+import { fetchDeduped } from "@/lib/fetcher";
+
+interface SkillDemand {
+  /** Jumlah lowongan sesuai target karier (N). */
+  total: number;
+  /** Jumlah lowongan yang meminta skill, per nama skill kanonik. */
+  counts: Map<string, number>;
+}
+
+/** Permintaan tiap skill di lowongan yang sesuai target karier pengguna (sumber angka sama dengan Tren Skill). */
+function useSkillDemand(targetRole: string | null | undefined): SkillDemand | null {
+  const [demand, setDemand] = useState<{ key: string; value: SkillDemand } | null>(null);
+  const role = careerTargetFilter(targetRole);
+  useEffect(() => {
+    let live = true;
+    fetchDeduped<{ sampleSizeN: number; topSkills: Array<{ skillName: string; frequencyCount: number }> }>(
+      `/api/insights?role=${encodeURIComponent(role)}&allSkills=1`
+    )
+      .then((data) => {
+        if (!live) return;
+        const counts = new Map<string, number>();
+        for (const s of data.topSkills || []) counts.set(getCanonicalSkill(s.skillName), s.frequencyCount);
+        setDemand({ key: role, value: { total: data.sampleSizeN || 0, counts } });
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [role]);
+  return demand?.key === role ? demand.value : null;
+}
+
+function DemandText({ skillName, demand }: { skillName: string; demand: SkillDemand | null }) {
+  if (!demand) return null;
+  const count = demand.counts.get(getCanonicalSkill(skillName)) ?? 0;
+  return (
+    <span className="block text-xs text-sb-text-2">
+      Diminta di <strong className="font-semibold text-sb-navy">{count}</strong> dari {demand.total} lowongan target
+    </span>
+  );
+}
 
 type StatusFilter = "all" | "todo" | "done";
-type SortMode = "custom" | "priority";
+type SortMode = "custom" | "priority" | "trend";
 
 const PRIORITY_TONE: Record<string, string> = {
   Tinggi: "bg-sb-critical/10 text-sb-critical border-sb-critical/25",
@@ -41,27 +85,31 @@ function useCustomOrder(userKey: string) {
   return [order, save] as const;
 }
 
-function NotesCell({ item }: { item: LearningItem }) {
+function NotesCell({ item, autoEdit = false, onDone }: { item: LearningItem; autoEdit?: boolean; onDone?: () => void }) {
   const learning = useLearning();
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditingState] = useState(autoEdit);
+  const setEditing = (value: boolean) => {
+    setEditingState(value);
+    if (!value) onDone?.();
+  };
   const [notes, setNotes] = useState(item.notes || "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
   if (editing) {
     return (
-      <div className="space-y-2">
+      <div className="space-y-stack-xs">
         <textarea
           autoFocus
           aria-label={`Catatan ${item.skillName}`}
-          className="w-full min-h-24 rounded-xl border border-sb-border p-2.5 text-sm text-sb-navy focus:outline-none focus:ring-2 focus:ring-sb-blue"
+          className="w-full min-h-24 rounded-xl border border-sb-border p-stack-xs text-sm text-sb-navy focus:outline-none focus:ring-2 focus:ring-sb-blue"
           maxLength={20000}
           value={notes}
           disabled={busy}
           placeholder="Tautan kursus, video, atau materi yang ingin dilanjutkan…"
           onChange={(e) => setNotes(e.target.value)}
         />
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-stack-xs">
           <Button
             size="sm"
             disabled={busy || notes === (item.notes || "")}
@@ -103,7 +151,7 @@ function NotesCell({ item }: { item: LearningItem }) {
       <button
         type="button"
         onClick={() => setEditing(true)}
-        className="inline-flex items-center gap-1 text-xs font-semibold text-sb-blue hover:underline"
+        className="hidden lg:inline-flex items-center gap-stack-2xs text-xs font-semibold text-sb-blue hover:underline"
       >
         <Plus className="w-3.5 h-3.5" />
         Tambah catatan
@@ -112,8 +160,8 @@ function NotesCell({ item }: { item: LearningItem }) {
   }
 
   return (
-    <div className="group/notes flex items-start gap-2 min-w-0">
-      <p className="flex-1 min-w-0 text-sm text-sb-navy whitespace-pre-wrap break-words line-clamp-3">
+    <div className="group/notes flex items-start gap-stack-xs min-w-0">
+      <p className="min-w-0 text-xs lg:text-sm text-sb-navy whitespace-pre-wrap break-words line-clamp-1 lg:line-clamp-3">
         {noteSegments(item.notes).map((part, i) =>
           part.href ? (
             <a key={i} href={part.href} target="_blank" rel="noopener noreferrer" className="text-sb-blue underline">
@@ -129,7 +177,7 @@ function NotesCell({ item }: { item: LearningItem }) {
         onClick={() => setEditing(true)}
         aria-label={`Ubah catatan ${item.skillName}`}
         title="Ubah catatan"
-        className="p-1.5 rounded-lg text-sb-text-2 hover:text-sb-navy hover:bg-sb-mist-faint shrink-0"
+        className="p-stack-2xs rounded-lg text-sb-text-2 hover:text-sb-navy hover:bg-sb-mist-faint shrink-0"
       >
         <Pencil className="w-3.5 h-3.5" />
       </button>
@@ -139,6 +187,8 @@ function NotesCell({ item }: { item: LearningItem }) {
 
 export function LearningPlanList({ userKey }: { userKey: string }) {
   const learning = useLearning();
+  const career = useCareer();
+  const demand = useSkillDemand(career.targetRole);
   const [status, setStatus] = useState<StatusFilter>("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [sortMode, setSortMode] = useState<SortMode>("custom");
@@ -147,6 +197,10 @@ export function LearningPlanList({ userKey }: { userKey: string }) {
   const [overId, setOverId] = useState<string | null>(null);
   const [rowError, setRowError] = useState("");
   const [busyIds, setBusyIds] = useState<string[]>([]);
+  // Khusus HP & tablet: menu ⋯ per baris, catatan yang sedang dibuka dari menu, dan grup "Sudah dipelajari"
+  const [menuId, setMenuId] = useState<string | null>(null);
+  const [noteEditId, setNoteEditId] = useState<string | null>(null);
+  const [showDone, setShowDone] = useState(false);
   // Drag hanya boleh dimulai dari pegangan, supaya teks & kontrol di baris tetap bisa dipakai
   const handleArmed = useRef<string | null>(null);
 
@@ -156,18 +210,26 @@ export function LearningPlanList({ userKey }: { userKey: string }) {
   const ordered = useMemo(() => {
     const position = new Map(order.map((id, i) => [id, i]));
     const list = [...items];
+    if (sortMode === "trend") {
+      // Paling banyak diminta di lowongan sesuai target karier lebih dulu (angka sama dengan Tren Skill)
+      const count = (name: string) => demand?.counts.get(getCanonicalSkill(name)) ?? 0;
+      return list.sort((a, b) => count(b.skillName) - count(a.skillName) || a.skillName.localeCompare(b.skillName));
+    }
     if (sortMode === "priority") {
       const rank = (p: string) => LEARNING_PRIORITIES.indexOf(displayLearningPriority(p) as (typeof LEARNING_PRIORITIES)[number]);
       return list.sort((a, b) => rank(a.priority) - rank(b.priority) || Number(a.isDone) - Number(b.isDone) || a.skillName.localeCompare(b.skillName));
     }
     return list.sort((a, b) => (position.get(a.id) ?? -1) - (position.get(b.id) ?? -1));
-  }, [items, order, sortMode]);
+  }, [items, order, sortMode, demand]);
 
   const visible = ordered.filter(
     (it) =>
       (status === "all" || (status === "done" ? it.isDone : !it.isDone)) &&
       (priorityFilter === "all" || displayLearningPriority(it.priority) === priorityFilter)
   );
+  // Saat "Semua": yang belum dipelajari di atas, yang sudah dipelajari dikelompokkan di bawah
+  const todoItems = status === "all" ? visible.filter((it) => !it.isDone) : visible;
+  const doneItems = status === "all" ? visible.filter((it) => it.isDone) : [];
   const canReorder = sortMode === "custom";
   const fullIds = ordered.map((it) => it.id);
 
@@ -181,7 +243,7 @@ export function LearningPlanList({ userKey }: { userKey: string }) {
     saveOrder(next);
   };
   const moveBy = (id: string, delta: number) => {
-    const visibleIds = visible.map((it) => it.id);
+    const visibleIds = [...todoItems, ...doneItems].map((it) => it.id);
     const target = visibleIds[visibleIds.indexOf(id) + delta];
     if (target) moveTo(id, target);
   };
@@ -205,83 +267,11 @@ export function LearningPlanList({ userKey }: { userKey: string }) {
     done: items.filter((it) => it.isDone).length,
   };
 
-  return (
-    <div className="space-y-3">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-        <div role="group" aria-label="Filter status belajar" className="inline-flex rounded-xl border border-sb-border bg-white p-1 self-start">
-          {([
-            ["all", "Semua"],
-            ["todo", "Belum dipelajari"],
-            ["done", "Sudah dipelajari"],
-          ] as const).map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              aria-pressed={status === value}
-              onClick={() => setStatus(value)}
-              className={cn(
-                "px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors",
-                status === value ? "bg-sb-sky text-sb-navy" : "text-sb-text-2 hover:text-sb-navy"
-              )}
-            >
-              {label} <span className="font-mono-metric">({counts[value]})</span>
-            </button>
-          ))}
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <label className="flex items-center gap-2 text-xs font-semibold text-sb-navy">
-            Prioritas
-            <select
-              className="h-9 rounded-lg border border-sb-border bg-white px-2 text-xs"
-              value={priorityFilter}
-              onChange={(e) => setPriorityFilter(e.target.value)}
-            >
-              <option value="all">Semua</option>
-              {LEARNING_PRIORITIES.map((p) => (
-                <option key={p} value={p}>{p}</option>
-              ))}
-            </select>
-          </label>
-          <label className="flex items-center gap-2 text-xs font-semibold text-sb-navy">
-            Urutkan
-            <select
-              className="h-9 rounded-lg border border-sb-border bg-white px-2 text-xs"
-              value={sortMode}
-              onChange={(e) => setSortMode(e.target.value as SortMode)}
-            >
-              <option value="custom">Urutan saya</option>
-              <option value="priority">Prioritas tertinggi dulu</option>
-            </select>
-          </label>
-        </div>
-      </div>
-
-      <p className="text-xs text-sb-text-2">
-        {canReorder
-          ? "Seret pegangan di kiri atau pakai tombol panah untuk mengatur urutan belajar."
-          : "Pilih “Urutan saya” untuk mengatur urutan dengan menyeret."}
-      </p>
-
-      {rowError && <p role="alert" className="text-xs text-sb-critical">{rowError}</p>}
-
-      <div className="rounded-2xl border border-sb-border bg-white/80 overflow-hidden">
-        <div className="hidden md:grid grid-cols-[2.5rem_minmax(0,1.4fr)_8rem_minmax(0,2fr)_6.5rem] gap-3 px-4 py-2.5 border-b border-sb-border bg-white/70 text-[11px] font-bold uppercase tracking-wider text-sb-text-2">
-          <span><span className="sr-only">Urutan</span></span>
-          <span>Skill</span>
-          <span>Prioritas</span>
-          <span>Catatan</span>
-          <span className="text-right">Aksi</span>
-        </div>
-
-        {visible.length === 0 ? (
-          <p className="px-4 py-8 text-center text-sm text-sb-text-2">Tidak ada target belajar untuk filter ini.</p>
-        ) : (
-          <ul>
-            {visible.map((item, index) => {
-              const busy = busyIds.includes(item.id);
-              const duplicates = learning.items.filter((it) => it.duplicateOf === item.id);
-              const priority = displayLearningPriority(item.priority);
-              return (
+  const renderRow = (item: LearningItem, index: number, list: LearningItem[]) => {
+    const busy = busyIds.includes(item.id);
+    const duplicates = learning.items.filter((it) => it.duplicateOf === item.id);
+    const priority = displayLearningPriority(item.priority);
+    return (
                 <li
                   key={item.id}
                   draggable={canReorder}
@@ -313,13 +303,15 @@ export function LearningPlanList({ userKey }: { userKey: string }) {
                     setOverId(null);
                   }}
                   className={cn(
-                    "border-t border-sb-border first:border-t-0 transition-colors",
+                    "group/row border-t border-sb-border first:border-t-0 transition-colors hover:bg-sb-mist-faint/60",
                     dragId === item.id && "opacity-50",
                     overId === item.id && dragId !== item.id && "bg-sb-mist-faint shadow-[inset_0_2px_0_0_var(--sb-blue)]"
                   )}
                 >
-                  <div className="grid grid-cols-[2.5rem_minmax(0,1fr)] md:grid-cols-[2.5rem_minmax(0,1.4fr)_8rem_minmax(0,2fr)_6.5rem] gap-x-3 gap-y-2 items-start px-4 py-3">
-                    <div className="flex flex-col items-center gap-0.5 pt-0.5">
+                  <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.4fr)_8rem_minmax(0,2fr)_7rem] gap-x-stack-xs lg:gap-x-stack-sm gap-y-stack-2xs lg:gap-y-stack-xs items-start px-stack-sm lg:px-stack-md py-stack-xs lg:py-stack-sm">
+                    <div className="min-w-0">
+                      {/* Pegangan seret dan centang selalu sebaris (HP & desktop); di HP prioritas dan menu ikut di baris ini */}
+                      <div className="flex items-center lg:items-start gap-stack-xs">
                       <span
                         role="button"
                         tabIndex={-1}
@@ -330,28 +322,15 @@ export function LearningPlanList({ userKey }: { userKey: string }) {
                         onPointerUp={() => {
                           handleArmed.current = null;
                         }}
-                        className={cn("p-1 rounded text-sb-text-2", canReorder ? "cursor-grab active:cursor-grabbing hover:bg-sb-mist-faint" : "opacity-30 cursor-not-allowed")}
+                        className={cn("shrink-0 lg:mt-stack-3xs text-sb-text-2", canReorder ? "cursor-grab active:cursor-grabbing hover:text-sb-navy" : "opacity-30")}
                         title={canReorder ? "Seret untuk mengubah urutan" : undefined}
                       >
                         <GripVertical className="w-4 h-4" />
                       </span>
-                      {canReorder && (
-                        <div className="flex flex-col">
-                          <button type="button" aria-label={`Pindahkan ${item.skillName} ke atas`} disabled={index === 0} onClick={() => moveBy(item.id, -1)} className="p-0.5 text-sb-blue disabled:opacity-25">
-                            <ArrowUp className="w-3.5 h-3.5" />
-                          </button>
-                          <button type="button" aria-label={`Pindahkan ${item.skillName} ke bawah`} disabled={index === visible.length - 1} onClick={() => moveBy(item.id, 1)} className="p-0.5 text-sb-blue disabled:opacity-25">
-                            <ArrowDown className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="min-w-0">
-                      <label className="flex items-start gap-2.5 cursor-pointer">
+                      <label className="flex-1 min-w-0 flex items-center lg:items-start gap-stack-xs cursor-pointer">
                         <input
                           type="checkbox"
-                          className="mt-0.5 w-4 h-4 shrink-0"
+                          className="lg:mt-stack-3xs w-4 h-4 shrink-0"
                           checked={item.isDone}
                           disabled={busy}
                           onChange={(e) => void run(item.id, () => learning.update(item.id, { isDone: e.target.checked }))}
@@ -359,23 +338,85 @@ export function LearningPlanList({ userKey }: { userKey: string }) {
                         />
                         <span className="min-w-0">
                           <span className={cn("block text-sm font-bold text-sb-navy break-words", item.isDone && "line-through text-sb-text-2")}>{item.skillName}</span>
-                          {item.reason && <span className="block text-xs text-sb-text-2 mt-0.5 line-clamp-2">{item.reason}</span>}
+                          <span className="hidden lg:block mt-stack-3xs"><DemandText skillName={item.skillName} demand={demand} /></span>
                         </span>
                       </label>
-                      {item.sourceJobId && (
-                        <Link href={`/jobs/${item.sourceJobId}`} className="mt-1 ml-6.5 inline-flex items-center gap-1 text-xs text-sb-blue hover:underline">
-                          Lowongan asal <ExternalLink className="w-3 h-3" />
-                        </Link>
-                      )}
+                      {/* HP & tablet: prioritas dan menu ⋯ di kanan nama skill, supaya satu item cukup 2–3 baris */}
+                      <div className="lg:hidden flex items-center gap-stack-2xs shrink-0">
+                        <select
+                          aria-label={`Prioritas ${item.skillName}`}
+                          value={priority}
+                          disabled={busy}
+                          onChange={(e) => void run(item.id, () => learning.update(item.id, { priority: e.target.value }))}
+                          className={cn("h-7 rounded-full border pl-stack-xs pr-stack-2xs text-[11px] font-semibold focus:outline-none focus:ring-2 focus:ring-sb-blue", PRIORITY_TONE[priority] ?? PRIORITY_TONE.Rendah)}
+                        >
+                          {LEARNING_PRIORITIES.map((p) => (
+                            <option key={p} value={p}>{p}</option>
+                          ))}
+                        </select>
+                        <div className="relative">
+                          <button
+                            type="button"
+                            aria-label={`Aksi lain untuk ${item.skillName}`}
+                            aria-expanded={menuId === item.id}
+                            onClick={() => setMenuId(menuId === item.id ? null : item.id)}
+                            className="p-stack-2xs rounded-lg text-sb-text-2 hover:text-sb-navy hover:bg-sb-mist-faint"
+                          >
+                            <MoreHorizontal className="w-4 h-4" />
+                          </button>
+                          {menuId === item.id && (
+                            <>
+                              <button type="button" aria-label="Tutup menu" className="fixed inset-0 z-30 cursor-default" onClick={() => setMenuId(null)} />
+                              <div role="menu" className="absolute right-0 top-full mt-stack-2xs z-40 w-48 rounded-xl border border-sb-border bg-white shadow-lg p-stack-2xs text-sm">
+                                <button type="button" role="menuitem" className="w-full flex items-center gap-stack-xs px-stack-sm py-stack-xs rounded-lg hover:bg-sb-mist-faint text-left" onClick={() => { setNoteEditId(item.id); setMenuId(null); }}>
+                                  <Pencil className="w-3.5 h-3.5 text-sb-blue" />{item.notes ? "Ubah catatan" : "Tambah catatan"}
+                                </button>
+                                {canReorder && (
+                                  <>
+                                    <button type="button" role="menuitem" disabled={index === 0} className="w-full flex items-center gap-stack-xs px-stack-sm py-stack-xs rounded-lg hover:bg-sb-mist-faint text-left disabled:opacity-40" onClick={() => { moveBy(item.id, -1); setMenuId(null); }}>
+                                      <ArrowUp className="w-3.5 h-3.5 text-sb-blue" />Pindah ke atas
+                                    </button>
+                                    <button type="button" role="menuitem" disabled={index === list.length - 1} className="w-full flex items-center gap-stack-xs px-stack-sm py-stack-xs rounded-lg hover:bg-sb-mist-faint text-left disabled:opacity-40" onClick={() => { moveBy(item.id, 1); setMenuId(null); }}>
+                                      <ArrowDown className="w-3.5 h-3.5 text-sb-blue" />Pindah ke bawah
+                                    </button>
+                                  </>
+                                )}
+                                {item.sourceJobId && (
+                                  <Link role="menuitem" href={`/jobs/${item.sourceJobId}`} className="w-full flex items-center gap-stack-xs px-stack-sm py-stack-xs rounded-lg hover:bg-sb-mist-faint" onClick={() => setMenuId(null)}>
+                                    <ExternalLink className="w-3.5 h-3.5 text-sb-blue" />Lowongan asal
+                                  </Link>
+                                )}
+                                <button
+                                  type="button"
+                                  role="menuitem"
+                                  disabled={busy || duplicates.length > 0}
+                                  className="w-full flex items-center gap-stack-xs px-stack-sm py-stack-xs rounded-lg text-sb-critical hover:bg-sb-critical/10 text-left disabled:opacity-40"
+                                  onClick={async () => {
+                                    setMenuId(null);
+                                    if (await confirmAction(`Hapus target ${item.skillName} beserta catatannya?`)) {
+                                      await run(item.id, () => learning.remove(item.id));
+                                    }
+                                  }}
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />Hapus
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      </div>
+                      {/* HP & tablet: permintaan skill di baris kedua (di luar baris atas), rata dengan nama skill */}
+                      <div className="lg:hidden ml-stack-4xl mt-stack-3xs"><DemandText skillName={item.skillName} demand={demand} /></div>
                     </div>
 
-                    <div className="col-start-2 md:col-start-auto">
+                    <div className="hidden lg:block">
                       <select
                         aria-label={`Prioritas ${item.skillName}`}
                         value={priority}
                         disabled={busy}
                         onChange={(e) => void run(item.id, () => learning.update(item.id, { priority: e.target.value }))}
-                        className={cn("h-8 rounded-full border px-3 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-sb-blue", PRIORITY_TONE[priority] ?? PRIORITY_TONE.Rendah)}
+                        className={cn("h-8 rounded-full border px-stack-sm text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-sb-blue", PRIORITY_TONE[priority] ?? PRIORITY_TONE.Rendah)}
                       >
                         {LEARNING_PRIORITIES.map((p) => (
                           <option key={p} value={p}>{p}</option>
@@ -383,11 +424,26 @@ export function LearningPlanList({ userKey }: { userKey: string }) {
                       </select>
                     </div>
 
-                    <div className="col-start-2 md:col-start-auto min-w-0">
-                      <NotesCell key={`${item.id}-${item.notes}`} item={item} />
+                    <div className={cn("lg:col-start-auto min-w-0 ml-stack-4xl lg:ml-0", !item.notes && noteEditId !== item.id && "hidden lg:block")}>
+                      <NotesCell
+                        key={`${item.id}-${item.notes}-${noteEditId === item.id}`}
+                        item={item}
+                        autoEdit={noteEditId === item.id}
+                        onDone={() => setNoteEditId((id) => (id === item.id ? null : id))}
+                      />
                     </div>
 
-                    <div className="col-start-2 md:col-start-auto flex md:justify-end">
+                    <div className="hidden lg:flex lg:justify-end items-center gap-stack-3xs">
+                      {canReorder && (
+                        <>
+                          <button type="button" aria-label={`Pindahkan ${item.skillName} ke atas`} title="Pindah ke atas" disabled={index === 0} onClick={() => moveBy(item.id, -1)} className="p-stack-2xs rounded-lg text-sb-blue hover:bg-sb-mist-faint disabled:opacity-25 disabled:hover:bg-transparent">
+                            <ArrowUp className="w-4 h-4" />
+                          </button>
+                          <button type="button" aria-label={`Pindahkan ${item.skillName} ke bawah`} title="Pindah ke bawah" disabled={index === list.length - 1} onClick={() => moveBy(item.id, 1)} className="p-stack-2xs rounded-lg text-sb-blue hover:bg-sb-mist-faint disabled:opacity-25 disabled:hover:bg-transparent">
+                            <ArrowDown className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
                       <button
                         type="button"
                         disabled={busy || duplicates.length > 0}
@@ -398,21 +454,21 @@ export function LearningPlanList({ userKey }: { userKey: string }) {
                             await run(item.id, () => learning.remove(item.id));
                           }
                         }}
-                        className="inline-flex items-center gap-1 p-1.5 rounded-lg text-xs text-sb-text-2 hover:text-sb-critical hover:bg-sb-critical/10 disabled:opacity-40"
+                        className="inline-flex items-center gap-stack-2xs p-stack-2xs rounded-lg text-xs text-sb-text-2 hover:text-sb-critical hover:bg-sb-critical/10 disabled:opacity-40"
                       >
                         <Trash2 className="w-4 h-4" />
-                        <span className="md:sr-only">Hapus</span>
+                        <span className="lg:sr-only">Hapus</span>
                       </button>
                     </div>
                   </div>
 
                   {duplicates.length > 0 && (
-                    <details className="mx-4 mb-3 rounded-xl border border-sb-border bg-white/60 p-3">
+                    <details className="mx-stack-md mb-stack-sm rounded-xl border border-sb-border bg-white/60 p-stack-sm">
                       <summary className="cursor-pointer text-xs text-sb-text-2">
                         Tinjau {duplicates.length} salinan lama {item.skillName}
                       </summary>
-                      <p className="text-xs text-sb-text-2 my-3">Catatan dan progres salinan tetap disimpan. Salin yang perlu sebelum menghapus salinan.</p>
-                      <div className="space-y-3">
+                      <p className="text-xs text-sb-text-2 my-stack-sm">Catatan dan progres salinan tetap disimpan. Salin yang perlu sebelum menghapus salinan.</p>
+                      <div className="space-y-stack-sm">
                         {duplicates.map((it) => (
                           <LearningItemEditor key={it.id} item={it} />
                         ))}
@@ -420,9 +476,104 @@ export function LearningPlanList({ userKey }: { userKey: string }) {
                     </details>
                   )}
                 </li>
-              );
-            })}
-          </ul>
+    );
+  };
+
+  return (
+    <div className="space-y-stack-sm">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-stack-sm">
+        <div role="group" aria-label="Filter status belajar" className="inline-flex flex-wrap max-w-full rounded-xl border border-sb-border bg-white p-stack-2xs self-start">
+          {([
+            ["all", "Semua"],
+            ["todo", "Belum dipelajari"],
+            ["done", "Sudah dipelajari"],
+          ] as const).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={status === value}
+              onClick={() => setStatus(value)}
+              className={cn(
+                "px-stack-sm py-stack-2xs rounded-lg text-xs font-semibold transition-colors",
+                status === value ? "bg-sb-sky text-sb-navy" : "text-sb-text-2 hover:text-sb-navy"
+              )}
+            >
+              {label} <span className="font-mono-metric">({counts[value]})</span>
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-stack-sm">
+          <label className="flex items-center gap-stack-xs text-xs font-semibold text-sb-navy">
+            Prioritas
+            <select
+              className="h-9 rounded-lg border border-sb-border bg-white px-stack-xs text-xs"
+              value={priorityFilter}
+              onChange={(e) => setPriorityFilter(e.target.value)}
+            >
+              <option value="all">Semua</option>
+              {LEARNING_PRIORITIES.map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+          </label>
+          <label className="flex items-center gap-stack-xs text-xs font-semibold text-sb-navy">
+            Urutkan
+            <select
+              className="h-9 rounded-lg border border-sb-border bg-white px-stack-xs text-xs"
+              value={sortMode}
+              onChange={(e) => setSortMode(e.target.value as SortMode)}
+            >
+              <option value="custom">Urutan saya</option>
+              <option value="priority">Prioritas tertinggi dulu</option>
+              <option value="trend">Berdasarkan Tren Skill</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <p className="hidden lg:block text-xs text-sb-text-2">
+        {canReorder
+          ? "Seret pegangan ⋮⋮ di kiri nama skill, atau pakai tombol panah di kolom Aksi, untuk mengatur urutan belajar."
+          : "Pilih “Urutan saya” untuk mengatur urutan dengan menyeret."}
+      </p>
+
+      {rowError && <p role="alert" className="text-xs text-sb-critical">{rowError}</p>}
+
+      <div className="rounded-2xl border border-sb-border bg-white/80 overflow-hidden">
+        <div className="hidden lg:grid grid-cols-[minmax(0,1.4fr)_8rem_minmax(0,2fr)_7rem] gap-stack-sm px-stack-md py-stack-xs border-b border-sb-border bg-white/70 text-[11px] font-bold uppercase tracking-wider text-sb-text-2">
+          <span>Skill</span>
+          <span>Prioritas</span>
+          <span>Catatan</span>
+          <span className="text-right">Aksi</span>
+        </div>
+
+        {visible.length === 0 ? (
+          <p className="px-stack-md py-stack-2xl text-center text-sm text-sb-text-2">Tidak ada target belajar untuk filter ini.</p>
+        ) : (
+          <>
+            {todoItems.length > 0 && <ul>{todoItems.map((item, index) => renderRow(item, index, todoItems))}</ul>}
+            {doneItems.length > 0 && (
+              <div className="border-t border-sb-border">
+                {/* HP & tablet: grup "Sudah dipelajari" bisa dilipat; desktop: selalu tampil */}
+                {/* Desktop: label kelompok (tidak bisa dilipat) */}
+                <p className="hidden lg:block px-stack-md py-stack-xs text-[11px] font-bold uppercase tracking-wider text-sb-text-2 bg-sb-mist-faint border-b border-sb-border">
+                  Sudah dipelajari ({doneItems.length})
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowDone((v) => !v)}
+                  aria-expanded={showDone}
+                  className="lg:hidden w-full flex items-center justify-between px-stack-sm py-stack-xs text-xs font-semibold text-sb-navy bg-sb-mist-faint"
+                >
+                  <span>Sudah dipelajari ({doneItems.length})</span>
+                  <ChevronDown className={cn("w-4 h-4 text-sb-text-2 transition-transform", showDone && "rotate-180")} />
+                </button>
+                <ul className={showDone ? "block" : "hidden lg:block"}>
+                  {doneItems.map((item, index) => renderRow(item, index, doneItems))}
+                </ul>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

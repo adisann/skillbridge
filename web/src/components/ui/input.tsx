@@ -33,7 +33,7 @@ export const TextInput = React.forwardRef<HTMLInputElement, InputProps>(
     const inputId = id || generatedId;
 
     return (
-      <div className="w-full space-y-1.5">
+      <div className="w-full space-y-stack-2xs">
         {label && (
           <label
             htmlFor={inputId}
@@ -44,7 +44,7 @@ export const TextInput = React.forwardRef<HTMLInputElement, InputProps>(
         )}
         <div className="relative flex items-center">
           {leftIcon && (
-            <div className="absolute left-3 text-sb-text-2 pointer-events-none flex items-center justify-center">
+            <div className="absolute left-3 z-10 text-sb-blue pointer-events-none flex items-center justify-center">
               {leftIcon}
             </div>
           )}
@@ -53,9 +53,9 @@ export const TextInput = React.forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             disabled={disabled}
             className={cn(
-              "w-full h-10 rounded-xl border bg-white/80 backdrop-blur-xs px-3 text-sm text-sb-navy placeholder:text-sb-text-2/70 transition-colors focus:outline-none focus:ring-2 focus:ring-sb-blue focus:border-sb-blue disabled:bg-sb-mist-faint disabled:text-sb-text-2/40 disabled:cursor-not-allowed",
-              leftIcon && "pl-9",
-              rightIcon && "pr-9",
+              "w-full h-10 rounded-xl border bg-white px-stack-sm text-sm text-sb-navy placeholder:text-sb-text-2/70 transition-colors focus:outline-none focus:ring-2 focus:ring-sb-blue focus:border-sb-blue disabled:bg-sb-mist-faint disabled:text-sb-text-2/40 disabled:cursor-not-allowed",
+              leftIcon && "pl-stack-2xl",
+              rightIcon && "pr-stack-2xl",
               error
                 ? "border-sb-critical focus:border-sb-critical focus:ring-sb-critical/20 text-sb-critical"
                 : "border-sb-border hover:border-sb-blue/40",
@@ -64,7 +64,7 @@ export const TextInput = React.forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
           {rightIcon && (
-            <div className="absolute right-3 text-sb-text-2 pointer-events-none flex items-center justify-center">
+            <div className="absolute right-3 z-10 text-sb-text-2 pointer-events-none flex items-center justify-center">
               {rightIcon}
             </div>
           )}
@@ -101,21 +101,21 @@ export function SearchInput({
   ...props
 }: SearchInputProps) {
   return (
-    <div className="w-full space-y-1.5">
+    <div className="w-full space-y-stack-2xs">
       {label && (
         <label className="block text-xs font-semibold text-sb-navy">
           {label}
         </label>
       )}
       <div className="relative flex items-center">
-        <Search className="absolute left-3.5 w-4 h-4 text-sb-text-2 pointer-events-none" />
+        <Search className="absolute left-3.5 z-10 w-4 h-4 text-sb-text-2 pointer-events-none" />
         <input
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           className={cn(
-            "w-full h-10 pl-10 pr-9 rounded-xl border border-sb-border bg-white/80 backdrop-blur-xs text-sm text-sb-navy placeholder:text-sb-text-2/70 transition-colors focus:outline-none focus:ring-2 focus:ring-sb-blue focus:border-sb-blue",
+            "w-full h-10 pl-stack-3xl pr-stack-2xl rounded-xl border border-sb-border bg-white text-sm text-sb-navy placeholder:text-sb-text-2/70 transition-colors focus:outline-none focus:ring-2 focus:ring-sb-blue focus:border-sb-blue",
             className
           )}
           {...props}
@@ -127,7 +127,7 @@ export function SearchInput({
               onChange("");
               if (onClear) onClear();
             }}
-            className="absolute right-3 p-0.5 text-sb-text-2 hover:text-sb-navy rounded-full hover:bg-sb-mist-soft cursor-pointer"
+            className="absolute right-3 z-10 p-stack-3xs text-sb-text-2 hover:text-sb-navy rounded-full hover:bg-sb-mist-soft cursor-pointer"
             aria-label="Bersihkan pencarian"
           >
             <X className="w-4 h-4" />
@@ -154,7 +154,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     const selectId = id || generatedId;
 
     return (
-      <div className="w-full space-y-1.5">
+      <div className="w-full space-y-stack-2xs">
         {label && (
           <label
             htmlFor={selectId}
@@ -167,7 +167,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           id={selectId}
           ref={ref}
           className={cn(
-            "w-full h-10 rounded-xl border border-sb-border bg-white/80 backdrop-blur-xs px-3 text-sm text-sb-navy transition-colors focus:outline-none focus:ring-2 focus:ring-sb-blue focus:border-sb-blue",
+            "w-full h-10 rounded-xl border border-sb-border bg-white px-stack-sm text-sm text-sb-navy transition-colors focus:outline-none focus:ring-2 focus:ring-sb-blue focus:border-sb-blue",
             error && "border-sb-critical focus:ring-sb-critical/20 text-sb-critical",
             className
           )}
@@ -202,7 +202,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     const textareaId = id || generatedId;
 
     return (
-      <div className="w-full space-y-1.5">
+      <div className="w-full space-y-stack-2xs">
         {label && (
           <label
             htmlFor={textareaId}
@@ -215,7 +215,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           id={textareaId}
           ref={ref}
           className={cn(
-            "w-full min-h-[96px] rounded-xl border border-sb-border bg-white/80 p-3 text-sm text-sb-navy placeholder:text-sb-text-2/70 transition-colors focus:outline-none focus:ring-2 focus:ring-sb-blue focus:border-sb-blue",
+            "w-full min-h-[96px] rounded-xl border border-sb-border bg-white p-stack-sm text-sm text-sb-navy placeholder:text-sb-text-2/70 transition-colors focus:outline-none focus:ring-2 focus:ring-sb-blue focus:border-sb-blue",
             error && "border-sb-critical focus:ring-sb-critical/20 text-sb-critical",
             className
           )}
@@ -252,12 +252,12 @@ export function Checkbox({
   const checkboxId = id || generatedId;
 
   return (
-    <div className="flex items-start gap-2.5">
+    <div className="flex items-start gap-stack-xs">
       <input
         type="checkbox"
         id={checkboxId}
         className={cn(
-          "w-4 h-4 mt-0.5 rounded border-sb-border text-sb-blue focus:ring-sb-blue focus:ring-offset-0 transition-colors cursor-pointer",
+          "w-4 h-4 mt-stack-3xs rounded border-sb-border text-sb-blue focus:ring-sb-blue focus:ring-offset-0 transition-colors cursor-pointer",
           className
         )}
         {...props}

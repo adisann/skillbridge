@@ -74,16 +74,20 @@ interface JobProfileInput {
   education?: string | null;
   minGpa?: number | null;
   seniority?: string | null;
+  semanticSimilarity?: number | null;
 }
 
-/**
- * Menghitung kecocokan hybrid antara profil kandidat dan lowongan pekerjaan.
- * Mematuhi:
- * 1. Redistribusi bobot proporsional untuk komponen tanpa data (tidak dihitung 0).
- * 2. AC-02: Membedakan status skill menjadi 'cocok', 'belum ditemukan', dan 'belum cukup bukti'.
- * 3. AC-05: Menghasilkan kategori Match, Underqualified, Potentially Overqualified, dan Insufficient Evidence.
- * 4. Aturan kebahasaan: Menggunakan "belum ditemukan", bukan "tidak punya".
- */
+function educationLevel(value?: string | null): number | null {
+  const text = (value || "").toLowerCase();
+  if (/\bs3\b|doktor|doctor|ph\.?d/.test(text)) return 5;
+  if (/\bs2\b|magister|master/.test(text)) return 4;
+  if (/\bs1\b|\bd4\b|sarjana|bachelor/.test(text)) return 3;
+  if (/\bd3\b|diploma|associate/.test(text)) return 2;
+  if (/\bsma\b|\bsmk\b|high school/.test(text)) return 1;
+  return null;
+}
+
+/** Menghitung kecocokan dari bukti CV; bobot komponen tanpa data dibagi ke komponen yang tersedia. */
 export function calculateJobMatch(
   candidate: CandidateProfileInput | string[],
   candidateYearsOrJob: number | JobProfileInput,
@@ -95,150 +99,78 @@ export function calculateJobMatch(
   // Normalisasi argumen untuk mendukung signature lama (skills, years, education, job)
   let candidateSkills: string[] = [];
   let candidateYears: number | null = null;
-  let candidateEdu = "Sarjana (S1)";
+  let candidateEdu = "";
   let candidateGpa: number | null = null;
-  let candidateTargetRole = "Data Analyst";
   let job: JobProfileInput;
 
   if (Array.isArray(candidate)) {
     candidateSkills = candidate;
     candidateYears = typeof candidateYearsOrJob === "number" ? candidateYearsOrJob : 0;
-    candidateEdu = candidateEducation || "Sarjana (S1)";
+    candidateEdu = candidateEducation || "";
     job = (jobInput || {}) as JobProfileInput;
   } else {
     candidateSkills = candidate.skills || [];
     candidateYears = candidate.experienceYears ?? null;
-    candidateEdu = candidate.education || "Sarjana (S1)";
+    candidateEdu = candidate.education || "";
     candidateGpa = candidate.gpa ?? null;
-    candidateTargetRole = candidate.targetRole || "Data Analyst";
     job = candidateYearsOrJob as JobProfileInput;
   }
 
-  const normCandidateSkills = new Set(
-    candidateSkills.map((s) => s.trim().toLowerCase())
-  );
-  const canonicalCandidateSkills = new Set(
-    candidateSkills.map((s) => getCanonicalSkill(s))
-  );
+  const claimed = new Set((!Array.isArray(candidate) ? candidate.claimedSkills || [] : []).map(getCanonicalSkill));
+  const review = new Set((!Array.isArray(candidate) ? candidate.reviewSkills || [] : []).map(getCanonicalSkill));
+  const provenSkills = candidateSkills.filter((skill) => !claimed.has(getCanonicalSkill(skill)) && !review.has(getCanonicalSkill(skill)));
+  const canonicalCandidateSkills = new Set(provenSkills.map(getCanonicalSkill));
+  const allCandidateSkills = new Set(candidateSkills.map(getCanonicalSkill));
+  const isCandidateEmpty = provenSkills.length === 0 ||
+    (provenSkills.length < customThresholds.insufficientEvidenceMinSkills && (candidateYears == null || candidateYears === 0));
 
-  // Evaluasi Insufficient Evidence di awal
-  const isCandidateEmpty =
-    candidateSkills.length === 0 ||
-    (candidateSkills.length < customThresholds.insufficientEvidenceMinSkills && (candidateYears == null || candidateYears === 0));
-
-  // ---------------------------------------------------------------------------
-  // 1. Evaluasi Persyaratan Wajib (Mandatory Skills) & AC-02
-  // ---------------------------------------------------------------------------
   const reqSkills = job.requiredSkills || [];
-  const matchedSkills: string[] = [];
-  const missingSkills: string[] = [];
-  const unprovenSkills: string[] = [];
-  const requirementsEvaluation: RequirementEvaluation[] = [];
-
-  let mandatoryScore = 1.0;
-  let mandatoryRatio = 1.0;
-  const isMandatoryAvailable = reqSkills.length > 0;
-
-  if (isMandatoryAvailable) {
-    let earnedPoints = 0;
-
-    for (let i = 0; i < reqSkills.length; i++) {
-      const skillName = reqSkills[i].trim();
-      const skillLower = skillName.toLowerCase();
-      const skillCanonical = getCanonicalSkill(skillName);
-      let status: RequirementStatus = "belum_ditemukan";
-      let statusLabel: RequirementEvaluation["statusLabel"] = "Belum ditemukan di CV";
-      let evidence = "Belum ada di CV-mu";
-
-      const isDirectMatch = normCandidateSkills.has(skillLower) || canonicalCandidateSkills.has(skillCanonical);
-
-      if (isDirectMatch) {
-        status = "cocok";
-        statusLabel = "Cocok di CV";
-        evidence = `Tercantum pada kualifikasi CV-mu.`;
-        matchedSkills.push(skillName);
-        earnedPoints += 1.0;
-      } else {
-        // Cek apakah ada bukti kemampuan serumpun (AC-02: Belum cukup bukti)
-        const related = RELATED_SKILLS_MAP[skillLower] || RELATED_SKILLS_MAP[skillCanonical] || [];
-        const foundRelated = related.find((r) => normCandidateSkills.has(r.toLowerCase()) || canonicalCandidateSkills.has(getCanonicalSkill(r)));
-
-        if (foundRelated) {
-          status = "belum_cukup_bukti";
-          statusLabel = "Belum cukup bukti";
-          evidence = `CV-mu memuat kompetensi serumpun (${foundRelated}), namun belum ada rincian bukti penggunaan alat ini secara spesifik.`;
-          unprovenSkills.push(skillName);
-          earnedPoints += 0.5; // Bobot parsial untuk bukti terkait
-        } else {
-          missingSkills.push(skillName);
-        }
-      }
-
-      requirementsEvaluation.push({
-        id: `req-m-${i}`,
-        skill: skillName,
-        isMandatory: true,
-        status,
-        statusLabel,
-        evidence,
-      });
-    }
-
-    mandatoryScore = earnedPoints / reqSkills.length;
-    mandatoryRatio = matchedSkills.length / reqSkills.length;
-  }
-
-  // ---------------------------------------------------------------------------
-  // 2. Evaluasi Persyaratan Tambahan (Preferred Skills)
-  // ---------------------------------------------------------------------------
   const prefSkills = job.preferredSkills || [];
-  let preferredScore = 1.0;
+  const isMandatoryAvailable = reqSkills.length > 0;
   const isPreferredAvailable = prefSkills.length > 0;
 
-  if (isPreferredAvailable) {
-    let earnedPoints = 0;
-
-    for (let i = 0; i < prefSkills.length; i++) {
-      const skillName = prefSkills[i].trim();
-      const skillLower = skillName.toLowerCase();
-      const skillCanonical = getCanonicalSkill(skillName);
-      let status: RequirementStatus = "belum_ditemukan";
-      let statusLabel: RequirementEvaluation["statusLabel"] = "Belum ditemukan di CV";
-      let evidence = "Belum ada di CV-mu";
-
-      const isDirectMatch = normCandidateSkills.has(skillLower) || canonicalCandidateSkills.has(skillCanonical);
-
-      if (isDirectMatch) {
-        status = "cocok";
-        statusLabel = "Cocok di CV";
-        evidence = "Tercantum pada kualifikasi CV-mu.";
-        if (!matchedSkills.includes(skillName)) matchedSkills.push(skillName);
-        earnedPoints += 1.0;
-      } else {
-        const related = RELATED_SKILLS_MAP[skillLower] || RELATED_SKILLS_MAP[skillCanonical] || [];
-        const foundRelated = related.find((r) => normCandidateSkills.has(r.toLowerCase()) || canonicalCandidateSkills.has(getCanonicalSkill(r)));
-
-        if (foundRelated) {
-          status = "belum_cukup_bukti";
-          statusLabel = "Belum cukup bukti";
-          evidence = `CV-mu memuat kompetensi pendukung (${foundRelated}), namun belum tercantum alat ini secara spesifik.`;
-          if (!unprovenSkills.includes(skillName)) unprovenSkills.push(skillName);
-          earnedPoints += 0.5;
-        }
+  function evaluateRequirement(skillName: string, index: number, isMandatory: boolean): RequirementEvaluation {
+    const skill = skillName.trim();
+    const key = getCanonicalSkill(skill);
+    let status: RequirementStatus = "belum_ditemukan";
+    let statusLabel: RequirementEvaluation["statusLabel"] = "Belum ditemukan di CV";
+    let evidence = "Belum ditemukan di CV-mu.";
+    if (allCandidateSkills.has(key) && (claimed.has(key) || review.has(key))) {
+      status = "belum_cukup_bukti";
+      statusLabel = "Belum cukup bukti";
+      evidence = claimed.has(key)
+        ? "Ditambahkan oleh pengguna (pengakuan mandiri); bukan bukti tercantum di CV atau verifikasi independen."
+        : "Perlu verifikasi: hasil ekstraksi belum ditinjau. Tinjau cuplikan pada koreksi CV.";
+    } else if (canonicalCandidateSkills.has(key)) {
+      status = "cocok";
+      statusLabel = "Cocok di CV";
+      const entry = !Array.isArray(candidate) && Object.entries(candidate.evidence || {}).find(([name]) => getCanonicalSkill(name) === key);
+      evidence = entry ? `Cuplikan CV: ${entry[1]}` : "Skill tersimpan sebagai hasil CV; cuplikan bukti belum tersedia.";
+    } else {
+      const related = RELATED_SKILLS_MAP[key] || [];
+      const found = related.find((name) => canonicalCandidateSkills.has(getCanonicalSkill(name)));
+      if (found) {
+        status = "belum_cukup_bukti";
+        statusLabel = "Belum cukup bukti";
+        evidence = `CV-mu memuat kompetensi serumpun (${found}), namun belum ada rincian bukti penggunaan alat ini secara spesifik.`;
       }
-
-      requirementsEvaluation.push({
-        id: `req-p-${i}`,
-        skill: skillName,
-        isMandatory: false,
-        status,
-        statusLabel,
-        evidence,
-      });
     }
-
-    preferredScore = earnedPoints / prefSkills.length;
+    return { id: `req-${isMandatory ? "m" : "p"}-${index}`, skill, isMandatory, status, statusLabel, evidence };
   }
+
+  const mandatory = reqSkills.map((skill, index) => evaluateRequirement(skill, index, true));
+  const preferred = prefSkills.map((skill, index) => evaluateRequirement(skill, index, false));
+  const requirementsEvaluation = [...mandatory, ...preferred];
+  const matchedSkills = [...new Set(requirementsEvaluation.filter((r) => r.status === "cocok").map((r) => r.skill))];
+  const missingSkills = mandatory.filter((r) => r.status === "belum_ditemukan").map((r) => r.skill);
+  const unprovenSkills = [...new Set(requirementsEvaluation.filter((r) => r.status === "belum_cukup_bukti").map((r) => r.skill))];
+  const matchedMandatoryCount = mandatory.filter((r) => r.status === "cocok").length;
+  const mandatoryRatio = isMandatoryAvailable ? matchedMandatoryCount / mandatory.length : 1;
+  const skillScore = (items: RequirementEvaluation[]) => items.length
+    ? items.reduce((sum, r) => sum + (r.status === "cocok" ? 1 : r.status === "belum_cukup_bukti" ? 0.5 : 0), 0) / items.length
+    : 1;
+  const mandatoryScore = skillScore(mandatory);
+  const preferredScore = skillScore(preferred);
 
   // ---------------------------------------------------------------------------
   // 3. Evaluasi Pengalaman Kerja (Experience)
@@ -259,60 +191,24 @@ export function calculateJobMatch(
   // 4. Evaluasi Pendidikan & Senioritas
   // ---------------------------------------------------------------------------
   const gpaFit = compareGpa(candidateGpa, job.minGpa);
-  const isEduAvailable = Boolean(job.education || job.seniority || job.minGpa != null);
-  let eduScore = 1.0;
+  const candidateLevel = educationLevel(candidateEdu);
+  const requiredLevel = educationLevel(job.education);
+  const hasEducation = candidateLevel != null && requiredLevel != null;
+  const educationBelow = hasEducation && candidateLevel < requiredLevel;
+  const level = (job.seniority || "").toLowerCase();
+  const seniorityMinYears = /senior|lead/.test(level) ? customThresholds.seniorMinExperienceYears : /mid/.test(level) ? customThresholds.midMinExperienceYears : /junior|entry|intern|magang/.test(level) ? 0 : null;
+  const hasSeniority = seniorityMinYears != null && candidateYears != null;
+  const seniorityBelow = seniorityMinYears != null && candidateYears != null && candidateYears < seniorityMinYears;
+  const educationScores: number[] = [];
+  if (hasEducation) educationScores.push(educationBelow ? 0.65 : 1);
+  if (hasSeniority) educationScores.push(seniorityBelow && candidateYears != null && seniorityMinYears != null ? Math.max(0.4, candidateYears / seniorityMinYears) : 1);
+  if (gpaFit !== "unknown") educationScores.push(gpaScore(candidateGpa as number, job.minGpa as number));
+  const isEduAvailable = educationScores.length > 0;
+  const eduScore = isEduAvailable ? educationScores.reduce((sum, score) => sum + score, 0) / educationScores.length : 1;
 
-  if (isEduAvailable) {
-    let eduComponent = 1.0;
-    if (job.education) {
-      const jEdu = job.education.toLowerCase();
-      const cEdu = candidateEdu.toLowerCase();
-      if (cEdu.includes("s1") || cEdu.includes("bachelor") || cEdu.includes("sarjana") || cEdu.includes("s2") || cEdu.includes("master")) {
-        eduComponent = 1.0;
-      } else if (jEdu.includes("s1") || jEdu.includes("bachelor") || jEdu.includes("sarjana")) {
-        eduComponent = 0.65;
-      }
-    }
-
-    let seniorityComponent = 1.0;
-    if (job.seniority && candidateYears != null) {
-      const jSen = job.seniority.toLowerCase();
-      if (jSen.includes("senior") || jSen.includes("lead")) {
-        seniorityComponent = (candidateYears ?? 0) >= 4 ? 1.0 : (candidateYears ?? 0) >= 2 ? 0.65 : 0.40;
-      } else if (jSen.includes("junior") || jSen.includes("entry")) {
-        seniorityComponent = 1.0;
-      }
-    }
-
-    // IPK hanya dihitung bila lowongan mensyaratkan DAN CV memuat IPK; data kosong tidak menghukum
-    eduScore =
-      gpaFit === "unknown"
-        ? (eduComponent + seniorityComponent) / 2
-        : (eduComponent + seniorityComponent + gpaScore(candidateGpa as number, job.minGpa as number)) / 3;
-  }
-
-  // ---------------------------------------------------------------------------
-  // 5. Evaluasi Kesesuaian Semantik / Relevansi Role
-  // ---------------------------------------------------------------------------
-  const isSemanticAvailable = true; // Selalu tersedia
-  const titleLower = (job.title || "").toLowerCase();
-  const canonicalLower = (job.canonicalTitle || "").toLowerCase();
-  const targetLower = candidateTargetRole.toLowerCase();
-
-  const isRoleMatching =
-    titleLower.includes(targetLower) ||
-    canonicalLower.includes(targetLower) ||
-    (targetLower.includes("analyst") && (titleLower.includes("analyst") || canonicalLower.includes("analyst")));
-
-  const coreDataSkills = ["sql", "python", "tableau", "power bi", "excel", "metabase", "statistics"];
-  const candidateCoreDataCount = Array.from(normCandidateSkills).filter((s) => coreDataSkills.includes(s)).length;
-
-  let semanticScore = 0.55;
-  if (isRoleMatching && candidateCoreDataCount >= 2) {
-    semanticScore = 0.95;
-  } else if (isRoleMatching || candidateCoreDataCount >= 1) {
-    semanticScore = 0.78;
-  }
+  // Nilai semantik hanya dipakai bila tersedia; jangan menggantinya dengan tebakan berdasarkan skill data.
+  const semanticScore = job.semanticSimilarity ?? 0;
+  const isSemanticAvailable = job.semanticSimilarity != null && Number.isFinite(semanticScore) && semanticScore >= 0 && semanticScore <= 1;
 
   // ---------------------------------------------------------------------------
   // 6. Redistribusi Bobot Proporsional (Komponen tanpa data TIDAK dihitung nol)
@@ -331,7 +227,7 @@ export function calculateJobMatch(
       score: mandatoryScore,
       baseWeight: customWeights.mandatorySkills,
       available: isMandatoryAvailable,
-      notes: isMandatoryAvailable ? `${matchedSkills.length}/${reqSkills.length} terpenuhi` : "Tidak disyaratkan secara spesifik",
+      notes: isMandatoryAvailable ? `${matchedMandatoryCount}/${reqSkills.length} terpenuhi` : "Tidak disyaratkan secara spesifik",
     },
     {
       key: "preferredSkills",
@@ -357,7 +253,7 @@ export function calculateJobMatch(
       available: isEduAvailable,
       notes: isEduAvailable
         ? `${job.education || "Pendidikan umum"} • ${job.seniority || "Semua level"}${job.minGpa != null ? ` • IPK min ${formatGpa(job.minGpa)}` : ""}`
-        : "Kualifikasi terbuka untuk umum",
+        : "Bukti pendidikan, level, atau IPK belum tersedia untuk dibandingkan",
     },
     {
       key: "semantic",
@@ -365,7 +261,7 @@ export function calculateJobMatch(
       score: semanticScore,
       baseWeight: customWeights.semantic,
       available: isSemanticAvailable,
-      notes: "Relevansi terminologi dan domain pekerjaan",
+      notes: isSemanticAvailable ? "Kemiripan semantik CV dan lowongan" : "Nilai semantik belum tersedia; bobot dibagi ke komponen yang tersedia",
     },
   ];
 
@@ -417,29 +313,10 @@ export function calculateJobMatch(
   const factorsSupporting: string[] = [];
   const factorsLimiting: string[] = [];
 
-  if (!Array.isArray(candidate)) {
-    const claimed = new Set((candidate.claimedSkills || []).map(getCanonicalSkill));
-    const review = new Set((candidate.reviewSkills || []).map(getCanonicalSkill));
-    for (const req of requirementsEvaluation) {
-      if (req.status !== "cocok") continue;
-      const key = getCanonicalSkill(req.skill);
-      if (claimed.has(key) || review.has(key)) {
-        req.status = "belum_cukup_bukti";
-        req.statusLabel = "Belum cukup bukti";
-        req.evidence = claimed.has(key) ? "Ditambahkan oleh pengguna (pengakuan mandiri); bukan bukti tercantum di CV atau verifikasi independen." : "Perlu verifikasi: hasil ekstraksi belum ditinjau. Tinjau cuplikan pada koreksi CV.";
-        const matchedIndex = matchedSkills.indexOf(req.skill);
-        if (matchedIndex !== -1) matchedSkills.splice(matchedIndex, 1);
-        if (!unprovenSkills.includes(req.skill)) unprovenSkills.push(req.skill);
-      } else {
-        const entry = Object.entries(candidate.evidence || {}).find(([name]) => getCanonicalSkill(name) === key);
-        req.evidence = entry ? `Cuplikan CV: ${entry[1]}` : "Skill tersimpan sebagai hasil CV; cuplikan bukti belum tersedia.";
-      }
-    }
-  }
   // Faktor Pendukung
   if (matchedSkills.length > 0) {
     factorsSupporting.push(
-      `Memenuhi ${matchedSkills.length} kualifikasi skill utama yang tercantum di lowongan (${matchedSkills.slice(0, 3).join(", ")})`
+      `Memenuhi ${matchedSkills.length} kualifikasi skill yang tercantum di lowongan (${matchedSkills.slice(0, 3).join(", ")})`
     );
   }
   if (isExpAvailable && candidateYears != null && candidateYears >= minYears) {
@@ -452,9 +329,9 @@ export function calculateJobMatch(
       `IPK ${formatGpa(candidateGpa as number)} memenuhi syarat minimum IPK ${formatGpa(job.minGpa as number)}`
     );
   }
-  if (semanticScore >= 0.8) {
+  if (isSemanticAvailable && semanticScore >= 0.8) {
     factorsSupporting.push(
-      `Profil keahlian sangat relevan dengan bidang data dan analitik yang dicari perusahaan`
+      `Kemiripan makna CV dan deskripsi lowongan mendukung kecocokan`
     );
   }
 
@@ -474,11 +351,22 @@ export function calculateJobMatch(
       `Skill ${unprovenSkills.slice(0, 3).join(", ")} belum memuat bukti spesifik (hasil ekstraksi belum ditinjau, klaim mandiri, atau kompetensi serumpun)`
     );
   }
+  const missingPreferred = preferred.filter((requirement) => requirement.status === "belum_ditemukan").map((requirement) => requirement.skill);
+  if (missingPreferred.length > 0) {
+    factorsLimiting.push(`Skill tambahan ${missingPreferred.slice(0, 3).join(", ")} belum ditemukan di CV`);
+  }
   if (isExpAvailable && candidateYears != null && candidateYears < minYears) {
     factorsLimiting.push(
       `Pengalaman kerja (${formatExperience(candidateYears)}) belum mencapai kualifikasi minimum lowongan (${formatExperience(minYears)})`
     );
   }
+
+  if (educationBelow) factorsLimiting.push("Jenjang pendidikan di CV belum mencapai syarat minimum lowongan.");
+  if (seniorityBelow) factorsLimiting.push("Pengalaman di CV belum mendukung level senioritas lowongan.");
+  const meetsQualifications = finalScore >= customThresholds.matchScoreMin &&
+    (!isMandatoryAvailable || mandatoryRatio >= customThresholds.mandatoryRatioMin) &&
+    (!isExpAvailable || (candidateYears != null && candidateYears >= minYears)) &&
+    !educationBelow && !seniorityBelow && gpaFit !== "below";
 
   // Klasifikasi Kategori
   if (isCandidateEmpty || isJobWithoutTechnicalCriteria) {
@@ -493,17 +381,15 @@ export function calculateJobMatch(
       );
     }
   } else if (
-    isExpAvailable &&
-    candidateYears != null && candidateYears >= minYears + customThresholds.overqualifiedMinExperienceDiff &&
-    finalScore >= 65
+    meetsQualifications && isExpAvailable && /junior|entry|intern|magang/.test(level) &&
+    candidateYears != null && candidateYears >= minYears + customThresholds.overqualifiedMinExperienceDiff
   ) {
     matchStatus = "potentially_overqualified";
     factorsSupporting.push(
       `Pengalaman kerja (${formatExperience(candidateYears)}) melampaui level kualifikasi peran ini (${formatExperience(minYears)}) — indikasi overkualifikasi tentatif`
     );
   } else if (
-    finalScore >= customThresholds.matchScoreMin &&
-    (!isMandatoryAvailable || mandatoryRatio >= customThresholds.mandatoryRatioMin)
+    meetsQualifications
   ) {
     matchStatus = "match";
   } else {

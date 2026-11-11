@@ -24,25 +24,25 @@ export function AlertBanner({
       bg: "bg-red-50",
       border: "border-red-200",
       text: "text-red-900",
-      icon: <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />,
+      icon: <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-stack-3xs" />,
     },
     warning: {
       bg: "bg-amber-50",
       border: "border-amber-200",
       text: "text-amber-900",
-      icon: <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />,
+      icon: <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-stack-3xs" />,
     },
     info: {
       bg: "bg-sb-mist-soft",
       border: "border-sb-border",
       text: "text-sb-navy",
-      icon: <Info className="w-4 h-4 text-sb-blue shrink-0 mt-0.5" />,
+      icon: <Info className="w-4 h-4 text-sb-blue shrink-0 mt-stack-3xs" />,
     },
     success: {
       bg: "bg-sb-good/10",
       border: "border-sb-good/30",
       text: "text-sb-good",
-      icon: <CheckCircle2 className="w-4 h-4 text-sb-good shrink-0 mt-0.5" />,
+      icon: <CheckCircle2 className="w-4 h-4 text-sb-good shrink-0 mt-stack-3xs" />,
     },
   };
 
@@ -51,7 +51,7 @@ export function AlertBanner({
   return (
     <div
       className={cn(
-        "p-3.5 rounded-lg border flex items-start justify-between gap-3 text-xs",
+        "p-stack-sm rounded-lg border flex items-start justify-between gap-stack-sm text-xs",
         curr.bg,
         curr.border,
         curr.text,
@@ -59,10 +59,10 @@ export function AlertBanner({
       )}
       role="alert"
     >
-      <div className="flex items-start gap-2.5">
+      <div className="flex items-start gap-stack-xs">
         {curr.icon}
         <div>
-          {title && <h5 className="font-bold tracking-tight mb-0.5">{title}</h5>}
+          {title && <h5 className="font-bold tracking-tight mb-stack-3xs">{title}</h5>}
           <p className="leading-relaxed opacity-95">{message}</p>
         </div>
       </div>
@@ -87,21 +87,21 @@ export function ErrorState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center text-center p-8 sm:p-12 rounded-xl border border-red-200 bg-red-50/40",
+        "flex flex-col items-center justify-center text-center p-stack-2xl sm:p-stack-4xl rounded-xl border border-red-200 bg-red-50/40",
         className
       )}
     >
-      <div className="w-12 h-12 rounded-full bg-red-100 border border-red-200 text-red-600 flex items-center justify-center mb-3">
+      <div className="w-12 h-12 rounded-full bg-red-100 border border-red-200 text-red-600 flex items-center justify-center mb-stack-sm">
         <AlertCircle className="w-6 h-6" />
       </div>
       <h4 className="text-sm sm:text-base font-bold text-red-950 tracking-tight">
         {title}
       </h4>
-      <p className="mt-1 text-xs sm:text-sm text-red-800/80 max-w-md leading-relaxed">
+      <p className="mt-stack-2xs text-xs sm:text-sm text-red-800/80 max-w-md leading-relaxed">
         {message}
       </p>
       {onRetry && (
-        <div className="mt-4">
+        <div className="mt-stack-md">
           <Button
             variant="outline"
             size="sm"

@@ -12,7 +12,7 @@ function BreakdownItem({ entry }: { entry: ScoreBreakdownEntry }) {
   return (
     <div
       className={cn(
-        "p-3.5 rounded-xl border border-sb-border space-y-1.5 transition-ui",
+        "p-stack-sm rounded-xl border border-sb-border space-y-stack-2xs transition-ui",
         isAvailable ? "bg-white/70" : "bg-sb-mist-faint/40 opacity-75"
       )}
     >
@@ -54,8 +54,8 @@ export function ScoreBreakdownCard({ breakdown }: { breakdown: ScoreBreakdownEnt
   return (
     <Card>
       <CardHeader>
-        <div className="space-y-1">
-          <CardTitle className="flex items-center gap-2">
+        <div className="space-y-stack-2xs">
+          <CardTitle className="flex items-center gap-stack-xs">
             <Layers className="w-5 h-5 text-sb-blue" />
             Rincian Komponen Skor
           </CardTitle>
@@ -65,7 +65,7 @@ export function ScoreBreakdownCard({ breakdown }: { breakdown: ScoreBreakdownEnt
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-stack-sm">
           {breakdown.map((entry) => (
             <BreakdownItem key={entry.label} entry={entry} />
           ))}

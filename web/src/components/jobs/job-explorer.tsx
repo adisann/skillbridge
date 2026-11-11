@@ -62,30 +62,30 @@ export function JobExplorer({ mode = "user", initialJobs }: JobExplorerProps) {
   }, [selectedJobId]);
 
   // Jumlah per bidang untuk dropdown. Saat satu bidang dipilih, `jobs` hanya berisi bidang itu,
-  // jadi jumlah terakhir dari tampilan "Semua Bidang" disimpan supaya bidang lain tidak hilang.
+  // jadi jumlah bidang lain diambil dari ringkasan seluruh katalog (sekali, ter-cache di server).
+  // Bug lama: snapshot "Semua Bidang" bisa tersimpan kosong saat target karier pengguna belum termuat,
+  // sehingga dropdown hanya menampilkan bidang yang sedang dipilih.
   const liveCounts = useMemo(() => countJobsByCategory(jobs), [jobs]);
-  const [allCounts, setAllCounts] = useState<Record<string, number> | null>(null);
-  const [countsKey, setCountsKey] = useState("");
-  const currentKey = `${filters.role}|${search.trim()}`;
-  if (filters.role === "all" && !isLoading && currentKey !== countsKey) {
-    setCountsKey(currentKey);
-    setAllCounts(liveCounts);
-  }
+  const [catalogCounts, setCatalogCounts] = useState<Record<string, number> | null>(null);
   useEffect(() => {
-    // Halaman dibuka langsung dengan bidang tertentu: ambil ringkasan seluruh katalog sekali
-    if (filters.role === "all" || allCounts) return;
     let cancelled = false;
     fetch("/api/jobs?summary=1")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (!cancelled && data?.categories) setAllCounts(data.categories);
+        if (!cancelled && data?.categories && Object.keys(data.categories).length > 0) setCatalogCounts(data.categories);
       })
       .catch(() => {});
     return () => {
       cancelled = true;
     };
-  }, [filters.role, allCounts]);
-  const categoryCounts = filters.role === "all" ? liveCounts : { ...(allCounts ?? {}), ...liveCounts };
+  }, []);
+  // Tanpa ringkasan katalog, jangan sembunyikan bidang apa pun (undefined = tampilkan semua bidang)
+  const categoryCounts =
+    filters.role === "all" && Object.keys(liveCounts).length > 0
+      ? liveCounts
+      : catalogCounts
+        ? { ...catalogCounts, ...liveCounts }
+        : undefined;
 
   const userTargetRole = user?.targetRole;
   const filteredJobs = useMemo(() => {
@@ -145,13 +145,13 @@ export function JobExplorer({ mode = "user", initialJobs }: JobExplorerProps) {
     !isGuest && user && userCategory && filters.role === userCategory.slug && !urlBidang;
 
   return (
-    <div className="max-w-[1380px] mx-auto px-4 sm:px-8 lg:px-12 py-8 space-y-8">
+    <div className="max-w-7xl mx-auto page-shell page-stack">
       {!isGuest && <CareerContextBar />}
       <JobExplorerBanner isGuest={isGuest} isLoggedIn={!!user} role={filters.role} />
 
       {errorMsg && <AlertBanner type="error" title="Gagal Memuat Lowongan" message={errorMsg} />}
 
-      <div className="space-y-4">
+      <div className="space-y-stack-md">
         <SearchInput
           placeholder="Cari posisi pekerjaan, perusahaan, atau skill (cth. SQL, Python, Figma)..."
           value={search}
@@ -175,8 +175,8 @@ export function JobExplorer({ mode = "user", initialJobs }: JobExplorerProps) {
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-5 space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-stack-xl">
+          <div className="lg:col-span-5 space-y-stack-md">
             <SkeletonCard />
             <SkeletonCard />
           </div>
@@ -185,7 +185,7 @@ export function JobExplorer({ mode = "user", initialJobs }: JobExplorerProps) {
           </div>
         </div>
       ) : filteredJobs.length === 0 ? (
-        <div className="py-12">
+        <div className="py-stack-4xl">
           <EmptyState
             title="Tidak Ada Lowongan yang Cocok dengan Kriteria"
             description="Coba ubah kata kunci pencarian atau sesuaikan filter bidang dan tipe kerja."
@@ -198,9 +198,9 @@ export function JobExplorer({ mode = "user", initialJobs }: JobExplorerProps) {
           />
         </div>
       ) : (
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-sb-text-2 px-1">
-            <div className="flex flex-wrap items-center gap-2">
+        <div className="space-y-stack-md">
+          <div className="flex flex-wrap items-center justify-between gap-stack-xs text-xs text-sb-text-2 px-stack-2xs">
+            <div className="flex flex-wrap items-center gap-stack-xs">
               <h2 className="font-bold text-sb-navy text-xs">{filteredJobs.length} lowongan ditemukan</h2>
               {showUserCategoryNote && (
                 <span className="text-sb-text-2 font-medium">
@@ -223,10 +223,10 @@ export function JobExplorer({ mode = "user", initialJobs }: JobExplorerProps) {
             </span>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-stack-xl items-start">
             <div
               className={cn(
-                "lg:col-span-6 xl:col-span-5 min-w-0 space-y-4 transition-opacity duration-150 pb-8",
+                "lg:col-span-6 xl:col-span-5 min-w-0 space-y-stack-md transition-opacity duration-150 pb-stack-2xl",
                 isPending ? "opacity-40" : "opacity-100"
               )}
             >
@@ -257,7 +257,7 @@ export function JobExplorer({ mode = "user", initialJobs }: JobExplorerProps) {
                 </div>
               ))}
 
-              <div className="pt-2">
+              <div className="pt-stack-xs">
                 <Pagination
                   currentPage={currentPage}
                   totalItems={filteredJobs.length}

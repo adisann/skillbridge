@@ -40,19 +40,19 @@ export function SweetAlert({ open, title, text, icon = "info", confirmText = "Me
   const { Icon, ring } = ICONS[icon];
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-stack-md">
       <div className="absolute inset-0 bg-sb-navy/40 backdrop-blur-xs animate-fade-in" onClick={onConfirm} aria-hidden="true" />
       <div
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="sweet-alert-title"
         aria-describedby="sweet-alert-text"
-        className="relative w-full max-w-sm rounded-3xl bg-white border border-sb-border shadow-2xl p-7 text-center space-y-4 animate-pop-in"
+        className="relative w-full max-w-sm rounded-3xl bg-white border border-sb-border shadow-2xl p-stack-xl text-center space-y-stack-md animate-pop-in"
       >
         <div className={cn("mx-auto flex h-16 w-16 items-center justify-center rounded-full border-4", ring)}>
           <Icon className="h-8 w-8" aria-hidden="true" />
         </div>
-        <div className="space-y-1.5">
+        <div className="space-y-stack-2xs">
           <h2 id="sweet-alert-title" className="text-xl font-extrabold text-sb-navy tracking-tight">
             {title}
           </h2>

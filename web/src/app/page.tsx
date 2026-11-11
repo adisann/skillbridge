@@ -4,6 +4,9 @@ import { LandingStatsStrip } from "@/components/landing/stats-strip";
 import { LandingHero } from "@/components/landing/hero";
 import { LandingProblem } from "@/components/landing/problem";
 import { LandingSolution } from "@/components/landing/solution";
+import { LandingAppCatalog } from "@/components/landing/app-catalog";
+import { LandingPixelBand } from "@/components/landing/pixel-band";
+import { LandingTopWave } from "@/components/landing/top-wave";
 import { LandingFields } from "@/components/landing/fields";
 import { LandingHowItWorks } from "@/components/landing/how-it-works";
 import { LandingTrust } from "@/components/landing/trust";
@@ -27,14 +30,28 @@ export default async function HomePage() {
         aria-hidden="true"
       />
 
-      <LandingHero />
-      <LandingStatsStrip total={statsFailed ? null : stats} fields={Object.keys(jobCounts).length} failed={statsFailed} />
+      {/* Hero + statistik berbagi satu latar gradient bergelombang, lalu ditutup pita piksel */}
+      <div className="landing-top">
+        <LandingTopWave />
+        <LandingHero />
+        <LandingStatsStrip total={statsFailed ? null : stats} fields={Object.keys(jobCounts).length} failed={statsFailed} />
+      </div>
+      <LandingPixelBand />
       <LandingProblem />
-      <LandingSolution />
+      {/* Solusi + katalog layar aplikasi dalam satu latar gradient */}
+      <div className="landing-grad-solution">
+        <LandingSolution />
+        <LandingAppCatalog />
+      </div>
       <LandingHowItWorks />
       <LandingFields jobCounts={jobCounts} />
       <LandingTrust />
-      <LandingClosing />
+      {/* Kebalikan blok atas: piksel naik ke biru gelap, lalu terang perlahan lewat gelombang ke footer */}
+      <LandingPixelBand direction="up" />
+      <div className="landing-bottom">
+        <LandingTopWave flip />
+        <LandingClosing />
+      </div>
     </div>
   );
 }

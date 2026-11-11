@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
@@ -43,23 +43,31 @@ const PRIMARY_NAV_ITEMS: NavItem[] = [
   { label: "Rencana Belajar", href: "/progress", icon: BookOpen },
 ];
 
+const SIDEBAR_STORAGE_KEY = "skillbridge_sidebar_collapsed";
+const SIDEBAR_CHANGE_EVENT = "skillbridge-sidebar-change";
+
+function subscribeToSidebar(onChange: () => void) {
+  window.addEventListener("storage", onChange);
+  window.addEventListener(SIDEBAR_CHANGE_EVENT, onChange);
+  return () => {
+    window.removeEventListener("storage", onChange);
+    window.removeEventListener(SIDEBAR_CHANGE_EVENT, onChange);
+  };
+}
+
+function getSidebarCollapsed() {
+  return localStorage.getItem(SIDEBAR_STORAGE_KEY) === "true";
+}
+
 export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: SidebarProps) {
   const pathname = usePathname();
   const params = useSearchParams();
   const { user, isLoading, isAdmin, logout } = useAuth();
-  const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("skillbridge_sidebar_collapsed") === "true";
-    }
-    return false;
-  });
+  const isCollapsed = useSyncExternalStore(subscribeToSidebar, getSidebarCollapsed, () => false);
 
   const toggleCollapse = () => {
-    setIsCollapsed((prev) => {
-      const next = !prev;
-      localStorage.setItem("skillbridge_sidebar_collapsed", String(next));
-      return next;
-    });
+    localStorage.setItem(SIDEBAR_STORAGE_KEY, String(!isCollapsed));
+    window.dispatchEvent(new Event(SIDEBAR_CHANGE_EVENT));
   };
 
   const getUserInitials = (name?: string) => {
@@ -73,9 +81,9 @@ export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: Sideba
     const collapsed = isMobile ? false : isCollapsed;
 
     return (
-      <div className="flex-1 flex flex-col justify-between py-3 overflow-y-auto overflow-x-hidden">
+      <div className="flex-1 flex flex-col justify-between py-stack-sm overflow-y-auto overflow-x-hidden">
         {/* Navigation links */}
-        <div className="space-y-1.5 px-3">
+        <div className="space-y-stack-2xs px-stack-sm">
           {(isAdmin ? [
             { label: "Lowongan", href: "/admin?tab=jobs", icon: Briefcase },
             { label: "Skill & Sumber", href: "/admin?tab=skills", icon: Layers },
@@ -95,17 +103,12 @@ export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: Sideba
                 }}
                 title={collapsed ? item.label : undefined}
                 className={cn(
-                  "flex items-center gap-3 px-3.5 py-2.5 rounded-full text-xs transition-ui relative group",
+                  "flex items-center gap-stack-sm px-stack-sm py-stack-xs rounded-full text-xs transition-ui relative group",
                   isActive
                     ? "bg-sb-mist-soft text-sb-navy font-bold shadow-2xs border border-sb-border"
-                    : "text-sb-text-2 hover:bg-white/70 hover:text-sb-navy font-semibold"
+                    : "text-sb-text-2 hover:bg-sb-mist-faint hover:text-sb-navy font-semibold"
                 )}
               >
-                {/* Active indicator dot: absolute so icons remain 100% vertically aligned */}
-                {isActive && (
-                  <span className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-sb-sky shrink-0" />
-                )}
-
                 <Icon
                   className={cn(
                     "w-4 h-4 shrink-0 transition-colors",
@@ -121,7 +124,7 @@ export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: Sideba
           })}
 
           {/* Divider */}
-          <div className="my-3 border-t border-sb-border mx-2" />
+          <div className="my-stack-sm border-t border-sb-border mx-stack-xs" />
 
           {/* Profil Saya */}
           <Link
@@ -131,15 +134,12 @@ export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: Sideba
             }}
             title={collapsed ? "Profil Saya" : undefined}
             className={cn(
-              "flex items-center gap-3 px-3.5 py-2.5 rounded-full text-xs transition-ui relative group",
+              "flex items-center gap-stack-sm px-stack-sm py-stack-xs rounded-full text-xs transition-ui relative group",
               pathname === "/profile"
                 ? "bg-sb-mist-soft text-sb-navy font-bold shadow-2xs border border-sb-border"
-                : "text-sb-text-2 hover:bg-white/70 hover:text-sb-navy font-semibold"
+                : "text-sb-text-2 hover:bg-sb-mist-faint hover:text-sb-navy font-semibold"
             )}
           >
-            {pathname === "/profile" && (
-              <span className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-sb-sky shrink-0" />
-            )}
             <UserRound
               className={cn(
                 "w-4 h-4 shrink-0 transition-colors",
@@ -155,17 +155,17 @@ export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: Sideba
         </div>
 
         {/* User profile & Logout or Login Button at bottom */}
-        <div className="pt-3 border-t border-sb-border px-3">
+        <div className="pt-stack-sm border-t border-sb-border px-stack-sm">
           {isLoading ? (
             <div
               className={cn(
-                "flex items-center gap-2.5 p-2 rounded-2xl bg-white/50 animate-pulse",
+                "flex items-center gap-stack-xs p-stack-xs rounded-2xl bg-sb-mist-faint animate-pulse",
                 collapsed ? "justify-center" : ""
               )}
             >
               <div className="w-8 h-8 rounded-full bg-sb-mist-soft shrink-0" />
               {!collapsed && (
-                <div className="flex-1 space-y-1.5 min-w-0">
+                <div className="flex-1 space-y-stack-2xs min-w-0">
                   <div className="h-3 bg-sb-mist-soft rounded w-20" />
                   <div className="h-2 bg-sb-mist-soft rounded w-28" />
                 </div>
@@ -174,9 +174,9 @@ export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: Sideba
           ) : user ? (
             <div
               className={cn(
-                "flex items-center justify-between gap-2 p-2 rounded-2xl bg-white/70 border border-sb-border hover:bg-white transition-ui shadow-2xs",
+                "flex items-center justify-between gap-stack-xs p-stack-xs rounded-2xl bg-white border border-sb-border hover:bg-sb-mist-faint transition-ui shadow-2xs",
                 pathname === "/profile" ? "ring-2 ring-sb-blue/30 border-sb-blue bg-sb-mist-soft" : "",
-                collapsed ? "justify-center p-1.5 flex-col gap-1.5" : ""
+                collapsed ? "justify-center p-stack-2xs flex-col gap-stack-2xs" : ""
               )}
             >
               <Link
@@ -185,12 +185,12 @@ export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: Sideba
                   if (isMobile && onCloseMobile) onCloseMobile();
                 }}
                 className={cn(
-                  "flex items-center gap-2.5 min-w-0 flex-1 group cursor-pointer",
+                  "flex items-center gap-stack-xs min-w-0 flex-1 group cursor-pointer",
                   collapsed ? "justify-center" : ""
                 )}
                 title={collapsed ? `${user.fullName} (Profil Saya)` : "Buka Profil Saya"}
               >
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-sb-sky to-sb-mist text-sb-navy font-bold text-xs flex items-center justify-center shrink-0 shadow-xs group-hover:shadow-sm transition-ui">
+                <div className="w-8 h-8 rounded-xl bg-sb-mist-soft text-sb-blue font-bold text-xs flex items-center justify-center shrink-0 shadow-xs group-hover:shadow-sm transition-ui">
                   {getUserInitials(user.fullName)}
                 </div>
 
@@ -215,7 +215,7 @@ export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: Sideba
                 title="Keluar"
                 aria-label="Keluar sesi"
                 className={cn(
-                  "p-1.5 rounded-lg text-sb-text-2 hover:text-sb-critical hover:bg-rose-50/80 transition-colors shrink-0 cursor-pointer",
+                  "p-stack-2xs rounded-lg text-sb-text-2 hover:text-sb-critical hover:bg-rose-50/80 transition-colors shrink-0 cursor-pointer",
                   collapsed ? "w-8 h-8 flex items-center justify-center" : ""
                 )}
               >
@@ -230,8 +230,8 @@ export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: Sideba
               }}
               title={collapsed ? "Masuk" : undefined}
               className={cn(
-                "w-full flex items-center gap-2 px-3 py-2.5 rounded-full text-xs font-bold bg-sb-sky text-sb-navy hover:bg-sb-sky-hover transition-ui shadow-xs",
-                collapsed ? "justify-center px-2" : ""
+                "w-full flex items-center gap-stack-xs px-stack-sm py-stack-xs rounded-full text-xs font-bold bg-sb-blue text-white hover:bg-sb-blue-hover transition-ui shadow-xs",
+                collapsed ? "justify-center px-stack-xs" : ""
               )}
             >
               <UserRound className="w-4 h-4 shrink-0" />
@@ -250,14 +250,14 @@ export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: Sideba
       {/* ------------------------------------------------------------------- */}
       <aside
         className={cn(
-          "hidden md:flex flex-col h-screen sticky top-0 z-40 glass-header border-r border-sb-border transition-[width] duration-200 ease-in-out-strong shrink-0 select-none",
+          "hidden md:flex flex-col h-screen sticky top-0 z-40 bg-white border-r border-sb-border transition-[width] duration-200 ease-in-out-strong shrink-0 select-none",
           isCollapsed ? "w-[76px]" : "w-64"
         )}
       >
         {/* Top Header with Logo & Collapse Toggle */}
         <div
           className={cn(
-            "h-18 px-4 border-b border-sb-border flex items-center shrink-0",
+            "h-18 px-stack-md border-b border-sb-border flex items-center shrink-0",
             isCollapsed ? "justify-center" : "justify-between"
           )}
         >
@@ -272,7 +272,7 @@ export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: Sideba
             onClick={toggleCollapse}
             aria-label={isCollapsed ? "Buka sidebar" : "Lipat sidebar"}
             className={cn(
-              "p-1.5 rounded-xl text-sb-text-2 hover:text-sb-navy hover:bg-white/70 transition-colors cursor-pointer",
+              "p-stack-2xs rounded-xl text-sb-text-2 hover:text-sb-navy hover:bg-sb-mist-faint transition-colors cursor-pointer",
               isCollapsed ? "hidden" : "block"
             )}
           >
@@ -282,12 +282,12 @@ export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: Sideba
 
         {/* Floating expand button when collapsed */}
         {isCollapsed && (
-          <div className="py-2 flex justify-center border-b border-sb-border">
+          <div className="py-stack-xs flex justify-center border-b border-sb-border">
             <button
               type="button"
               onClick={toggleCollapse}
               aria-label="Buka sidebar"
-              className="p-1.5 rounded-xl text-sb-text-2 hover:text-sb-navy hover:bg-white/70 transition-colors cursor-pointer"
+              className="p-stack-2xs rounded-xl text-sb-text-2 hover:text-sb-navy hover:bg-sb-mist-faint transition-colors cursor-pointer"
             >
               <PanelLeftOpen className="w-4 h-4" />
             </button>
@@ -311,13 +311,13 @@ export function DashboardSidebar({ isMobileOpen = false, onCloseMobile }: Sideba
           />
 
           {/* Drawer content */}
-          <div className="relative w-72 max-w-[80vw] glass-panel h-full shadow-2xl flex flex-col z-50 animate-slide-in-left border-r border-sb-border">
-            <div className="h-18 px-5 border-b border-sb-border flex items-center justify-between">
+          <div className="relative w-72 max-w-[80vw] bg-white h-full shadow-2xl flex flex-col z-50 animate-slide-in-left border-r border-sb-border">
+            <div className="h-18 px-stack-lg border-b border-sb-border flex items-center justify-between">
               <SkillBridgeLogo size="sm" href={isAdmin ? "/admin" : "/dashboard"} />
               <button
                 type="button"
                 onClick={onCloseMobile}
-                className="p-1.5 rounded-xl text-sb-text-2 hover:text-sb-navy hover:bg-white/70 transition-colors cursor-pointer"
+                className="p-stack-2xs rounded-xl text-sb-text-2 hover:text-sb-navy hover:bg-sb-mist-faint transition-colors cursor-pointer"
                 aria-label="Tutup menu"
               >
                 <X className="w-5 h-5" />

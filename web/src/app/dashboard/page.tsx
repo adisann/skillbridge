@@ -45,13 +45,13 @@ function DashboardContent() {
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+    <div className="max-w-7xl mx-auto page-shell page-stack">
       <CareerContextBar />
       <DashboardBanner fullName={user?.fullName} targetRole={user?.targetRole} />
 
       {isLoading ? (
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="space-y-stack-md">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-stack-md">
             <SkeletonCard />
             <SkeletonCard />
             <SkeletonCard />
@@ -59,7 +59,7 @@ function DashboardContent() {
           <SkeletonCard />
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-stack-lg">
           <CvSkillsCard cvSkills={cvSkills} targetRole={user?.targetRole} />
           <MarketSkillsCard
             totalJobsCount={totalJobsCount}

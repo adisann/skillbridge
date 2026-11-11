@@ -135,7 +135,7 @@ export default function DesignSystemPage() {
       header: "Kategori",
       sortable: true,
       render: (row) => (
-        <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-sb-mist-soft text-sb-navy border border-sb-border">
+        <span className="text-[11px] font-semibold px-stack-xs py-stack-3xs rounded-full bg-sb-mist-soft text-sb-navy border border-sb-border">
           {row.category}
         </span>
       ),
@@ -153,12 +153,12 @@ export default function DesignSystemPage() {
       align: "right",
       render: (row) => (
         row.inCV ? (
-          <span className="inline-flex items-center gap-1 text-sb-good font-semibold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+          <span className="inline-flex items-center gap-stack-2xs text-sb-good font-semibold bg-emerald-50 px-stack-xs py-stack-3xs rounded-full border border-emerald-200">
             <Check className="w-3 h-3 text-sb-good" />
             Tercantum
           </span>
         ) : (
-          <span className="text-sb-text-2 font-medium bg-sb-mist-faint px-2.5 py-0.5 rounded-full border border-sb-border">
+          <span className="text-sb-text-2 font-medium bg-sb-mist-faint px-stack-xs py-stack-3xs rounded-full border border-sb-border">
             Belum ditemukan
           </span>
         )
@@ -167,19 +167,19 @@ export default function DesignSystemPage() {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-16">
-      <section className="space-y-4"><h2 className="text-2xl font-bold">{UI_COPY.landing.sceneExample}</h2><div className="grid sm:grid-cols-2 gap-6"><ExampleResultCard/><div className="space-y-4"><SkillChips skills={[`${UI_COPY.landing.sceneGap} · ${UI_COPY.landing.sceneMissing}`]} gapClass="gap-2" chipClass="" variant="missing"/><div className="flex gap-3 flex-wrap"><Button size="lg">{UI_COPY.landing.heroCtaPrimary}</Button><Button variant="secondary" size="lg">{UI_COPY.landing.heroCtaSecondary}</Button></div><div className="flex gap-3 text-xs"><span className="bg-sb-good-soft text-sb-navy p-3 rounded-lg">--sb-good-soft</span><span className="bg-sb-warning-soft text-sb-navy p-3 rounded-lg">--sb-warning-soft</span></div></div></div></section>
+    <div className="max-w-7xl mx-auto px-stack-md sm:px-stack-xl lg:px-stack-2xl py-stack-3xl space-y-stack-5xl">
+      <section className="space-y-stack-md"><h2 className="text-2xl font-bold">{UI_COPY.landing.sceneExample}</h2><div className="grid sm:grid-cols-2 gap-stack-xl"><ExampleResultCard/><div className="space-y-stack-md"><SkillChips skills={[`${UI_COPY.landing.sceneGap} · ${UI_COPY.landing.sceneMissing}`]} gapClass="gap-stack-xs" chipClass="" variant="missing"/><div className="flex gap-stack-sm flex-wrap"><Button size="lg">{UI_COPY.landing.heroCtaPrimary}</Button><Button variant="secondary" size="lg">{UI_COPY.landing.heroCtaSecondary}</Button></div><div className="flex gap-stack-sm text-xs"><span className="bg-sb-good-soft text-sb-navy p-stack-sm rounded-lg">--sb-good-soft</span><span className="bg-sb-warning-soft text-sb-navy p-stack-sm rounded-lg">--sb-warning-soft</span></div></div></div></section>
 
       {/* --------------------------------------------------------------------- */}
       {/* Page Header */}
       {/* --------------------------------------------------------------------- */}
-      <section className="page-banner rounded-3xl p-6 sm:p-10 text-sb-navy relative overflow-hidden border border-sb-border shadow-2xs">
-        <div className="relative z-10 space-y-3">
+      <section className="page-banner rounded-3xl p-stack-xl sm:p-stack-3xl text-sb-navy relative overflow-hidden border border-sb-border shadow-2xs">
+        <div className="relative z-10 space-y-stack-sm">
           <h1 className="text-3xl sm:text-4xl font-extrabold text-sb-navy tracking-tight">
             Panduan Desain & Pustaka Komponen UI
           </h1>
           <p className="text-sm sm:text-base text-sb-text-2 max-w-3xl leading-relaxed">
-            Sistem visual murni SkillBridge: palet 4 biru (Navy, Blue, Sky, Mist), nol abu-abu, tipografi tegas Plus Jakarta Sans & JetBrains Mono, motif Pixel Bridge, dan kepatuhan penuh terhadap aksesibilitas status non-warna.
+            Identitas SkillBridge: Biru penghubung #1E40AF, Biru malam #111A2E, Putih sejuk #F4F6FA, dan Jingga peluang #D65B06. Tipografi Archivo untuk judul dan Onest untuk teks, gradient tipis hanya di latar halaman, serta status yang tidak hanya bergantung pada warna.
           </p>
         </div>
       </section>
@@ -187,8 +187,8 @@ export default function DesignSystemPage() {
       {/* --------------------------------------------------------------------- */}
       {/* 1. Brand Identity & Logo */}
       {/* --------------------------------------------------------------------- */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-2.5 pb-2 border-b border-sb-border">
+      <section className="space-y-stack-xl">
+        <div className="flex items-center gap-stack-xs pb-stack-xs border-b border-sb-border">
           <Layers className="w-5 h-5 text-sb-blue" />
           <h2 className="text-xl font-bold text-sb-navy tracking-tight">
             1. Identitas Brand, Logo, & Pixel Bridge Motif
@@ -198,18 +198,18 @@ export default function DesignSystemPage() {
           Logo SkillBridge merepresentasikan kompas navigasi karier dan jembatan talenta digital menuju masa depan ekonomi berkelanjutan.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="glass-panel p-6 rounded-2xl flex flex-col items-center justify-center gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-stack-xl">
+          <div className="glass-panel p-stack-xl rounded-2xl flex flex-col items-center justify-center gap-stack-sm">
             <span className="text-xs text-sb-text-2 font-mono-metric">Ukuran Besar (Large)</span>
             <SkillBridgeLogo size="lg" />
           </div>
-          <div className="glass-panel p-6 rounded-2xl flex flex-col items-center justify-center gap-3">
+          <div className="glass-panel p-stack-xl rounded-2xl flex flex-col items-center justify-center gap-stack-sm">
             <span className="text-xs text-sb-text-2 font-mono-metric">Ukuran Default (Medium)</span>
             <SkillBridgeLogo size="md" />
           </div>
-          <div className="glass-panel p-6 rounded-2xl flex flex-col items-center justify-center gap-3">
+          <div className="glass-panel p-stack-xl rounded-2xl flex flex-col items-center justify-center gap-stack-sm">
             <span className="text-xs text-sb-text-2 font-mono-metric">Ukuran Kecil (Small / Icon Only)</span>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-stack-md">
               <SkillBridgeLogo size="sm" />
               <SkillBridgeLogo size="md" showText={false} />
             </div>
@@ -217,20 +217,20 @@ export default function DesignSystemPage() {
         </div>
 
         {/* Pixel Bridge Motif Variants */}
-        <div className="space-y-3 pt-2">
+        <div className="space-y-stack-sm pt-stack-xs">
           <h3 className="text-sm font-bold text-sb-navy">Pixel Bridge Motif:</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="glass-panel p-6 rounded-2xl space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-stack-md">
+            <div className="glass-panel p-stack-xl rounded-2xl space-y-stack-xs">
               <span className="text-xs text-sb-text-2 font-mono-metric">Varian Hero (32 Matrix)</span>
-              <div className="overflow-x-auto py-2">
+              <div className="overflow-x-auto py-stack-xs">
                 <PixelBridge variant="hero" />
               </div>
             </div>
-            <div className="glass-panel p-6 rounded-2xl space-y-2">
+            <div className="glass-panel p-stack-xl rounded-2xl space-y-stack-xs">
               <span className="text-xs text-sb-text-2 font-mono-metric">Varian Divider & Compact</span>
-              <div className="py-2 space-y-4">
+              <div className="py-stack-xs space-y-stack-md">
                 <PixelBridge variant="divider" />
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-stack-xs">
                   <span className="text-xs text-sb-text-2">Compact:</span>
                   <PixelBridge variant="compact" />
                 </div>
@@ -243,71 +243,71 @@ export default function DesignSystemPage() {
       {/* --------------------------------------------------------------------- */}
       {/* 2. Color Palette System */}
       {/* --------------------------------------------------------------------- */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-2.5 pb-2 border-b border-sb-border">
+      <section className="space-y-stack-xl">
+        <div className="flex items-center gap-stack-xs pb-stack-xs border-b border-sb-border">
           <Palette className="w-5 h-5 text-sb-blue" />
           <h2 className="text-xl font-bold text-sb-navy tracking-tight">
             2. Palet Warna Baru (Navy, Blue, Sky, Mist System)
           </h2>
         </div>
 
-        <div className="p-4 rounded-2xl bg-sb-mist-soft border border-sb-border text-xs text-sb-text-2 space-y-2 leading-relaxed">
+        <div className="p-stack-md rounded-2xl bg-sb-mist-soft border border-sb-border text-xs text-sb-text-2 space-y-stack-xs leading-relaxed">
           <p className="font-bold text-sb-navy">
             Aturan Mutlak Penggunaan Palet Warna:
           </p>
-          <ul className="list-disc list-inside space-y-1">
-            <li><strong>#1B365D (--sb-navy) dan #005A9C (--sb-blue) BUKAN latar</strong>. Hanya dipakai untuk teks, ikon, link, garis, dan ring fokus.</li>
-            <li><strong>Tombol primary:</strong> Latar <code className="bg-white/80 px-1 py-0.5 rounded text-sb-navy font-bold">--sb-sky</code>, teks <code className="bg-white/80 px-1 py-0.5 rounded text-sb-navy font-bold">--sb-navy</code> (kontras ±6:1), hover <code className="bg-white/80 px-1 py-0.5 rounded text-sb-navy font-bold">--sb-sky-hover</code>. Tidak boleh teks putih di atas --sb-sky.</li>
-            <li><strong>Tombol secondary:</strong> Latar putih, border <code className="bg-white/80 px-1 py-0.5 rounded text-sb-navy">--sb-border</code>, teks <code className="bg-white/80 px-1 py-0.5 rounded text-sb-navy">--sb-navy</code>.</li>
-            <li><strong>Nol Abu-Abu:</strong> Teks sekunder memakai <code className="bg-white/80 px-1 py-0.5 rounded text-sb-navy">--sb-text-2</code> (navy transparan 72%, kontras ±5:1). Tidak ada zinc/slate/gray.</li>
+          <ul className="list-disc list-inside space-y-stack-2xs">
+            <li><strong>#111A2E (--sb-navy) dan #1E40AF (--sb-blue) BUKAN latar</strong>. Hanya dipakai untuk teks, ikon, link, garis, dan ring fokus.</li>
+            <li><strong>Tombol primary:</strong> Latar <code className="bg-white/80 px-stack-2xs py-stack-3xs rounded text-sb-navy font-bold">--sb-sky</code>, teks <code className="bg-white/80 px-stack-2xs py-stack-3xs rounded text-sb-navy font-bold">--sb-navy</code> (kontras ±6:1), hover <code className="bg-white/80 px-stack-2xs py-stack-3xs rounded text-sb-navy font-bold">--sb-sky-hover</code>. Tidak boleh teks putih di atas --sb-sky.</li>
+            <li><strong>Tombol secondary:</strong> Latar putih, border <code className="bg-white/80 px-stack-2xs py-stack-3xs rounded text-sb-navy">--sb-border</code>, teks <code className="bg-white/80 px-stack-2xs py-stack-3xs rounded text-sb-navy">--sb-navy</code>.</li>
+            <li><strong>Nol Abu-Abu:</strong> Teks sekunder memakai <code className="bg-white/80 px-stack-2xs py-stack-3xs rounded text-sb-navy">--sb-text-2</code> (navy transparan 72%, kontras ±5:1). Tidak ada zinc/slate/gray.</li>
           </ul>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-stack-md">
           {/* Palet Utama */}
-          <div className="space-y-2">
+          <div className="space-y-stack-xs">
             <h4 className="text-xs font-bold uppercase tracking-wider text-sb-navy">
               Palet Utama
             </h4>
-            <div className="space-y-1.5 text-xs font-mono-metric">
-              <div className="h-10 rounded-xl bg-white border-2 border-sb-navy text-sb-navy flex items-center justify-between px-3 font-bold shadow-xs">
+            <div className="space-y-stack-2xs text-xs font-mono-metric">
+              <div className="h-10 rounded-xl bg-white border-2 border-sb-navy text-sb-navy flex items-center justify-between px-stack-sm font-bold shadow-xs">
                 <span>--sb-navy (Teks Utama)</span>
-                <span>#1B365D</span>
+                <span>#111A2E</span>
               </div>
-              <div className="h-9 rounded-xl bg-white border-2 border-sb-blue text-sb-blue flex items-center justify-between px-3 font-bold">
+              <div className="h-9 rounded-xl bg-white border-2 border-sb-blue text-sb-blue flex items-center justify-between px-stack-sm font-bold">
                 <span>--sb-blue (Aksen & Link)</span>
-                <span>#005A9C</span>
+                <span>#1E40AF</span>
               </div>
-              <div className="h-9 rounded-xl bg-sb-sky text-sb-navy border border-sb-border flex items-center justify-between px-3 font-bold">
+              <div className="h-9 rounded-xl bg-sb-sky text-sb-navy border border-sb-border flex items-center justify-between px-stack-sm font-bold">
                 <span>--sb-sky (Tombol & Bar)</span>
-                <span>#60C1E5</span>
+                <span>#7B98E6</span>
               </div>
-              <div className="h-9 rounded-xl bg-sb-mist text-sb-navy border border-sb-border flex items-center justify-between px-3 font-bold">
+              <div className="h-9 rounded-xl bg-sb-mist text-sb-navy border border-sb-border flex items-center justify-between px-stack-sm font-bold">
                 <span>--sb-mist (Chip & Track)</span>
-                <span>#A0E0EF</span>
+                <span>#C3D1F4</span>
               </div>
             </div>
           </div>
 
           {/* Turunan Latar */}
-          <div className="space-y-2">
+          <div className="space-y-stack-xs">
             <h4 className="text-xs font-bold uppercase tracking-wider text-sb-navy">
               Turunan Latar Permukaan
             </h4>
-            <div className="space-y-1.5 text-xs font-mono-metric">
-              <div className="h-10 rounded-xl bg-sb-sky-hover text-sb-navy border border-sb-border flex items-center justify-between px-3 font-semibold shadow-xs">
+            <div className="space-y-stack-2xs text-xs font-mono-metric">
+              <div className="h-10 rounded-xl bg-sb-sky-hover text-sb-navy border border-sb-border flex items-center justify-between px-stack-sm font-semibold shadow-xs">
                 <span>--sb-sky-hover</span>
-                <span>#7FCDEA</span>
+                <span>#93ABEB</span>
               </div>
-              <div className="h-9 rounded-xl bg-sb-mist-soft text-sb-navy border border-sb-border flex items-center justify-between px-3 font-semibold">
+              <div className="h-9 rounded-xl bg-sb-mist-soft text-sb-navy border border-sb-border flex items-center justify-between px-stack-sm font-semibold">
                 <span>--sb-mist-soft</span>
                 <span>28% Mist</span>
               </div>
-              <div className="h-9 rounded-xl bg-sb-mist-faint text-sb-navy border border-sb-border flex items-center justify-between px-3 font-semibold">
+              <div className="h-9 rounded-xl bg-sb-mist-faint text-sb-navy border border-sb-border flex items-center justify-between px-stack-sm font-semibold">
                 <span>--sb-mist-faint</span>
                 <span>14% Mist</span>
               </div>
-              <div className="h-9 rounded-xl bg-white text-sb-navy border border-sb-border flex items-center justify-between px-3 font-semibold">
+              <div className="h-9 rounded-xl bg-white text-sb-navy border border-sb-border flex items-center justify-between px-stack-sm font-semibold">
                 <span>--sb-border</span>
                 <span>14% Blue</span>
               </div>
@@ -315,41 +315,41 @@ export default function DesignSystemPage() {
           </div>
 
           {/* Tipografi & Kontras */}
-          <div className="space-y-2">
+          <div className="space-y-stack-xs">
             <h4 className="text-xs font-bold uppercase tracking-wider text-sb-navy">
               Tipografi Navy Murni
             </h4>
-            <div className="space-y-1.5 text-xs font-mono-metric">
-              <div className="h-10 rounded-xl bg-sb-mist-soft text-sb-navy flex items-center justify-between px-3 font-bold border border-sb-border">
+            <div className="space-y-stack-2xs text-xs font-mono-metric">
+              <div className="h-10 rounded-xl bg-sb-mist-soft text-sb-navy flex items-center justify-between px-stack-sm font-bold border border-sb-border">
                 <span>--sb-text</span>
                 <span>Navy 100%</span>
               </div>
-              <div className="h-9 rounded-xl bg-sb-mist-soft text-sb-text-2 flex items-center justify-between px-3 font-semibold border border-sb-border">
+              <div className="h-9 rounded-xl bg-sb-mist-soft text-sb-text-2 flex items-center justify-between px-stack-sm font-semibold border border-sb-border">
                 <span>--sb-text-2</span>
                 <span>Navy 72% (~5:1)</span>
               </div>
-              <div className="h-9 rounded-xl bg-white text-sb-blue flex items-center justify-between px-3 font-semibold border border-sb-border">
+              <div className="h-9 rounded-xl bg-white text-sb-blue flex items-center justify-between px-stack-sm font-semibold border border-sb-border">
                 <span>Link / Focus Ring</span>
-                <span>#005A9C</span>
+                <span>#1E40AF</span>
               </div>
             </div>
           </div>
 
           {/* Status Semantik */}
-          <div className="space-y-2">
+          <div className="space-y-stack-xs">
             <h4 className="text-xs font-bold uppercase tracking-wider text-sb-navy">
               Status Semantik (Non-Warna)
             </h4>
-            <div className="space-y-1.5 text-xs font-mono-metric">
-              <div className="h-10 rounded-xl bg-emerald-50 text-sb-good border border-emerald-200 flex items-center justify-between px-3 font-bold shadow-xs">
+            <div className="space-y-stack-2xs text-xs font-mono-metric">
+              <div className="h-10 rounded-xl bg-emerald-50 text-sb-good border border-emerald-200 flex items-center justify-between px-stack-sm font-bold shadow-xs">
                 <span>--sb-good (Cocok)</span>
                 <span>#15803D</span>
               </div>
-              <div className="h-9 rounded-xl bg-amber-50 text-sb-warning border border-amber-200 flex items-center justify-between px-3 font-bold">
+              <div className="h-9 rounded-xl bg-amber-50 text-sb-warning border border-amber-200 flex items-center justify-between px-stack-sm font-bold">
                 <span>--sb-warning (Perlu Verifikasi)</span>
                 <span>#B45309</span>
               </div>
-              <div className="h-9 rounded-xl bg-rose-50 text-sb-critical border border-rose-200 flex items-center justify-between px-3 font-bold">
+              <div className="h-9 rounded-xl bg-rose-50 text-sb-critical border border-rose-200 flex items-center justify-between px-stack-sm font-bold">
                 <span>--sb-critical (Belum Ada)</span>
                 <span>#B91C1C</span>
               </div>
@@ -361,8 +361,8 @@ export default function DesignSystemPage() {
       {/* --------------------------------------------------------------------- */}
       {/* 3. Score Ring / Circular Gauges */}
       {/* --------------------------------------------------------------------- */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-2.5 pb-2 border-b border-sb-border">
+      <section className="space-y-stack-xl">
+        <div className="flex items-center gap-stack-xs pb-stack-xs border-b border-sb-border">
           <Sparkles className="w-5 h-5 text-sb-blue" />
           <h2 className="text-xl font-bold text-sb-navy tracking-tight">
             3. ScoreRing / Circular Gauges
@@ -372,20 +372,20 @@ export default function DesignSystemPage() {
           Komponen indikator skor melingkar dengan angka monospace dan gradien sesuai status skor (Good &ge; 75%, Warning &ge; 50%, Critical &lt; 50%).
         </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
-          <div className="glass-panel p-6 rounded-2xl flex flex-col items-center justify-center gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-stack-xl">
+          <div className="glass-panel p-stack-xl rounded-2xl flex flex-col items-center justify-center gap-stack-sm">
             <span className="text-xs text-sb-text-2 font-mono-metric">High Match (88% - Size LG)</span>
             <ScoreRing score={88} size="lg" />
           </div>
-          <div className="glass-panel p-6 rounded-2xl flex flex-col items-center justify-center gap-3">
+          <div className="glass-panel p-stack-xl rounded-2xl flex flex-col items-center justify-center gap-stack-sm">
             <span className="text-xs text-sb-text-2 font-mono-metric">Medium Match (64% - Size MD)</span>
             <ScoreRing score={64} size="md" />
           </div>
-          <div className="glass-panel p-6 rounded-2xl flex flex-col items-center justify-center gap-3">
+          <div className="glass-panel p-stack-xl rounded-2xl flex flex-col items-center justify-center gap-stack-sm">
             <span className="text-xs text-sb-text-2 font-mono-metric">Low Match (34% - Size SM)</span>
             <ScoreRing score={34} size="sm" />
           </div>
-          <div className="glass-panel p-6 rounded-2xl flex flex-col items-center justify-center gap-3">
+          <div className="glass-panel p-stack-xl rounded-2xl flex flex-col items-center justify-center gap-stack-sm">
             <span className="text-xs text-sb-text-2 font-mono-metric">Null / Belum Ada Skor</span>
             <ScoreRing score={null} size="md" />
           </div>
@@ -395,16 +395,16 @@ export default function DesignSystemPage() {
       {/* --------------------------------------------------------------------- */}
       {/* 4. Buttons & Interactions */}
       {/* --------------------------------------------------------------------- */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-2.5 pb-2 border-b border-sb-border">
+      <section className="space-y-stack-xl">
+        <div className="flex items-center gap-stack-xs pb-stack-xs border-b border-sb-border">
           <Compass className="w-5 h-5 text-sb-blue" />
           <h2 className="text-xl font-bold text-sb-navy tracking-tight">
             4. Tombol Interaktif (Pill-Shaped Buttons)
           </h2>
         </div>
 
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-center gap-3">
+        <div className="space-y-stack-md">
+          <div className="flex flex-wrap items-center gap-stack-sm">
             <Button variant="primary" size="md">
               Primary Action
             </Button>
@@ -422,7 +422,7 @@ export default function DesignSystemPage() {
             </Button>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 pt-2">
+          <div className="flex flex-wrap items-center gap-stack-sm pt-stack-xs">
             <Button variant="primary" size="sm">
               Small Pill
             </Button>
@@ -450,16 +450,16 @@ export default function DesignSystemPage() {
       {/* --------------------------------------------------------------------- */}
       {/* 5. Inputs & Form Controls */}
       {/* --------------------------------------------------------------------- */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-2.5 pb-2 border-b border-sb-border">
+      <section className="space-y-stack-xl">
+        <div className="flex items-center gap-stack-xs pb-stack-xs border-b border-sb-border">
           <Edit3 className="w-5 h-5 text-sb-blue" />
           <h2 className="text-xl font-bold text-sb-navy tracking-tight">
             5. Kontrol Input Form & Pencarian
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="space-y-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-stack-xl">
+          <div className="space-y-stack-xs">
             <SearchInput
               label="Search Input"
               placeholder="Cari lowongan atau keahlian..."
@@ -467,13 +467,13 @@ export default function DesignSystemPage() {
               onChange={(val) => setSearchValue(val)}
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-stack-xs">
             <TextInput
               label="Text Input"
               placeholder="Nama lengkap atau kontak..."
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-stack-xs">
             <Select
               label="Select Role"
               value={selectValue}
@@ -484,14 +484,14 @@ export default function DesignSystemPage() {
               ]}
             />
           </div>
-          <div className="sm:col-span-2 space-y-2">
+          <div className="sm:col-span-2 space-y-stack-xs">
             <Textarea
               label="Textarea Catatan"
               placeholder="Tambahkan catatan strategis lamaran kerjamu..."
               rows={3}
             />
           </div>
-          <div className="flex items-center pt-6">
+          <div className="flex items-center pt-stack-xl">
             <Checkbox
               label="Saya menyetujui pemrosesan data CV secara aman"
               checked={checkboxState}
@@ -504,20 +504,20 @@ export default function DesignSystemPage() {
       {/* --------------------------------------------------------------------- */}
       {/* 6. Badges & Status Indicators */}
       {/* --------------------------------------------------------------------- */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-2.5 pb-2 border-b border-sb-border">
+      <section className="space-y-stack-xl">
+        <div className="flex items-center gap-stack-xs pb-stack-xs border-b border-sb-border">
           <Check className="w-5 h-5 text-sb-blue" />
           <h2 className="text-xl font-bold text-sb-navy tracking-tight">
             6. Badges & Indikator Status Non-Warna
           </h2>
         </div>
 
-        <div className="space-y-4">
-          <div className="space-y-2">
+        <div className="space-y-stack-md">
+          <div className="space-y-stack-xs">
             <h4 className="text-xs font-bold uppercase tracking-wider text-sb-navy">
               Status Kesesuaian Lowongan (Figma MatchBadge)
             </h4>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-stack-sm">
               <MatchBadge status="match" score={88} />
               <MatchBadge status="underqualified" score={45} />
               <MatchBadge status="potentially_overqualified" score={92} />
@@ -525,11 +525,11 @@ export default function DesignSystemPage() {
             </div>
           </div>
 
-          <div className="space-y-2 pt-2">
+          <div className="space-y-stack-xs pt-stack-xs">
             <h4 className="text-xs font-bold uppercase tracking-wider text-sb-navy">
               Status Keberadaan Skill di CV
             </h4>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-stack-sm">
               <CVSkillBadge skillName="SQL" status="found" isMandatory />
               <CVSkillBadge skillName="Python" status="found" />
               <CVSkillBadge skillName="Tableau" status="missing" isMandatory />
@@ -542,8 +542,8 @@ export default function DesignSystemPage() {
       {/* --------------------------------------------------------------------- */}
       {/* 7. Filter Controls */}
       {/* --------------------------------------------------------------------- */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-2.5 pb-2 border-b border-sb-border">
+      <section className="space-y-stack-xl">
+        <div className="flex items-center gap-stack-xs pb-stack-xs border-b border-sb-border">
           <SlidersHorizontal className="w-5 h-5 text-sb-blue" />
           <h2 className="text-xl font-bold text-sb-navy tracking-tight">
             7. Kontrol Filter Dinamis
@@ -563,8 +563,8 @@ export default function DesignSystemPage() {
       {/* --------------------------------------------------------------------- */}
       {/* 8. Cards & Metric Displays */}
       {/* --------------------------------------------------------------------- */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-2.5 pb-2 border-b border-sb-border">
+      <section className="space-y-stack-xl">
+        <div className="flex items-center gap-stack-xs pb-stack-xs border-b border-sb-border">
           <Maximize2 className="w-5 h-5 text-sb-blue" />
           <h2 className="text-xl font-bold text-sb-navy tracking-tight">
             8. Kartu Metrik & Kartu Lowongan Kerja (JobCard)
@@ -572,14 +572,14 @@ export default function DesignSystemPage() {
         </div>
 
         {/* Metric Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-stack-md">
           <MetricCard
             title="Total Lowongan Relevan"
             value="26"
             subtitle="Tersaring untuk berbagai role pekerjaan di Indonesia"
             icon={<Briefcase className="w-4 h-4" />}
             badge={
-              <span className="text-[11px] font-semibold text-sb-good bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 font-mono-metric">
+              <span className="text-[11px] font-semibold text-sb-good bg-emerald-50 px-stack-xs py-stack-3xs rounded-full border border-emerald-200 font-mono-metric">
                 +4 baru
               </span>
             }
@@ -600,7 +600,7 @@ export default function DesignSystemPage() {
         </div>
 
         {/* Job Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-stack-xl pt-stack-xs">
           <JobCard
             id="job-demo-1"
             title="Junior Data Analyst"
@@ -640,8 +640,8 @@ export default function DesignSystemPage() {
       {/* --------------------------------------------------------------------- */}
       {/* 9. Data Table */}
       {/* --------------------------------------------------------------------- */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-2.5 pb-2 border-b border-sb-border">
+      <section className="space-y-stack-xl">
+        <div className="flex items-center gap-stack-xs pb-stack-xs border-b border-sb-border">
           <Database className="w-5 h-5 text-sb-blue" />
           <h2 className="text-xl font-bold text-sb-navy tracking-tight">
             9. Tabel Data (Responsive DataTable)
@@ -668,8 +668,8 @@ export default function DesignSystemPage() {
       {/* --------------------------------------------------------------------- */}
       {/* 10. Market Skill Insights Chart */}
       {/* --------------------------------------------------------------------- */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-2.5 pb-2 border-b border-sb-border">
+      <section className="space-y-stack-xl">
+        <div className="flex items-center gap-stack-xs pb-stack-xs border-b border-sb-border">
           <TrendingUp className="w-5 h-5 text-sb-blue" />
           <h2 className="text-xl font-bold text-sb-navy tracking-tight">
             10. Visualisasi Chart Kebutuhan Pasar
@@ -688,15 +688,15 @@ export default function DesignSystemPage() {
       {/* --------------------------------------------------------------------- */}
       {/* 11. Empty States */}
       {/* --------------------------------------------------------------------- */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-2.5 pb-2 border-b border-sb-border">
+      <section className="space-y-stack-xl">
+        <div className="flex items-center gap-stack-xs pb-stack-xs border-b border-sb-border">
           <AlertCircle className="w-5 h-5 text-sb-blue" />
           <h2 className="text-xl font-bold text-sb-navy tracking-tight">
             11. Kondisi Kosong (Empty State)
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-stack-xl">
           <EmptyState
             title="Tidak Ada Lowongan yang Cocok"
             description="Tidak ditemukan lowongan dengan filter aktif saat ini. Coba perluas lokasi atau ubah pilihan tipe kerja."
@@ -717,35 +717,35 @@ export default function DesignSystemPage() {
       {/* --------------------------------------------------------------------- */}
       {/* 12. Loading States & Skeletons */}
       {/* --------------------------------------------------------------------- */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-2.5 pb-2 border-b border-sb-border">
+      <section className="space-y-stack-xl">
+        <div className="flex items-center gap-stack-xs pb-stack-xs border-b border-sb-border">
           <Spinner size="sm" />
           <h2 className="text-xl font-bold text-sb-navy tracking-tight">
             12. Indikator Loading & Skeleton UI
           </h2>
         </div>
 
-        <div className="space-y-6">
-          <div className="flex flex-wrap items-center gap-6 p-4 rounded-2xl glass-panel">
+        <div className="space-y-stack-xl">
+          <div className="flex flex-wrap items-center gap-stack-xl p-stack-md rounded-2xl glass-panel">
             <Spinner size="sm" label="Memproses data (Small)..." />
             <Spinner size="md" label="Menganalisis kecocokan (Medium)..." />
             <Spinner size="lg" label="Mengekstrak CV (Large)..." />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-stack-xl">
+            <div className="space-y-stack-xs">
               <span className="text-xs text-sb-text-2 font-mono-metric">Skeleton Card</span>
               <SkeletonCard />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-stack-xs">
               <span className="text-xs text-sb-text-2 font-mono-metric">Skeleton Text & Blocks</span>
-              <Card className="p-6 space-y-4">
+              <Card className="p-stack-xl space-y-stack-md">
                 <SkeletonText lines={4} />
               </Card>
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-stack-xs">
             <span className="text-xs text-sb-text-2 font-mono-metric">Skeleton Table Loading</span>
             <SkeletonTable rows={3} />
           </div>
@@ -755,15 +755,15 @@ export default function DesignSystemPage() {
       {/* --------------------------------------------------------------------- */}
       {/* 13. Error & Alert Notifications */}
       {/* --------------------------------------------------------------------- */}
-      <section className="space-y-6 pb-12">
-        <div className="flex items-center gap-2.5 pb-2 border-b border-sb-border">
+      <section className="space-y-stack-xl pb-stack-4xl">
+        <div className="flex items-center gap-stack-xs pb-stack-xs border-b border-sb-border">
           <AlertCircle className="w-5 h-5 text-sb-critical" />
           <h2 className="text-xl font-bold text-sb-navy tracking-tight">
             13. Notifikasi Error & Alert State
           </h2>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-stack-md">
           <AlertBanner
             type="error"
             title="Gagal Membaca File Dokumen"
@@ -785,7 +785,7 @@ export default function DesignSystemPage() {
             message="Perubahan daftar skill CV-mu telah disimpan. Skor kecocokan lowongan otomatis diperhitungkan ulang."
           />
 
-          <div className="pt-2">
+          <div className="pt-stack-xs">
             <ErrorState
               title="Koneksi Layanan Terputus"
               message="Tidak dapat menjangkau server Supabase. Pastikan konfigurasi jaringan atau variabel lingkunganmu sudah benar."

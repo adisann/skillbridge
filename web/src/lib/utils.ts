@@ -1,5 +1,10 @@
 import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { extendTailwindMerge } from "tailwind-merge";
+
+// Daftarkan token jarak `stack-*` (lihat globals.css) agar cn() bisa menimpa kelas jarak dengan benar,
+// mis. cn("p-stack-lg", "p-stack-md") → "p-stack-md".
+const SPACING_TOKENS = ["3xs", "2xs", "xs", "sm", "md", "lg", "xl", "2xl", "3xl", "4xl", "5xl", "6xl", "7xl", "8xl"].map((t) => `stack-${t}`);
+const twMerge = extendTailwindMerge({ extend: { theme: { spacing: SPACING_TOKENS } } });
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

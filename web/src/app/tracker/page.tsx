@@ -31,7 +31,7 @@ export default function TrackerPage() {
     <ProtectedRoute>
       <Suspense
         fallback={
-          <div className="max-w-7xl mx-auto p-8">
+          <div className="max-w-7xl mx-auto px-stack-md sm:px-stack-xl lg:px-stack-2xl py-stack-xl">
             <div className="h-64 rounded-2xl bg-white border border-sb-border animate-pulse" />
           </div>
         }
@@ -372,8 +372,8 @@ function TrackerContent() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div className="space-y-6">
+    <div className="max-w-7xl mx-auto page-shell page-stack">
+      <div className="space-y-stack-xl">
         <TrackerHeader
           stageCounts={stageCounts}
           activeStageFilter={activeStageFilter}
@@ -405,13 +405,13 @@ function TrackerContent() {
         {compareMode && (
           <div
             role="status"
-            className="sticky top-3 z-20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-sb-blue/30 bg-white px-4 py-3 shadow-sm"
+            className="sticky top-3 z-20 flex flex-col sm:flex-row sm:items-center justify-between gap-stack-sm rounded-2xl border border-sb-blue/30 bg-white px-stack-md py-stack-sm shadow-sm"
           >
             <p className="text-sm text-sb-navy">
               <strong>Pilih 2–4 lowongan</strong> untuk dibandingkan.{" "}
               <span className="text-sb-text-2">{selectedJobIds.size} dipilih</span>
             </p>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-stack-xs">
               <Button variant="ghost" size="sm" onClick={toggleCompareMode}>
                 Batal
               </Button>
@@ -429,14 +429,14 @@ function TrackerContent() {
 
         {/* MAIN VIEW: TABLE OR KANBAN */}
         {isLoading ? (
-          <div className="p-12 text-center glass-panel rounded-2xl space-y-3">
+          <div className="p-stack-4xl text-center glass-panel rounded-2xl space-y-stack-sm">
             <div className="w-8 h-8 rounded-full border-2 border-sb-blue border-t-transparent animate-spin mx-auto" />
             <p className="text-xs font-semibold text-sb-text-2">
               Memuat status pelacakan lamaran...
             </p>
           </div>
         ) : displayedJobs.length === 0 ? (
-          <div className="p-12 text-center glass-panel rounded-2xl space-y-4">
+          <div className="p-stack-4xl text-center glass-panel rounded-2xl space-y-stack-md">
             <div className="w-12 h-12 rounded-2xl bg-sb-mist-faint text-sb-blue flex items-center justify-center mx-auto border border-sb-border">
               <Bookmark className="w-6 h-6" />
             </div>
@@ -444,12 +444,12 @@ function TrackerContent() {
               <h3 className="text-base font-bold text-sb-navy">
                 Belum ada lowongan di tahapan ini
               </h3>
-              <p className="text-xs text-sb-text-2 mt-1 max-w-md mx-auto">
+              <p className="text-xs text-sb-text-2 mt-stack-2xs max-w-md mx-auto">
                 Simpan lowongan menarik saat mencari lowongan atau tambahkan target pekerjaan
                 kamu secara mandiri untuk mulai melacak.
               </p>
             </div>
-            <div className="flex justify-center gap-2">
+            <div className="flex justify-center gap-stack-xs">
               <Link href="/jobs">
                 <Button
                   variant="primary"

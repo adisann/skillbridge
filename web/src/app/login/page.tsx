@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, UserCheck } from "lucide-react";
+import { UI_COPY } from "@/lib/copy";
 import { SkillBridgeLogo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 import { TextInput } from "@/components/ui/input";
@@ -37,11 +38,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[85vh] flex flex-col items-center justify-center py-10 px-4 sm:px-6 lg:px-8 space-y-6">
-      <div className="w-full max-w-md space-y-6">
-        <div className="text-center space-y-2">
+    <div className="min-h-[85vh] flex flex-col items-center justify-center py-stack-2xl px-stack-md sm:px-stack-xl lg:px-stack-2xl space-y-stack-lg">
+      <div className="w-full max-w-md space-y-stack-xl">
+        <div className="text-center space-y-stack-xs">
           <SkillBridgeLogo size="lg" />
-          <h2 className="text-2xl font-extrabold text-sb-navy tracking-tight pt-2">
+          <p className="text-sm font-medium text-sb-text-2">{UI_COPY.tagline}</p>
+          <h2 className="text-2xl font-extrabold text-sb-navy tracking-tight pt-stack-xs">
             Masuk ke Akun SkillBridge
           </h2>
           <p className="text-xs text-sb-text-2">
@@ -58,11 +60,11 @@ export default function LoginPage() {
         )}
 
         {user ? (
-          <Card className="border-sb-border shadow-md bg-sb-mist-faint text-center p-6 space-y-4">
+          <Card className="border-sb-border shadow-md bg-sb-mist-faint text-center p-stack-xl space-y-stack-md">
             <div className="w-12 h-12 rounded-full bg-sb-mist-soft text-sb-blue flex items-center justify-center mx-auto">
               <UserCheck className="w-6 h-6" />
             </div>
-            <div className="space-y-1">
+            <div className="space-y-stack-2xs">
               <h3 className="text-base font-bold text-sb-navy">
                 Kamu Sudah Masuk
               </h3>
@@ -70,7 +72,7 @@ export default function LoginPage() {
                 Terhubung sebagai <strong>{user.fullName}</strong> ({user.email}).
               </p>
             </div>
-            <div className="pt-2">
+            <div className="pt-stack-xs">
               <Link href="/dashboard" className="block">
                 <Button variant="primary" size="md" className="w-full justify-center">
                   Buka Dashboard
@@ -80,15 +82,15 @@ export default function LoginPage() {
           </Card>
         ) : (
           <Card className="border-sb-border shadow-md">
-            <CardHeader className="space-y-1">
+            <CardHeader className="space-y-stack-2xs">
               <CardTitle>Masuk</CardTitle>
               <CardDescription>
                 Masukkan email dan kata sandi akunmu.
               </CardDescription>
             </CardHeader>
 
-            <CardContent className="space-y-4">
-              <form onSubmit={handleRegularLogin} className="space-y-3.5">
+            <CardContent className="space-y-stack-md">
+              <form onSubmit={handleRegularLogin} className="space-y-stack-sm">
                 <TextInput
                   label="Email"
                   type="email"
@@ -112,7 +114,7 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   variant="primary"
-                  className="w-full justify-center mt-2"
+                  className="w-full justify-center mt-stack-xs"
                   isLoading={isLoading}
                 >
                   Masuk ke Akun

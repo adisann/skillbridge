@@ -19,12 +19,12 @@ function StatusIcon({ status }: { status: RequirementEvaluation["status"] }) {
 
 function RequirementRow({ req, jobId }: { req: RequirementEvaluation; jobId?: string }) {
   return (
-    <tr className="block sm:table-row py-3 sm:py-0 hover:bg-sb-mist-faint/50 transition-colors">
-      <td className="block sm:table-cell py-2 sm:py-3 px-3 font-bold text-sb-navy">{req.skill}</td>
-      <td className="inline-block sm:table-cell py-2 sm:py-3 px-3">
+    <tr className="block sm:table-row py-stack-sm sm:py-0 hover:bg-sb-mist-faint/50 transition-colors">
+      <td className="block sm:table-cell py-stack-xs sm:py-stack-sm px-stack-sm font-bold text-sb-navy">{req.skill}</td>
+      <td className="inline-block sm:table-cell py-stack-xs sm:py-stack-sm px-stack-sm">
         <span
           className={cn(
-            "px-2 py-0.5 rounded text-[11px] font-bold",
+            "px-stack-xs py-stack-3xs rounded text-[11px] font-bold",
             req.isMandatory
               ? "bg-sb-mist-soft text-sb-navy border border-sb-border"
               : "bg-white text-sb-text-2 border border-sb-border"
@@ -33,10 +33,10 @@ function RequirementRow({ req, jobId }: { req: RequirementEvaluation; jobId?: st
           {req.isMandatory ? "Wajib" : "Tambahan"}
         </span>
       </td>
-      <td className="inline-block sm:table-cell py-2 sm:py-3 px-3">
+      <td className="inline-block sm:table-cell py-stack-xs sm:py-stack-sm px-stack-sm">
         <span
           className={cn(
-            "inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-semibold text-[11px] border",
+            "inline-flex items-center gap-stack-2xs px-stack-xs py-stack-3xs rounded-full font-semibold text-[11px] border",
             STATUS_BADGE_CLASS[req.status]
           )}
         >
@@ -44,9 +44,9 @@ function RequirementRow({ req, jobId }: { req: RequirementEvaluation; jobId?: st
           {req.statusLabel}
         </span>
       </td>
-      <td className="block sm:table-cell py-2 sm:py-3 px-3 text-sb-text-2"><p className="italic mb-2">{req.evidence}</p>
-        {req.status === "belum_ditemukan" && <LearningButton skillName={req.skill} sourceJobId={jobId} reason="Belum ditemukan di CV saat meninjau persyaratan lowongan." />}
-        {req.status === "belum_cukup_bukti" && <Link className="text-sb-blue underline" href={`/cv?skill=${encodeURIComponent(req.skill)}#review-skills`}>Tinjau skill</Link>}
+      <td className="block sm:table-cell py-stack-xs sm:py-stack-sm px-stack-sm text-sb-text-2"><p className="italic mb-stack-xs">{req.evidence}</p>
+        {req.status === "belum_ditemukan" && <LearningButton size="chip" skillName={req.skill} sourceJobId={jobId} reason="Belum ditemukan di CV saat meninjau persyaratan lowongan." />}
+        {req.status === "belum_cukup_bukti" && <Link className="text-[11px] font-semibold text-sb-blue underline" href={`/cv?skill=${encodeURIComponent(req.skill)}#review-skills`}>Tinjau skill</Link>}
       </td>
     </tr>
   );
@@ -67,16 +67,16 @@ export function RequirementsAnalysisCard({ evaluations, jobId }: { evaluations: 
           <table className="w-full text-xs text-left">
             <thead className="hidden sm:table-header-group">
               <tr className="border-b border-sb-border text-sb-text-2 font-bold uppercase tracking-wider text-[11px]">
-                <th className="py-3 px-3">Kualifikasi</th>
-                <th className="py-3 px-3">Tipe</th>
-                <th className="py-3 px-3">Status CV</th>
-                <th className="py-3 px-3">Bukti dari Dokumen</th>
+                <th className="py-stack-sm px-stack-sm">Kualifikasi</th>
+                <th className="py-stack-sm px-stack-sm">Tipe</th>
+                <th className="py-stack-sm px-stack-sm">Status CV</th>
+                <th className="py-stack-sm px-stack-sm">Bukti dari Dokumen</th>
               </tr>
             </thead>
             <tbody className="block sm:table-row-group divide-y divide-sb-border">
               {evaluations.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="py-6 text-center text-sb-text-2">
+                  <td colSpan={4} className="py-stack-xl text-center text-sb-text-2">
                     Tidak ada persyaratan keahlian teknis spesifik yang terdaftar untuk posisi ini.
                   </td>
                 </tr>

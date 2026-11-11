@@ -47,9 +47,9 @@ function EditJobModalForm({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-      <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-sb-border">
-        <div className="flex items-center justify-between border-b border-sb-border pb-3">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-stack-md">
+      <div className="bg-white rounded-2xl max-w-lg w-full p-stack-xl shadow-2xl space-y-stack-md border border-sb-border">
+        <div className="flex items-center justify-between border-b border-sb-border pb-stack-sm">
           <div>
             <h3 className="text-base font-bold text-sb-navy">Perbarui Detail Pelacakan</h3>
             <p className="text-xs text-sb-text-2">
@@ -59,21 +59,21 @@ function EditJobModalForm({
           <button
             type="button"
             onClick={onClose}
-            className="text-sb-text-2 hover:text-sb-navy p-1 rounded-md cursor-pointer"
+            className="text-sb-text-2 hover:text-sb-navy p-stack-2xs rounded-md cursor-pointer"
             aria-label="Tutup"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+        <form onSubmit={handleSubmit} className="space-y-stack-md text-xs">
           {/* Stage */}
           <div>
-            <label className="block font-semibold text-sb-navy mb-1">Tahapan Lamaran</label>
+            <label className="block font-semibold text-sb-navy mb-stack-2xs">Tahapan Lamaran</label>
             <select
               value={formData.stage}
               onChange={(e) => setFormData({ ...formData, stage: e.target.value as JobStage })}
-              className="w-full py-2 px-3 rounded-xl border border-sb-border text-xs font-bold text-sb-navy focus:outline-hidden"
+              className="w-full py-stack-xs px-stack-sm rounded-xl border border-sb-border text-xs font-bold text-sb-navy focus:outline-hidden"
             >
               <option value="bookmarked">Tersimpan (Wishlist)</option>
               <option value="applying">Sedang Menyiapkan Berkas</option>
@@ -87,10 +87,10 @@ function EditJobModalForm({
 
           {/* Priority */}
           <div>
-            <label className="block font-semibold text-sb-navy mb-1">
+            <label className="block font-semibold text-sb-navy mb-stack-2xs">
               Prioritas (1–5 bintang)
             </label>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-stack-sm">
               <PriorityStars
                 value={formData.priority}
                 onChange={(val) => setFormData({ ...formData, priority: val })}
@@ -117,7 +117,7 @@ function EditJobModalForm({
           />
 
           {/* Date Applied & Interview Date */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-stack-sm">
             <TextInput
               type="date"
               label="Tanggal Melamar"
@@ -142,7 +142,7 @@ function EditJobModalForm({
             placeholder="Catatan persiapan wawancara, nama recruiter, poin keunggulan CV-mu..."
           />
 
-          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-sb-border">
+          <div className="flex items-center justify-end gap-stack-xs pt-stack-sm border-t border-sb-border">
             <Button variant="outline" size="sm" type="button" onClick={onClose}>
               Batal
             </Button>
@@ -249,21 +249,21 @@ export function AddJobModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-      <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-sb-border">
-        <div className="flex items-center justify-between border-b border-sb-border pb-3">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-stack-md">
+      <div className="bg-white rounded-2xl max-w-lg w-full p-stack-xl shadow-2xl space-y-stack-md border border-sb-border">
+        <div className="flex items-center justify-between border-b border-sb-border pb-stack-sm">
           <h3 className="text-base font-bold text-sb-navy">Tambah Lowongan Target</h3>
           <button
             type="button"
             onClick={onClose}
-            className="text-sb-text-2 hover:text-sb-navy p-1 rounded-md cursor-pointer"
+            className="text-sb-text-2 hover:text-sb-navy p-stack-2xs rounded-md cursor-pointer"
             aria-label="Tutup"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+        <form onSubmit={handleSubmit} className="space-y-stack-md text-xs">
           <SearchableJobCombobox
             jobs={catalogJobs}
             selectedJobId={selectedCatalogJobId}
@@ -284,17 +284,17 @@ export function AddJobModal({
 
           {!selectedCatalogJobId && (
             <>
-              <div className="relative flex py-1 items-center">
+              <div className="relative flex py-stack-2xs items-center">
                 <div className="flex-grow border-t border-sb-border" />
-                <span className="shrink-0 px-2 text-xs text-sb-text-2 font-medium">
+                <span className="shrink-0 px-stack-xs text-xs text-sb-text-2 font-medium">
                   atau isi sendiri
                 </span>
                 <div className="flex-grow border-t border-sb-border" />
               </div>
 
-              <div className="rounded-xl border border-dashed border-sb-border bg-sb-mist-faint/60 p-3 space-y-2">
+              <div className="rounded-xl border border-dashed border-sb-border bg-sb-mist-faint/60 p-stack-sm space-y-stack-xs">
                 <label
-                  className={`flex items-center gap-3 ${ocrStatus === "reading" ? "cursor-wait" : "cursor-pointer"}`}
+                  className={`flex items-center gap-stack-sm ${ocrStatus === "reading" ? "cursor-wait" : "cursor-pointer"}`}
                 >
                   <input
                     type="file"
@@ -322,9 +322,9 @@ export function AddJobModal({
                 {ocrMessage && (
                   <p
                     role="status"
-                    className={`flex items-start gap-1.5 ${ocrStatus === "error" ? "text-red-700" : "text-sb-navy"}`}
+                    className={`flex items-start gap-stack-2xs ${ocrStatus === "error" ? "text-red-700" : "text-sb-navy"}`}
                   >
-                    {ocrStatus === "done" && <CheckCircle2 className="w-3.5 h-3.5 text-sb-good shrink-0 mt-0.5" />}
+                    {ocrStatus === "done" && <CheckCircle2 className="w-3.5 h-3.5 text-sb-good shrink-0 mt-stack-3xs" />}
                     {ocrMessage}
                   </p>
                 )}
@@ -353,13 +353,13 @@ export function AddJobModal({
             </>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-stack-sm pt-stack-xs">
             <div>
-              <label className="block font-semibold text-sb-navy mb-1">Tahapan awal</label>
+              <label className="block font-semibold text-sb-navy mb-stack-2xs">Tahapan awal</label>
               <select
                 value={manualStage}
                 onChange={(e) => setManualStage(e.target.value as JobStage)}
-                className="w-full py-2 px-3 rounded-xl border border-sb-border text-xs font-semibold text-sb-navy focus:outline-hidden"
+                className="w-full py-stack-xs px-stack-sm rounded-xl border border-sb-border text-xs font-semibold text-sb-navy focus:outline-hidden"
               >
                 <option value="bookmarked">Tersimpan</option>
                 <option value="applying">Siapkan Berkas</option>
@@ -369,8 +369,8 @@ export function AddJobModal({
             </div>
 
             <div>
-              <label className="block font-semibold text-sb-navy mb-1">Prioritas</label>
-              <div className="pt-1.5">
+              <label className="block font-semibold text-sb-navy mb-stack-2xs">Prioritas</label>
+              <div className="pt-stack-2xs">
                 <PriorityStars
                   value={manualPriority}
                   onChange={(val) => setManualPriority(val)}
@@ -387,7 +387,7 @@ export function AddJobModal({
             placeholder="Contoh: Rp 12 juta – Rp 16 juta"
           />
 
-          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-sb-border">
+          <div className="flex items-center justify-end gap-stack-xs pt-stack-sm border-t border-sb-border">
             <Button variant="outline" size="sm" type="button" onClick={onClose}>
               Batal
             </Button>

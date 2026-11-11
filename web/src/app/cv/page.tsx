@@ -333,11 +333,11 @@ export default function CVPage() {
 
   return (
     <ProtectedRoute>
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <div className="max-w-5xl mx-auto page-shell page-stack">
         {/* Dark Hero Banner */}
-        <div className="page-banner rounded-3xl p-6 sm:p-8 text-sb-navy relative overflow-hidden">
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="space-y-2 max-w-2xl">
+        <div className="page-banner rounded-3xl p-stack-lg sm:p-stack-xl text-sb-navy relative overflow-hidden">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-stack-xl">
+            <div className="min-w-0 space-y-stack-xs max-w-2xl">
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-sb-navy">
                 CV & Profil Keahlian
               </h1>
@@ -346,10 +346,10 @@ export default function CVPage() {
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="px-3.5 py-2 rounded-2xl bg-white/70 border border-sb-border text-xs text-sb-navy">
-                <span className="text-sb-text-2">Status CV: </span>
-                <strong className="text-sb-blue font-semibold">{currentResume.filename}</strong>
+            <div className="flex min-w-0 max-w-full flex-wrap items-center gap-stack-sm">
+              <div className="flex min-w-0 max-w-full items-center gap-stack-2xs px-stack-sm py-stack-xs rounded-2xl bg-white/70 border border-sb-border text-xs text-sb-navy">
+                <span className="shrink-0 whitespace-nowrap text-sb-text-2">Status CV:</span>
+                <strong className="min-w-0 truncate text-sb-blue font-semibold" title={currentResume.filename}>{currentResume.filename}</strong>
               </div>
               <Link href="/jobs">
                 <Button variant="secondary" size="sm" className="">
@@ -378,21 +378,21 @@ export default function CVPage() {
               Dokumen disimpan secara aman dan privat di cloud storage. Ukuran maksimal 4 MB.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-stack-md">
             {/* Consent Checkbox */}
-            <label className="flex items-start gap-2.5 p-3.5 rounded-xl bg-sb-mist-soft border border-sb-border text-xs text-sb-navy cursor-pointer hover:bg-sb-mist-soft/80 transition-colors">
+            <label className="flex items-start gap-stack-xs p-stack-sm rounded-xl bg-sb-mist-soft border border-sb-border text-xs text-sb-navy cursor-pointer hover:bg-sb-mist-soft/80 transition-colors">
               <input
                 type="checkbox"
                 checked={consentGiven}
                 onChange={(e) => setConsentGiven(e.target.checked)}
-                className="mt-0.5 rounded border-sb-border text-sb-blue focus:ring-sb-blue"
+                className="mt-stack-3xs rounded border-sb-border text-sb-blue focus:ring-sb-blue"
               />
               <span>
                 <strong>Persetujuan Privasi:</strong> Saya menyetujui dokumen CV ini diproses secara aman untuk ekstraksi keterampilan kerja dan pencocokan lowongan. Dokumen dapat dihapus permanen kapan saja.
               </span>
             </label>
 
-            <div className="border-2 border-dashed border-sb-border hover:border-sb-blue rounded-2xl p-6 sm:p-8 text-center transition-colors bg-white/40">
+            <div className="border-2 border-dashed border-sb-border hover:border-sb-blue rounded-2xl p-stack-xl sm:p-stack-2xl text-center transition-colors bg-white/40">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -408,36 +408,36 @@ export default function CVPage() {
                   !consentGiven ? "opacity-50 cursor-not-allowed" : ""
                 }`}
               >
-                <div className="w-12 h-12 rounded-full bg-sb-mist-soft text-sb-blue flex items-center justify-center mb-2.5 shadow-2xs border border-sb-border">
+                <div className="w-12 h-12 rounded-full bg-sb-mist-soft text-sb-blue flex items-center justify-center mb-stack-xs shadow-2xs border border-sb-border">
                   <UploadCloud className="w-6 h-6" />
                 </div>
                 <span className="text-sm font-bold text-sb-navy">
                   {isLoading ? "Sedang Mengunggah & Memproses Dokumen..." : "Klik untuk Memilih Dokumen CV"}
                 </span>
-                <span className="text-xs text-sb-text-2 mt-1">
+                <span className="text-xs text-sb-text-2 mt-stack-2xs">
                   Format yang didukung: .PDF, .DOCX (Maksimal 4 MB)
                 </span>
               </label>
-              <Button type="button" variant="outline" size="sm" disabled={isLoading || !consentGiven} onClick={() => fileInputRef.current?.click()} className="mt-3">Pilih berkas CV</Button>
+              <Button type="button" variant="outline" size="sm" disabled={isLoading || !consentGiven} onClick={() => fileInputRef.current?.click()} className="mt-stack-sm">Pilih berkas CV</Button>
             </div>
           </CardContent>
         </Card>
 
         {/* Section 2: Role Target & Ringkasan Profil */}
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 gap-stack-xl">
           {/* Target karier tampil & diubah di bar CV/target di atas (tidak diulang di sini) */}
           <Card>
             <CardHeader>
               <CardTitle>Profil Hasil Ekstraksi (Pendidikan & Pengalaman)</CardTitle>
               <CardDescription>
-                File: <strong className="text-sb-navy">{currentResume.filename}</strong> — Kamu dapat mengoreksi kualifikasi sebelum disimpan.
+                File: <strong className="text-sb-navy [overflow-wrap:anywhere]">{currentResume.filename}</strong> — Kamu dapat mengoreksi kualifikasi sebelum disimpan.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
+            <CardContent className="space-y-stack-md">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-stack-sm text-xs">
                 {/* Editor Pendidikan */}
-                <div className="p-3.5 rounded-xl border border-sb-border bg-white/70 shadow-2xs space-y-1.5">
-                  <label htmlFor="cv-education" className="flex items-center gap-1.5 text-xs font-bold text-sb-navy">
+                <div className="p-stack-sm rounded-xl border border-sb-border bg-white/70 shadow-2xs space-y-stack-2xs">
+                  <label htmlFor="cv-education" className="flex items-center gap-stack-2xs text-xs font-bold text-sb-navy">
                     <GraduationCap className="w-4 h-4 text-sb-blue" />
                     Pendidikan Terakhir
                   </label>
@@ -450,14 +450,14 @@ export default function CVPage() {
                       setHasUnsavedDraft(true);
                     }}
                     placeholder="cth. S1 Sains Data / Sarjana Komputer"
-                    className="w-full text-xs font-semibold px-3 py-1.5 rounded-lg border border-sb-border focus:outline-none focus:ring-1 focus:ring-sb-blue bg-white text-sb-navy"
+                    className="w-full text-xs font-semibold px-stack-sm py-stack-2xs rounded-lg border border-sb-border focus:outline-none focus:ring-1 focus:ring-sb-blue bg-white text-sb-navy"
                   />
                   <span className="text-xs text-sb-text-2 block">Koreksi jenjang pendidikan formalmu.</span>
                 </div>
 
                 {/* Editor IPK */}
-                <div className="p-3.5 rounded-xl border border-sb-border bg-white/70 shadow-2xs space-y-1.5">
-                  <label htmlFor="cv-gpa" className="flex items-center gap-1.5 text-xs font-bold text-sb-navy">
+                <div className="p-stack-sm rounded-xl border border-sb-border bg-white/70 shadow-2xs space-y-stack-2xs">
+                  <label htmlFor="cv-gpa" className="flex items-center gap-stack-2xs text-xs font-bold text-sb-navy">
                     <GraduationCap className="w-4 h-4 text-sb-blue" />
                     IPK (skala 4,00)
                   </label>
@@ -472,7 +472,7 @@ export default function CVPage() {
                     }}
                     placeholder="cth. 3,75"
                     aria-invalid={currentResume.gpa !== "" && parseGpaValue(currentResume.gpa) === null}
-                    className="w-full text-xs font-semibold px-3 py-1.5 rounded-lg border border-sb-border focus:outline-none focus:ring-1 focus:ring-sb-blue bg-white text-sb-navy"
+                    className="w-full text-xs font-semibold px-stack-sm py-stack-2xs rounded-lg border border-sb-border focus:outline-none focus:ring-1 focus:ring-sb-blue bg-white text-sb-navy"
                   />
                   <span
                     className={cn(
@@ -487,12 +487,12 @@ export default function CVPage() {
                 </div>
 
                 {/* Editor Pengalaman Kerja */}
-                <div className="p-3.5 rounded-xl border border-sb-border bg-white/70 shadow-2xs space-y-1.5">
-                  <label className="flex items-center gap-1.5 text-xs font-bold text-sb-navy">
+                <div className="p-stack-sm rounded-xl border border-sb-border bg-white/70 shadow-2xs space-y-stack-2xs">
+                  <label className="flex items-center gap-stack-2xs text-xs font-bold text-sb-navy">
                     <Briefcase className="w-4 h-4 text-sb-good" />
                     Pengalaman Kerja Relevan
                   </label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-stack-xs">
                     {(["years", "months"] as const).map((part) => <label key={part} className="text-xs min-w-0">{part === "years" ? "Tahun" : "Bulan"}
                       <input type="number" min={0} max={part === "years" ? 80 : 11} step={1} value={experienceParts(currentResume.experienceYears)[part]}
                         onChange={(e) => {
@@ -502,20 +502,20 @@ export default function CVPage() {
                             setCurrentResume((prev) => ({ ...prev, experienceYears: years, experienceTargetRole: targetRole }));
                             setHasUnsavedDraft(true);
                           } catch (err) { setNotification({ type: "error", message: (err as Error).message }); }
-                        }} className="block w-full max-w-28 px-3 py-2 rounded-lg border border-sb-border bg-white" />
+                        }} className="block w-full max-w-28 px-stack-sm py-stack-xs rounded-lg border border-sb-border bg-white" />
                     </label>)}
                   </div>
-                  <div className="flex items-center justify-between gap-2 pt-1">
+                  <div className="flex items-center justify-between gap-stack-xs pt-stack-2xs">
                     <span className="text-xs text-sb-text-2">{currentResume.experienceTargetRole ? `Untuk ${currentResume.experienceTargetRole}` : "Relevansi belum dipilih"}</span>
-                    <div className="flex items-center gap-1 shrink-0">
-                      {targetRole && currentResume.experienceTargetRole !== targetRole && <button type="button" title={`Gunakan pengalaman ini untuk ${targetRole}`} aria-label={`Gunakan pengalaman ini untuk ${targetRole}`} className="p-2 rounded-lg text-sb-blue hover:bg-sb-mist-soft focus-visible:outline-2 focus-visible:outline-sb-blue" onClick={() => { setCurrentResume(prev => ({ ...prev, experienceTargetRole: targetRole })); setHasUnsavedDraft(true); }}><Check className="w-4 h-4"/></button>}
-                      <button type="button" title="Kosongkan pengalaman" aria-label="Kosongkan pengalaman" disabled={currentResume.experienceYears === null} className="p-2 rounded-lg text-sb-text-2 hover:bg-sb-mist-soft disabled:opacity-30 focus-visible:outline-2 focus-visible:outline-sb-blue" onClick={() => { setCurrentResume(prev => ({ ...prev, experienceYears: null, experienceTargetRole: targetRole })); setHasUnsavedDraft(true); }}><Eraser className="w-4 h-4"/></button>
+                    <div className="flex items-center gap-stack-2xs shrink-0">
+                      {targetRole && currentResume.experienceTargetRole !== targetRole && <button type="button" title={`Gunakan pengalaman ini untuk ${targetRole}`} aria-label={`Gunakan pengalaman ini untuk ${targetRole}`} className="p-stack-xs rounded-lg text-sb-blue hover:bg-sb-mist-soft focus-visible:outline-2 focus-visible:outline-sb-blue" onClick={() => { setCurrentResume(prev => ({ ...prev, experienceTargetRole: targetRole })); setHasUnsavedDraft(true); }}><Check className="w-4 h-4"/></button>}
+                      <button type="button" title="Kosongkan pengalaman" aria-label="Kosongkan pengalaman" disabled={currentResume.experienceYears === null} className="p-stack-xs rounded-lg text-sb-text-2 hover:bg-sb-mist-soft disabled:opacity-30 focus-visible:outline-2 focus-visible:outline-sb-blue" onClick={() => { setCurrentResume(prev => ({ ...prev, experienceYears: null, experienceTargetRole: targetRole })); setHasUnsavedDraft(true); }}><Eraser className="w-4 h-4"/></button>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-stack-2xs">
                 <label htmlFor="cv-summary" className="text-[11px] font-semibold text-sb-text-2">Ringkasan Profil Dokumen:</label>
                 <input
                   type="text"
@@ -525,7 +525,7 @@ export default function CVPage() {
                     setCurrentResume((prev) => ({ ...prev, summary: e.target.value }));
                     setHasUnsavedDraft(true);
                   }}
-                  className="w-full text-xs text-sb-navy px-3 py-1.5 rounded-lg border border-sb-border focus:outline-none focus:ring-1 focus:ring-sb-blue bg-white"
+                  className="w-full text-xs text-sb-navy px-stack-sm py-stack-2xs rounded-lg border border-sb-border focus:outline-none focus:ring-1 focus:ring-sb-blue bg-white"
                   placeholder="Ringkasan kualifikasi singkat..."
                 />
               </div>
@@ -535,19 +535,19 @@ export default function CVPage() {
 
         {/* Section 3: Koreksi Skill Pengguna */}
         <Card id="review-skills">
-          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-stack-xs">
             <div>
-              <CardTitle className="flex flex-wrap items-center gap-2">
+              <CardTitle className="flex flex-wrap items-center gap-stack-xs">
                 <span>2. Tinjau & Koreksi Daftar Skill</span>
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-sb-mist-soft text-sb-blue border border-sb-border font-mono-metric">
+                <span className="px-stack-xs py-stack-3xs rounded-full text-[11px] font-semibold bg-sb-mist-soft text-sb-blue border border-sb-border font-mono-metric">
                   {skills.length} Skill Terdaftar
                 </span>
                 {hasUnsavedDraft ? (
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sb-warning/15 text-sb-warning border border-sb-warning/30">
+                  <span className="px-stack-xs py-stack-3xs rounded-full text-xs font-bold bg-sb-warning/15 text-sb-warning border border-sb-warning/30">
                     Belum disimpan
                   </span>
                 ) : (
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sb-good/10 text-sb-good border border-sb-good/30">
+                  <span className="px-stack-xs py-stack-3xs rounded-full text-xs font-semibold bg-sb-good/10 text-sb-good border border-sb-good/30">
                     {currentResume.id ? "Tersimpan" : "Belum ada CV tersimpan"}
                   </span>
                 )}
@@ -567,24 +567,24 @@ export default function CVPage() {
               Hapus CV Permanen
             </Button>
           </CardHeader>
-          <CardContent className="space-y-5">
+          <CardContent className="space-y-stack-lg">
             <p className="text-xs text-sb-text-2">Koreksi daftar skill, lalu simpan untuk digunakan dalam analisis. Ikon pengguna menandai skill yang ditambahkan sendiri.</p>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-stack-xs">
               {skills.length === 0 && <p className="text-sm text-sb-text-2">Belum ada skill. Tambahkan di bawah.</p>}
-              {skills.map(name => <span key={name} className="inline-flex items-center gap-1.5 pl-3 pr-1 py-1 rounded-full bg-sb-mist-soft border border-sb-border text-sm font-semibold text-sb-navy">
+              {skills.map(name => <span key={name} className="inline-flex items-center gap-stack-2xs pl-stack-sm pr-stack-2xs py-stack-2xs rounded-full bg-sb-mist-soft border border-sb-border text-sm font-semibold text-sb-navy">
                 {manualSkills.includes(name) && <UserRound className="w-3.5 h-3.5 text-sb-blue" aria-label="Ditambahkan sendiri"><title>Ditambahkan sendiri</title></UserRound>}
                 {name}
-                <button type="button" onClick={() => handleRemoveSkill(name)} aria-label={`Hapus ${name}`} title={`Hapus ${name}`} className="p-1.5 rounded-full text-sb-text-2 hover:bg-white hover:text-sb-critical focus-visible:outline-2 focus-visible:outline-sb-blue"><X className="w-3.5 h-3.5"/></button>
+                <button type="button" onClick={() => handleRemoveSkill(name)} aria-label={`Hapus ${name}`} title={`Hapus ${name}`} className="p-stack-2xs rounded-full text-sb-text-2 hover:bg-white hover:text-sb-critical focus-visible:outline-2 focus-visible:outline-sb-blue"><X className="w-3.5 h-3.5"/></button>
               </span>)}
             </div>
-            {skills.length > 0 && <details className="text-xs text-sb-text-2"><summary className="cursor-pointer text-sb-blue font-semibold">Lihat asal skill</summary><ul className="mt-3 space-y-3">{skills.map(name => {
+            {skills.length > 0 && <details className="text-xs text-sb-text-2"><summary className="cursor-pointer text-sb-blue font-semibold">Lihat asal skill</summary><ul className="mt-stack-sm space-y-stack-sm">{skills.map(name => {
               const detail = skillDetails.find(skill => skill.name === name);
               const manual = manualSkills.includes(name);
-              return <li key={name} className="rounded-lg border border-sb-border p-3 bg-white/60"><div className="flex items-center justify-between gap-2"><strong className="text-sb-navy">{name}</strong><span>{manual ? "Ditambahkan sendiri" : "Hasil CV"}</span></div>{!manual && detail?.evidence && <p className="mt-1 line-clamp-2" title={detail.evidence}>{detail.evidence}</p>}{!manual && <button type="button" className="mt-2 inline-flex items-center gap-1 text-sb-blue underline" onClick={() => { setManualSkills(previous => [...previous, name]); setSkillDetails(previous => previous.map(skill => skill.name === name ? { ...skill, needsReview: false, claimed: true } : skill)); setHasUnsavedDraft(true); }}><UserRound className="w-3.5 h-3.5"/>Tandai ditambahkan sendiri</button>}</li>;
+              return <li key={name} className="rounded-lg border border-sb-border p-stack-sm bg-white/60"><div className="flex items-center justify-between gap-stack-xs"><strong className="text-sb-navy">{name}</strong><span>{manual ? "Ditambahkan sendiri" : "Hasil CV"}</span></div>{!manual && detail?.evidence && <p className="mt-stack-2xs line-clamp-2" title={detail.evidence}>{detail.evidence}</p>}{!manual && <button type="button" className="mt-stack-xs inline-flex items-center gap-stack-2xs text-sb-blue underline" onClick={() => { setManualSkills(previous => [...previous, name]); setSkillDetails(previous => previous.map(skill => skill.name === name ? { ...skill, needsReview: false, claimed: true } : skill)); setHasUnsavedDraft(true); }}><UserRound className="w-3.5 h-3.5"/>Tandai ditambahkan sendiri</button>}</li>;
             })}</ul></details>}
 
             {/* Add Skill Input */}
-            <div className="flex items-end gap-2 max-w-lg">
+            <div className="flex items-end gap-stack-xs max-w-lg">
               <div className="flex-1 min-w-0">
                 <TextInput
                   label="Tambah skill"
@@ -608,8 +608,8 @@ export default function CVPage() {
             </div>
           </CardContent>
 
-          <CardFooter className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white/50 rounded-b-2xl border-t border-sb-border">
-            <span className="text-xs text-sb-text-2 flex items-center gap-1.5">
+          <CardFooter className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-stack-sm bg-white/50 rounded-b-2xl border-t border-sb-border">
+            <span className="text-xs text-sb-text-2 flex items-center gap-stack-2xs">
               {hasUnsavedDraft ? (
                 <>
                   <AlertCircle className="w-3.5 h-3.5 text-sb-warning shrink-0" />
@@ -622,7 +622,7 @@ export default function CVPage() {
                 </>
               )}
             </span>
-            <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap items-center gap-stack-sm w-full xl:w-auto">
               <Button
                 variant={hasUnsavedDraft ? "primary" : "outline"}
                 size="md"
@@ -632,13 +632,13 @@ export default function CVPage() {
               >
                 {isSaving ? (
                   <>
-                    <Spinner size="sm" className="mr-2" />
+                    <Spinner size="sm" className="mr-stack-xs" />
                     Menyimpan & Menghitung Kecocokan...
                   </>
                 ) : (
                   <>
                     Simpan CV & analisis
-                    <ArrowRight className="w-4 h-4 ml-2" />
+                    <ArrowRight className="w-4 h-4 ml-stack-xs" />
                   </>
                 )}
               </Button>

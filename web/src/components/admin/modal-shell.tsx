@@ -39,8 +39,8 @@ export function ModalShell({ size, children, onClose }: ModalShellProps) {
     return () => {document.body.style.overflow=overflow;document.removeEventListener("keydown",keydown);previous?.focus();};
   }, [id]);
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-      <div ref={panel} role="dialog" aria-modal="true" aria-labelledby={id} tabIndex={-1} className={`bg-white rounded-2xl w-full p-6 shadow-2xl space-y-4 ${PANEL_SIZE[size]}`}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-stack-md">
+      <div ref={panel} role="dialog" aria-modal="true" aria-labelledby={id} tabIndex={-1} className={`bg-white rounded-2xl w-full p-stack-xl shadow-2xl space-y-stack-md ${PANEL_SIZE[size]}`}>
         {children}
       </div>
     </div>
@@ -54,12 +54,12 @@ interface ModalHeaderProps {
 
 export function ModalHeader({ onClose, children }: ModalHeaderProps) {
   return (
-    <div className="flex items-center justify-between border-b border-sb-border pb-3">
+    <div className="flex items-center justify-between border-b border-sb-border pb-stack-sm">
       {children}
       <button
         type="button"
         onClick={onClose}
-        className="text-sb-text-2 hover:text-sb-navy p-1 rounded-md"
+        className="text-sb-text-2 hover:text-sb-navy p-stack-2xs rounded-md"
         aria-label="Tutup"
       >
         <X className="w-4 h-4" />
@@ -70,10 +70,10 @@ export function ModalHeader({ onClose, children }: ModalHeaderProps) {
 
 export function ModalFooter({ children }: { children: ReactNode }) {
   return (
-    <div className="sticky bottom-0 bg-white flex flex-wrap items-center justify-end gap-3 py-3 border-t border-sb-border">{children}</div>
+    <div className="sticky bottom-0 bg-white flex flex-wrap items-center justify-end gap-stack-sm py-stack-sm border-t border-sb-border">{children}</div>
   );
 }
 
 export function ModalError({ message }: { message: string }) {
-  return <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700">{message}</div>;
+  return <div className="p-stack-sm rounded-lg bg-red-50 border border-red-200 text-xs text-red-700">{message}</div>;
 }

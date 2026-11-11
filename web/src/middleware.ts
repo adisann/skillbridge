@@ -9,7 +9,13 @@ export async function middleware(request: NextRequest) {
   let isAuthenticated = false;
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  const response = NextResponse.next({ request });
+  let response = NextResponse.next({ request });
+
+  const redirect = (url: URL) => {
+    const result = NextResponse.redirect(url);
+    response.cookies.getAll().forEach((cookie) => result.cookies.set(cookie));
+    return result;
+  };
 
   if (supabaseUrl && supabaseAnonKey) {
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
@@ -18,6 +24,8 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+          response = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
         },
       },
@@ -40,13 +48,13 @@ export async function middleware(request: NextRequest) {
     if (pathname === "/jobs" || pathname.startsWith("/jobs/")) {
       const publicPath = pathname.replace(/^\/jobs/, "/lowongan");
       const url = new URL(`${publicPath}${search}`, request.url);
-      return NextResponse.redirect(url);
+      return redirect(url);
     }
 
     if (pathname === "/insights" || pathname.startsWith("/insights/")) {
       const publicPath = pathname.replace(/^\/insights/, "/tren-skill");
       const url = new URL(`${publicPath}${search}`, request.url);
-      return NextResponse.redirect(url);
+      return redirect(url);
     }
 
     // Rute wajib login lainnya
@@ -66,7 +74,7 @@ export async function middleware(request: NextRequest) {
     if (isProtected) {
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("next", `${pathname}${search}`);
-      return NextResponse.redirect(loginUrl);
+      return redirect(loginUrl);
     }
   }
 
@@ -79,13 +87,13 @@ export async function middleware(request: NextRequest) {
     if (pathname === "/lowongan" || pathname.startsWith("/lowongan/")) {
       const appPath = pathname.replace(/^\/lowongan/, "/jobs");
       const url = new URL(`${appPath}${search}`, request.url);
-      return NextResponse.redirect(url);
+      return redirect(url);
     }
 
     if (pathname === "/tren-skill" || pathname.startsWith("/tren-skill/")) {
       const appPath = pathname.replace(/^\/tren-skill/, "/insights");
       const url = new URL(`${appPath}${search}`, request.url);
-      return NextResponse.redirect(url);
+      return redirect(url);
     }
   }
 

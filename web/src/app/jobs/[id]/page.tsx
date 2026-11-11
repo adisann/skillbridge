@@ -14,7 +14,7 @@ export default function JobDetailPage({
   return (
     <Suspense
       fallback={
-        <div className="max-w-5xl mx-auto px-4 py-16 text-center text-sm text-sb-text-2">
+        <div className="max-w-5xl mx-auto px-stack-md py-stack-5xl text-center text-sm text-sb-text-2">
           Memuat rincian lowongan kerja...
         </div>
       }

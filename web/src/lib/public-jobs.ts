@@ -4,6 +4,7 @@ import { getServiceSupabase } from "@/lib/supabase/server";
 import { getCanonicalSkill } from "@/lib/matching-config";
 import { getCategoryFromTitle, getCategoryBySlug } from "@/lib/job-categories";
 import { isOverseasLocation } from "@/lib/utils";
+import { jobExperienceYears } from "@/lib/job-experience";
 
 interface RawPublicJobSkill {
   is_mandatory: boolean;
@@ -42,6 +43,13 @@ export interface RawPublicJob {
   job_skills: RawPublicJobSkill[];
 }
 
+// Kolom untuk katalog. Sengaja tanpa `embedding` (vector 768) dan tanpa menyimpan deskripsi lengkap:
+// keduanya membuat data cache melewati batas 2 MB unstable_cache. Deskripsi hanya dipakai halaman detail.
+const CATALOG_COLUMNS =
+  "id, external_id, title, canonical_title, company, location, employment_type, seniority, experience_years_min, " +
+  "education, min_gpa, salary_min, salary_max, salary_currency, salary_period, description, source_name, source_url, " +
+  "retrieval_method, retrieved_at, expires_at, is_active, job_skills(is_mandatory, requirement_snippet, skills(id, name, category))";
+
 /**
  * Mengambil katalog lowongan publik aktif dari database.
  * Di-cache di memory server dengan unstable_cache selama 15 menit (tag: 'jobs').
@@ -52,7 +60,7 @@ export const getCachedPublicJobs = unstable_cache(
       const supabase = getServiceSupabase();
       const { data: jobs, error } = await supabase
         .from("jobs")
-        .select("*, job_skills(is_mandatory, requirement_snippet, skills(id, name, category))")
+        .select(CATALOG_COLUMNS)
         .eq("is_active", true)
         .order("created_at", { ascending: false });
 
@@ -62,7 +70,14 @@ export const getCachedPublicJobs = unstable_cache(
       }
 
       // Lowongan contoh/seed tidak ikut katalog publik, statistik, tren skill, maupun rekomendasi
-      return ((jobs || []) as unknown as RawPublicJob[]).filter((job) => !isDemoJob(job));
+      return ((jobs || []) as unknown as RawPublicJob[])
+        .filter((job) => !isDemoJob(job))
+        .map((job) => ({
+          ...job,
+          // Syarat pengalaman dari deskripsi dihitung sekali di sini, lalu deskripsi tidak ikut disimpan di cache
+          experience_years_min: jobExperienceYears(job.experience_years_min, job.description) ?? undefined,
+          description: "",
+        }));
     } catch (err) {
       console.error("[getCachedPublicJobs] Exception:", err);
       return [];
@@ -279,7 +294,7 @@ export function aggregateMarketData(
     .map((s) => ({
       skillName: s.skillName,
       demandPercentage: s.percentage,
-      reason: `Diminta di ${s.frequencyCount} dari ${sampleSizeN} lowongan.`,
+      reason: `Diminta di ${s.frequencyCount} dari ${sampleSizeN} lowongan target.`,
       priority: s.mandatoryCount > 0 ? "Tinggi" : "Sedang",
       action: "Pelajari",
     }));

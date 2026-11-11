@@ -12,28 +12,28 @@ interface MarketSkillsCardProps {
 
 export function MarketSkillsCard({ totalJobsCount, topMarketSkills, targetRole }: MarketSkillsCardProps) {
   return (
-    <div className="lg:col-span-5 glass-panel rounded-2xl p-5 sm:p-6 shadow-2xs lift-card flex flex-col justify-between space-y-4 border border-sb-border">
-      <div className="space-y-3">
+    <div className="lg:col-span-5 glass-panel rounded-2xl p-stack-lg sm:p-stack-xl shadow-2xs lift-card flex flex-col justify-between space-y-stack-md border border-sb-border">
+      <div className="space-y-stack-sm">
         <div>
           <p className="text-3xl font-extrabold text-sb-navy tracking-tight font-mono-metric">
             {totalJobsCount}
           </p>
-          <p className="text-xs text-sb-text-2 font-medium mt-0.5">
-            lowongan aktif untuk {targetRole || "Semua Bidang"}
+          <p className="text-xs text-sb-text-2 font-medium mt-stack-3xs">
+            lowongan target aktif untuk {targetRole || "Semua Bidang"}
           </p>
         </div>
 
-        <div className="space-y-2.5 pt-1">
+        <div className="space-y-stack-xs pt-stack-2xs">
           <p className="text-xs font-bold text-sb-text-2">
             Skill paling dicari
           </p>
           {topMarketSkills.length > 0 ? (
-            <div className="space-y-2.5 text-xs">
+            <div className="space-y-stack-xs text-xs">
               {topMarketSkills.map((item, idx) => (
-                <div key={item.skillName} className="space-y-1">
-                  <div className="flex items-center justify-between text-sb-navy font-semibold">
+                <div key={item.skillName} className="space-y-stack-2xs">
+                  <div className="flex flex-wrap items-center justify-between gap-stack-2xs text-sb-navy font-semibold">
                     <span>#{idx + 1} {item.skillName}</span>
-                    <span className="text-sb-blue font-bold font-mono-metric">{formatPercent(item.percentage)}% lowongan</span>
+                    <span className="text-sb-blue font-bold font-mono-metric">{formatPercent(item.percentage)}% lowongan target</span>
                   </div>
                   <div className="w-full bg-sb-mist-soft rounded-full h-1.5 overflow-hidden">
                     <div
@@ -45,14 +45,14 @@ export function MarketSkillsCard({ totalJobsCount, topMarketSkills, targetRole }
               ))}
             </div>
           ) : (
-            <div className="py-3 text-xs text-sb-text-2 italic">
+            <div className="py-stack-sm text-xs text-sb-text-2 italic">
               Memuat data skill pasar...
             </div>
           )}
         </div>
       </div>
 
-      <Link href="/insights" className="block pt-2 border-t border-sb-border">
+      <Link href="/insights" className="block pt-stack-xs border-t border-sb-border">
         <Button
           variant="outline"
           size="sm"

@@ -6,7 +6,7 @@ export default function JobsPage() {
   return (
     <Suspense
       fallback={
-        <div className="max-w-[1380px] mx-auto px-4 sm:px-8 py-8 space-y-4">
+        <div className="max-w-7xl mx-auto page-shell page-stack">
           <SkeletonCard />
         </div>
       }
